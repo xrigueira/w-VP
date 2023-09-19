@@ -1,2 +1,2 @@
 # w-imRF
- Iterative multiresolution Random Forest for anomaly discobery and classification.
+ Iterative multiresolution Random Forest for anomaly discovery and classification.
