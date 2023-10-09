@@ -12,5 +12,3 @@ file_background.close()
 # Train a classifier?
 from sklearn.ensemble import RandomForestClassifier
 model = RandomForestClassifier(random_state=0)
-
-# Fit the model to the training data
