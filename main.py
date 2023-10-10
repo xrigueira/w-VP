@@ -63,6 +63,10 @@ X_test, y_test = X[int(len(X) * 0.75):], y[int(len(X) * 0.75):]
 # Fit the model to the training data
 model.fit(X_train, y_train)
 
+# Save the model to disk
+filename = 'models/rf_model.sav'
+pickle.dump(model, open(filename, 'wb'))
+
 from sklearn.metrics import confusion_matrix as cm
 confusion_matrix = cm(y_test, model.predict(X_test))
 print(confusion_matrix)
