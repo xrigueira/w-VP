@@ -33,44 +33,53 @@ def windower(data, num_variables, window_size, stride):
     
     return windows
 
-anomalies_windows = windower(anomalies, num_variables=6, window_size=4, stride=1)
-background_windows = windower(background, num_variables=6, window_size=4, stride=1)
+if __name__ == '__main__':
 
-# Generate labels for each window
-anomalies_labels = np.array([1 for i in anomalies_windows])
-background_labels = np.array([0 for i in background_windows])
+    anomalies_windows = windower(anomalies, num_variables=6, window_size=4, stride=1)
+    background_windows = windower(background, num_variables=6, window_size=4, stride=1)
 
-# Concatenate arrays
-X = np.concatenate((anomalies_windows, background_windows))
-y = np.concatenate((anomalies_labels, background_labels))
+    # Generate labels for each window
+    anomalies_labels = np.array([1 for i in anomalies_windows])
+    background_labels = np.array([0 for i in background_windows])
 
-# Shuffle data
-combined = np.column_stack((X, y))
-np.random.seed(0)
-np.random.shuffle(combined)
+    # Concatenate arrays
+    X = np.concatenate((anomalies_windows, background_windows))
+    y = np.concatenate((anomalies_labels, background_labels))
 
-# Split the shuffled array back into data and labels
-X, y = combined[:, :-1], combined[:, -1]
+    # Shuffle data
+    combined = np.column_stack((X, y))
+    np.random.seed(0)
+    np.random.shuffle(combined)
 
-# Train a classifier
-from sklearn.ensemble import RandomForestClassifier
-model = RandomForestClassifier(random_state=0)
+    # Split the shuffled array back into data and labels
+    X, y = combined[:, :-1], combined[:, -1]
 
-# Split the shuffled data into the training and testing set
-X_train, y_train = X[:int(len(X) * 0.75)], y[:int(len(X) * 0.75)]
-X_test, y_test = X[int(len(X) * 0.75):], y[int(len(X) * 0.75):]
+    # Train a classifier
+    from sklearn.ensemble import RandomForestClassifier
+    model = RandomForestClassifier(random_state=0)
 
-# Fit the model to the training data
-model.fit(X_train, y_train)
+    # Split the shuffled data into the training and testing set
+    X_train, y_train = X[:int(len(X) * 0.75)], y[:int(len(X) * 0.75)]
+    X_test, y_test = X[int(len(X) * 0.75):], y[int(len(X) * 0.75):]
 
-# Save the model to disk
-filename = 'models/rf_model.sav'
-pickle.dump(model, open(filename, 'wb'))
+    # Fit the model to the training data
+    model.fit(X_train, y_train)
 
-from sklearn.metrics import confusion_matrix as cm
-confusion_matrix = cm(y_test, model.predict(X_test))
-print(confusion_matrix)
+    # Save the model to disk
+    filename = 'models/rf_model.sav'
+    pickle.dump(model, open(filename, 'wb'))
 
-# Get the number of rows labeled as anomalies in y_test
-num_anomalies = len([i for i in y_test if i==1])
-print('Number of anomalies', num_anomalies)
+    from sklearn.metrics import confusion_matrix as cm
+    confusion_matrix = cm(y_test, model.predict(X_test))
+    print(confusion_matrix)
+
+    # Get the number of rows labeled as anomalies in y_test
+    num_anomalies = len([i for i in y_test if i==1])
+    print('Number of anomalies', num_anomalies)
+
+# Save the model and continue in another file:
+# 1. Make windows of new data
+# 2. Classification
+# 3. Get percentage of anomaly chance
+# 4. Incorporate the windows with the highest percentage
+# to the dataset.
