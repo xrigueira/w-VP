@@ -8,6 +8,29 @@ import pandas as pd
     2. background_data.npy: contains 5 times the len(anomaly_data)
     of nonanomalous data also know as background."""
 
+def windower(data, num_variables, window_size, stride):
+
+    """Takes a 2D array with multivariate time series data
+    and creates sliding windows. The arrays store the different
+    variables in a consecutive manner. E.g. [first 6 variables,
+    next 6 variables, and so on]."""
+    
+    windows = []
+    for i in data:
+        
+        # Get the number of windows
+        num_windows = (len(i) - window_size * num_variables) // num_variables + 1
+        
+        # Create windows
+        for j in range(0, num_windows, stride * num_variables):
+            window = i[j:j+window_size * num_variables]  # Extract a window of 4 time steps (4 * 6 variables)
+            windows.append(window)
+
+    # Convert the result to a NumPy array
+    windows = np.array(windows)
+    
+    return windows
+
 def anomalies(trim_percentage):
 
     # Load the DataFrame from your dataset
@@ -134,7 +157,7 @@ def background(anomaly_data, background_indexes, seed, ratio, iteration):
         subset_rows = data_background.iloc[start:end + 1, 1:-2].values.flatten() # Extarct rows withing the subset
         background_data.append(subset_rows)
     
-    # Save anomalies_data to disk as numpy object
+    # Save anomalies_data to disk as pickle object
     with open(f'background_data_{iteration}.pkl', 'wb') as file:
         pickle.dump(background_data, file)
         

@@ -2,18 +2,57 @@ import random
 import pickle
 import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
+
+from sklearn.ensemble import RandomForestClassifier
 
 """This file contains the main class imRF which implements
 iterative multiresolution Random Forest."""
 
 class imRF():
     
-    def __init__(self, station, trim_percentage, ratio, seed) -> None:
+    def __init__(self, station, trim_percentage, ratio, num_variables, window_size, stride, seed) -> None:
         
         self.station = station
         self.trim_percentage = trim_percentage
         self.ratio = ratio
+        self.num_variables = num_variables
+        self.window_size = window_size
+        self.stride = stride
         self.seed = seed
+        
+    def windower(self, data):
+
+        """Takes a 2D array with multivariate time series data
+        and creates sliding windows. The arrays store the different
+        variables in a consecutive manner. E.g. [first 6 variables,
+        next 6 variables, and so on].
+        ----------
+        Arguments:
+        data (pickle): file with the time-series data to turn 
+        into windows.
+        num_variables (int): the number of variables in the data.
+        window_size (int): the size of the windows.
+        stride (int): the stride of the windows.
+        
+        Returns:
+        windows (np.array): time series data grouped in windows"""
+        
+        windows = []
+        for i in data:
+            
+            # Get the number of windows
+            num_windows = (len(i) - self.window_size * self.num_variables) // self.num_variables + 1
+            
+            # Create windows
+            for j in range(0, num_windows, self.stride * self.num_variables):
+                window = i[j:j+self.window_size * self.num_variables]  # Extract a window of 4 time steps (4 * 6 variables)
+                windows.append(window)
+
+        # Convert the result to a NumPy array
+        windows = np.array(windows)
+        
+        return windows
     
     def anomalies(self):
         
@@ -24,11 +63,12 @@ class imRF():
         self.
         
         Stores:
-        anomaly_data (pickle): file with the multivariate data
+        anomaly_data (pickle): file with the multivariate data.
         from each anomaly.
         
         Returns:
-        trimmed_anomalies_indexes (list): start and end index of each anomaly.
+        trimmed_anomalies_indexes (list): start and end indexes of the extracted
+        anomaly data.
         """
         
         # Load the data
@@ -61,9 +101,11 @@ class imRF():
         for start, end in trimmed_anomalies_indexes:
             subset_rows = data.iloc[start:end + 1, 1:-2].values.flatten()  # Extract rows within the subset
             anomaly_data.append(subset_rows)
+            
+        # Continue here. Window the data before saving
         
-        # Save anomalys_data to disk as pickle object
-        with open('anomaly_data.pkl', 'wb') as file:
+        # Save anomaly_data to disk as pickle object
+        with open('anomaly_data_0.pkl', 'wb') as file:
             pickle.dump(anomaly_data, file)
         
         return trimmed_anomalies_indexes
@@ -76,6 +118,8 @@ class imRF():
         -----------
         Arguments:
         self.
+        anomalies_indexes (list): start and end indexes of the extracted
+        anomaly data.
         
         Saves:
         background_data (pickle): file with 'ratio' times more 
@@ -98,7 +142,7 @@ class imRF():
         
         # Filter the dataset to include only days that meet the ammonium level the condition
         mean_ammonium = np.mean(data_background.ammonium_901)
-        data_background = data_background.groupby(data_background['date'].dt.date).filter(lambda x: x['ammonium_901'].max() <= mean_ammonium)
+        data_background = data_background.groupby(data_background['date'].dt.date).filter(lambda x: x[f'ammonium_{self.station}'].max() <= mean_ammonium)
         
         # Extract the length of the anomalies
         len_anomalies = [end - start for start, end in anomalies_indexes]
@@ -119,15 +163,282 @@ class imRF():
             background_data.append(subset_rows)
         
         # Save anomalies_data to disk as numpy object
-        with open('background_data.pkl', 'wb') as file:
+        with open(f'background_data_0.pkl', 'wb') as file:
             pickle.dump(background_data, file)
             
         return background_indexes
+    
+    def background(self, anomalies_indexes, background_indexes, iteration):
+        
+        """Creates the background file for each iteration by extracting
+        'ratio' times more non anomalous data than the anomaly method and
+        adding that that to the previous background file. The data is saved
+        to a pickle file. It makes sure that the new non anomalous data 
+        extracted has not been selected before.
+        ----------
+        Arguments:
+        self.
+        anomalies_indexes (list): start and end indexes of the extracted
+        anomaly data.
+        background_indexes (list): start and end indexes of the previously
+        extracted background data.
+        iteration (int): the current iteration number.
+        
+        Saves:
+        background_data_i (pickle): file with 'ratio' times more 
+        nonanomalous data, compared to the total legth of the 
+        anomalies in the dataset.
+        
+        Returns:
+        background_indexes (list): updated start and end indexes of the extracted
+        background data.
+        """
+        
+        # Define random seed
+        random.seed(self.seed)
+    
+        # Load the DataFrame from your dataset
+        data = pd.read_csv(f'data/labeled_{self.station}_pro.csv', sep=',', encoding='utf-8', parse_dates=['date'])
+        
+        # Filter the data to select only rows where the label column has a value of 0
+        data_background = data[data["label"] == 0]
+        
+        # Filter the dataset to include only days that meet the ammonium level the condition
+        mean_ammonium = np.mean(data_background.ammonium_901)
+        data_background = data_background.groupby(data_background['date'].dt.date).filter(lambda x: x[f'ammonium_{self.station}'].max() <= mean_ammonium)
+    
+        # Extract the length of the anomalies
+        len_anomalies = [end - start for start, end in anomalies_indexes]
+        
+        # Define new background data indexes
+        new_background_indexes = []
+        for anomaly_length in len_anomalies:
+            if anomaly_length != 0:
+                new_start = random.randint(0, len(data_background) - 1)
+                new_end = new_start + (anomaly_length * self.ratio)
+                
+                # Check for overlap
+                overlaps = any(start <= new_end and end >= new_start for start, end in background_indexes)
+                
+                # If there is an overlap, generate a new index
+                while overlaps:
+                    new_start = random.randint(0, len(data_background) - 1)
+                    new_end = new_start + (anomaly_length * self.ratio)
+                    overlaps = any(start <= new_end and end >= new_start for start, end in background_indexes)
+                
+                # Append the nonoverlaping indexes to the new list and the old one
+                new_background_indexes.append((new_start, new_end))
+                background_indexes.append((new_start, new_end))
+        
+        # Extract the data
+        background_data = []
+        for start, end in new_background_indexes:
+            
+            subset_rows = data_background.iloc[start:end + 1, 1:-2].values.flatten() # Extarct rows withing the subset
+            background_data.append(subset_rows)
+        
+        # Save anomalies_data to disk as pickle object
+        with open(f'background_data_{iteration}.pkl', 'wb') as file:
+            pickle.dump(background_data, file)
+            
+        return background_indexes
+    
+    def init_RandomForest(self):
+        
+        """Initiates a Random Forest classifier in the first
+        iteration. The model gets trained on the first batch
+        of anomalies and background data extrated previously.
+        ----------
+        Arguments:
+        self.
+        
+        Saves:
+        rf_model_0 (sav): file with the model saved to disk.
+        
+        Returns:
+        """
+        
+        # Read the anomalous data
+        file_anomalies = open('anomaly_data_0.pkl', 'rb')
+        anomalies = pickle.load(file_anomalies)
+        file_anomalies.close()
+
+        # Read the background data
+        file_background = open('background_data_0.pkl', 'rb')
+        background = pickle.load(file_background)
+        file_background.close()
+        
+        # Group data in windows
+        anomalies_windows = self.windower(anomalies)
+        background_windows = self.windower(background)
+
+        # Generate labels for each window
+        anomalies_labels = np.array([1 for i in anomalies_windows])
+        background_labels = np.array([0 for i in background_windows])
+        
+        # Concatenate arrays
+        X = np.concatenate((anomalies_windows, background_windows))
+        y = np.concatenate((anomalies_labels, background_labels))
+
+        # Shuffle data
+        combined = np.column_stack((X, y))
+        np.random.seed(self.seed)
+        np.random.shuffle(combined)
+
+        # Split the shuffled array back into data and labels
+        X, y = combined[:, :-1], combined[:, -1]
+        
+        # Train the Random Forest classifier
+        model = RandomForestClassifier(random_state=self.seed)
+        
+        # Split the shuffled data into the training and testing set
+        X_train, y_train = X[:int(len(X) * 0.75)], y[:int(len(X) * 0.75)]
+        X_test, y_test = X[int(len(X) * 0.75):], y[int(len(X) * 0.75):]
+
+        # Fit the model to the training data
+        model.fit(X_train, y_train)
+
+        from sklearn.metrics import confusion_matrix as cm
+        confusion_matrix = cm(y_test, model.predict(X_test))
+        print(confusion_matrix)
+        
+        # Get the number of rows labeled as anomalies in y_test
+        num_anomalies = len([i for i in y_test if i==1])
+        print('Number of anomalies', num_anomalies)
+        
+        # Save the model to disk
+        filename = 'models/rf_model_0.sav'
+        pickle.dump(model, open(filename, 'wb'))
+        
+    def RandomForest(self, iteration):
+        
+        """Updates the Random Forest model on each iterations.
+        The older model performs prediction on new background data.
+        Those windows classified as anomalies get added to previous
+        anomaly data and those which are background get included in the
+        previous background data. The older model gets retrained and
+        saved as new version.
+        ----------
+        Arguments:
+        self.
+        iteration (int): the current iteration number.
+        
+        Saves:
+        rf_model_{iteration} (sav): with the updated model saved to disk.
+        
+        Returns:
+        """
+        
+        # Read the current background
+        file_background = open(f'background_data_{iteration}.pkl', 'rb')
+        background = pickle.load(file_background)
+        file_background.close()
+        
+        # Make windows
+        background_windows = self.windower(background)
+        
+        # Variable name change to follow best practives in ML
+        X = background_windows
+
+        # Shuffle the data
+        np.random.seed(self.seed)
+        np.random.shuffle(X)
+
+        # Load the previous model
+        filename = f'models/rf_model_{iteration - 1}.sav'
+        loaded_model = pickle.load(open(filename, 'rb'))
+        print("Model loaded")
+        
+        # Get the results from each tree
+        trees = loaded_model.estimators_
+
+        tree_classifications = [tree.predict(X) for tree in trees]
+
+        # Get the average score for each windows
+        score_Xs = np.mean(tree_classifications, axis=0)
+
+        # plt.plot(score_Xs)
+        # plt.show()
+        
+        # Get the indexes of those windows that are anomalies and background in the new data
+        indexes_anomalies_windows = list(np.where(score_Xs >= 0.75)[0])
+        indexes_background_windows = list(np.where(score_Xs <= 0.20)[0])
+
+        # Extract those new anomaly and background windows
+        add_anomalies_windows = background_windows[indexes_anomalies_windows]
+        add_background_windows = background_windows[indexes_background_windows]
+
+        # Read the previous anomalous data
+        file_anomalies = open(f'anomaly_data_{iteration - 1}.pkl', 'rb')
+        prev_anomalies = pickle.load(file_anomalies)
+        file_anomalies.close()
+
+        # Read the previous background
+        file_background = open(f'background_data_{iteration - 1}.pkl', 'rb')
+        prev_background = pickle.load(file_background)
+        file_background.close()
+        
+        # Make windows of the previous anomalous and background data
+        prev_anomalies_windows = self.windower(prev_anomalies)
+        prev_background_windows = self.windower(prev_background)
+        
+        # Conactenate new data with old data
+        anomalies_windows = np.vstack((prev_anomalies_windows, add_anomalies_windows))
+        background_windows = np.vstack((prev_background_windows, add_background_windows))
+
+        # TODO: Save the anomalies current anomalies file. The problem
+        # is that the data pickle data is not in windows format. SOLUTION:
+        # Work with windows from the beginning. Test on the older files?
+        
+        # Retrain the model with the updated anomaly and background data
+        # Generate labels for each window
+        anomalies_labels = np.array([1 for i in anomalies_windows])
+        background_labels = np.array([0 for i in background_windows])
+        
+        # Concatenate arrays
+        X = np.concatenate((anomalies_windows, background_windows))
+        y = np.concatenate((anomalies_labels, background_labels))
+
+        # Shuffle data
+        combined = np.column_stack((X, y))
+        np.random.seed(self.seed)
+        np.random.shuffle(combined)
+
+        # Split the shuffled array back into data and labels
+        X, y = combined[:, :-1], combined[:, -1]
+
+        # Load the model
+        filename = f'models/rf_model_{iteration - 1}.sav'
+        model = pickle.load(open(filename, 'rb'))
+
+        # Increase estimators and set warm_start to True
+        model.n_estimators += 10
+        model.warm_start = True
+
+        # Split the shuffled data into the training and testing set
+        X_train, y_train = X[:int(len(X) * 0.75)], y[:int(len(X) * 0.75)]
+        X_test, y_test = X[int(len(X) * 0.75):], y[int(len(X) * 0.75):]
+
+        # Fit the model to the training data
+        model.fit(X_train, y_train)
+        
+        from sklearn.metrics import confusion_matrix as cm
+        confusion_matrix = cm(y_test, model.predict(X_test))
+        print(confusion_matrix)
+
+        # Get the number of rows labeled as anomalies in y_test
+        num_anomalies = len([i for i in y_test if i==1])
+        print('Number of anomalies', num_anomalies)
+
+        # Save the model to disk
+        filename = f'models/rf_model_{iteration}.sav'
+        pickle.dump(model, open(filename, 'wb'))
 
 if __name__ == '__main__':
     
     # Create an instance of the model
-    imRF = imRF(station=901, trim_percentage=10, ratio=5, seed=0)
+    imRF = imRF(station=901, trim_percentage=10, ratio=5, num_variables=6, 
+                window_size=4, stride=1, seed=0)
     
     # Implement iterative process
     for i in range(0, 5):
@@ -137,7 +448,13 @@ if __name__ == '__main__':
             anomalies_indexes = imRF.anomalies()
             
             background_indexes = imRF.init_background(anomalies_indexes)
+            
+            # Train the first version of the model
+            imRF.init_RandomForest()
 
         else:
-            pass
-            # Here would go the rest of the process
+            # Extract new background data
+            background_indexes = imRF.background(anomalies_indexes, background_indexes, iteration=i)
+            
+            # Iteratively predict on the new background data and update the model
+            imRF.RandomForest(iteration=i)
