@@ -20,13 +20,16 @@ class imRF():
         self.window_size = window_size
         self.stride = stride
         self.seed = seed
-        
+    
     def windower(self, data):
-
-        """Takes a 2D array with multivariate time series data
-        and creates sliding windows. The arrays store the different
-        variables in a consecutive manner. E.g. [first 6 variables,
-        next 6 variables, and so on].
+        
+        """
+        Takes a 2D array with multivariate time series data
+        and creates multiresolution sliding windows. The size
+        of the slinding windows gets halved each time. The
+        resulting windows store different variables in a 
+        consecutive manner. E.g. [first 6 variables, next 6 
+        variables, and so on].
         ----------
         Arguments:
         data (pickle): file with the time-series data to turn 
@@ -36,23 +39,28 @@ class imRF():
         stride (int): the stride of the windows.
         
         Returns:
-        windows (np.array): time series data grouped in windows"""
+        windows (list): time series data grouped in windows"""
         
         windows = []
-        for i in data:
+        if self.window_size > 1:
             
-            # Get the number of windows
-            num_windows = (len(i) - self.window_size * self.num_variables) // self.num_variables + 1
+            for i in data:
+                
+                # Get the number of windows
+                num_windows = (len(i) - self.window_size * self.num_variables) // (self.stride * self.num_variables) + 1
+                
+                # Create the windows
+                for j in range(0, num_windows, self.stride):
+                    window = i[j * self.num_variables: (j * self.num_variables) + (self.window_size * self.num_variables)]
+                    windows.append(window)
             
-            # Create windows
-            for j in range(0, num_windows, self.stride * self.num_variables):
-                window = i[j:j+self.window_size * self.num_variables]  # Extract a window of 4 time steps (4 * 6 variables)
-                windows.append(window)
-
-        # Convert the result to a NumPy array
-        windows = np.array(windows)
+            self.window_size = self.window_size // 2 # Halve window size
+            
+            return [windows] + self.windower(data)  # Recursive call
         
-        return windows
+        else:
+            
+            return []
     
     def anomalies(self):
         
@@ -445,7 +453,7 @@ if __name__ == '__main__':
     
     # Create an instance of the model
     imRF = imRF(station=901, trim_percentage=10, ratio=5, num_variables=6, 
-                window_size=4, stride=1, seed=0)
+                window_size=8, stride=1, seed=0)
     
     # Implement iterative process
     for i in range(0, 10):
@@ -457,13 +465,13 @@ if __name__ == '__main__':
             
             background_indexes = imRF.init_background(anomalies_indexes)
             
-            # Train the first version of the model
-            imRF.init_RandomForest()
+            # # Train the first version of the model
+            # imRF.init_RandomForest()
 
         else:
             print(f'[INFO] Iteration {i}')
             # Extract new background data
             background_indexes = imRF.background(anomalies_indexes, background_indexes, iteration=i)
             
-            # Iteratively predict on the new background data and update the model
-            imRF.RandomForest(iteration=i)
+            # # Iteratively predict on the new background data and update the model
+            # imRF.RandomForest(iteration=i)
