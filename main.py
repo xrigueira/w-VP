@@ -72,7 +72,7 @@ class imRF():
         """
         
         # Load the data
-        data = pd.read_csv(f'data/labeled_{self.station}_pro.csv', sep=',', encoding='utf-8', parse_dates=['date'])
+        data = pd.read_csv(f'data/labeled_{self.station}_smo.csv', sep=',', encoding='utf-8', parse_dates=['date'])
         
         # Filter the data to select only rows where the label column has a value of 1
         data_anomalies = data[data["label"] == 1]
@@ -101,11 +101,12 @@ class imRF():
         for start, end in trimmed_anomalies_indexes:
             subset_rows = data.iloc[start:end + 1, 1:-2].values.flatten()  # Extract rows within the subset
             anomaly_data.append(subset_rows)
-            
-        # Continue here. Window the data before saving
+        
+        # Group the data in windows before saving
+        anomaly_data = self.windower(anomaly_data)
         
         # Save anomaly_data to disk as pickle object
-        with open('anomaly_data_0.pkl', 'wb') as file:
+        with open('pickels/anomaly_data_0.pkl', 'wb') as file:
             pickle.dump(anomaly_data, file)
         
         return trimmed_anomalies_indexes
@@ -135,7 +136,7 @@ class imRF():
         random.seed(self.seed)
         
         # Load the DataFrame from your dataset
-        data = pd.read_csv(f'data/labeled_{self.station}_pro.csv', sep=',', encoding='utf-8', parse_dates=['date'])
+        data = pd.read_csv(f'data/labeled_{self.station}_smo.csv', sep=',', encoding='utf-8', parse_dates=['date'])
         
         # Filter the data to select only rows where the label column has a value of 0
         data_background = data[data["label"] == 0]
@@ -162,8 +163,11 @@ class imRF():
             subset_rows = data_background.iloc[start:end + 1, 1:-2].values.flatten() # Extarct rows withing the subset
             background_data.append(subset_rows)
         
+        # Group data into windows before saving
+        background_data = self.windower(background_data)
+        
         # Save anomalies_data to disk as numpy object
-        with open(f'background_data_0.pkl', 'wb') as file:
+        with open(f'pickels/background_data_0.pkl', 'wb') as file:
             pickle.dump(background_data, file)
             
         return background_indexes
@@ -190,15 +194,15 @@ class imRF():
         anomalies in the dataset.
         
         Returns:
-        background_indexes (list): updated start and end indexes of the extracted
-        background data.
+        background_indexes (list): updated start and end indexes of the 
+        extracted background data.
         """
         
         # Define random seed
         random.seed(self.seed)
     
         # Load the DataFrame from your dataset
-        data = pd.read_csv(f'data/labeled_{self.station}_pro.csv', sep=',', encoding='utf-8', parse_dates=['date'])
+        data = pd.read_csv(f'data/labeled_{self.station}_smo.csv', sep=',', encoding='utf-8', parse_dates=['date'])
         
         # Filter the data to select only rows where the label column has a value of 0
         data_background = data[data["label"] == 0]
@@ -206,10 +210,10 @@ class imRF():
         # Filter the dataset to include only days that meet the ammonium level the condition
         mean_ammonium = np.mean(data_background.ammonium_901)
         data_background = data_background.groupby(data_background['date'].dt.date).filter(lambda x: x[f'ammonium_{self.station}'].max() <= mean_ammonium)
-    
+        
         # Extract the length of the anomalies
         len_anomalies = [end - start for start, end in anomalies_indexes]
-        
+
         # Define new background data indexes
         new_background_indexes = []
         for anomaly_length in len_anomalies:
@@ -221,10 +225,16 @@ class imRF():
                 overlaps = any(start <= new_end and end >= new_start for start, end in background_indexes)
                 
                 # If there is an overlap, generate a new index
+                max_retries = 10  # Set a maximum number of retries
+                retry_count = 0
                 while overlaps:
                     new_start = random.randint(0, len(data_background) - 1)
                     new_end = new_start + (anomaly_length * self.ratio)
                     overlaps = any(start <= new_end and end >= new_start for start, end in background_indexes)
+                    retry_count += 1
+                
+                    if retry_count == max_retries:
+                        break
                 
                 # Append the nonoverlaping indexes to the new list and the old one
                 new_background_indexes.append((new_start, new_end))
@@ -237,8 +247,11 @@ class imRF():
             subset_rows = data_background.iloc[start:end + 1, 1:-2].values.flatten() # Extarct rows withing the subset
             background_data.append(subset_rows)
         
+        # Group data into windows before saving
+        background_data = self.windower(background_data)
+        
         # Save anomalies_data to disk as pickle object
-        with open(f'background_data_{iteration}.pkl', 'wb') as file:
+        with open(f'pickels/background_data_{iteration}.pkl', 'wb') as file:
             pickle.dump(background_data, file)
             
         return background_indexes
@@ -258,19 +271,15 @@ class imRF():
         Returns:
         """
         
-        # Read the anomalous data
-        file_anomalies = open('anomaly_data_0.pkl', 'rb')
-        anomalies = pickle.load(file_anomalies)
+        # Read the windowed anomalous data
+        file_anomalies = open('pickels/anomaly_data_0.pkl', 'rb')
+        anomalies_windows = pickle.load(file_anomalies)
         file_anomalies.close()
 
-        # Read the background data
-        file_background = open('background_data_0.pkl', 'rb')
-        background = pickle.load(file_background)
+        # Read the windowed background data
+        file_background = open('pickels/background_data_0.pkl', 'rb')
+        background_windows = pickle.load(file_background)
         file_background.close()
-        
-        # Group data in windows
-        anomalies_windows = self.windower(anomalies)
-        background_windows = self.windower(background)
 
         # Generate labels for each window
         anomalies_labels = np.array([1 for i in anomalies_windows])
@@ -304,7 +313,7 @@ class imRF():
         
         # Get the number of rows labeled as anomalies in y_test
         num_anomalies = len([i for i in y_test if i==1])
-        print('Number of anomalies', num_anomalies)
+        print('Number of anomalies in test set:', num_anomalies)
         
         # Save the model to disk
         filename = 'models/rf_model_0.sav'
@@ -329,13 +338,10 @@ class imRF():
         Returns:
         """
         
-        # Read the current background
-        file_background = open(f'background_data_{iteration}.pkl', 'rb')
-        background = pickle.load(file_background)
+        # Read the current windowed background
+        file_background = open(f'pickels/background_data_{iteration}.pkl', 'rb')
+        background_windows = pickle.load(file_background)
         file_background.close()
-        
-        # Make windows
-        background_windows = self.windower(background)
         
         # Variable name change to follow best practives in ML
         X = background_windows
@@ -347,7 +353,6 @@ class imRF():
         # Load the previous model
         filename = f'models/rf_model_{iteration - 1}.sav'
         loaded_model = pickle.load(open(filename, 'rb'))
-        print("Model loaded")
         
         # Get the results from each tree
         trees = loaded_model.estimators_
@@ -357,38 +362,40 @@ class imRF():
         # Get the average score for each windows
         score_Xs = np.mean(tree_classifications, axis=0)
 
-        # plt.plot(score_Xs)
+        plt.plot(score_Xs)
         # plt.show()
+        plt.savefig(f'images/prediction_{iteration}.png', dpi=300)
         
         # Get the indexes of those windows that are anomalies and background in the new data
-        indexes_anomalies_windows = list(np.where(score_Xs >= 0.75)[0])
-        indexes_background_windows = list(np.where(score_Xs <= 0.20)[0])
+        indexes_anomalies_windows = list(np.where(score_Xs >= 0.51)[0])
+        indexes_background_windows = list(np.where(score_Xs <= 0.10)[0])
 
         # Extract those new anomaly and background windows
         add_anomalies_windows = background_windows[indexes_anomalies_windows]
+        print(f'Percentage of anomalies {round(len(add_anomalies_windows) / len(background_windows) * 100, 2)}%')
         add_background_windows = background_windows[indexes_background_windows]
 
-        # Read the previous anomalous data
-        file_anomalies = open(f'anomaly_data_{iteration - 1}.pkl', 'rb')
-        prev_anomalies = pickle.load(file_anomalies)
+        # Read the previous windowed anomalous data
+        file_anomalies = open(f'pickels/anomaly_data_{iteration - 1}.pkl', 'rb')
+        prev_anomalies_windows = pickle.load(file_anomalies)
         file_anomalies.close()
 
-        # Read the previous background
-        file_background = open(f'background_data_{iteration - 1}.pkl', 'rb')
-        prev_background = pickle.load(file_background)
+        # Read the previous windows background
+        file_background = open(f'pickels/background_data_{iteration - 1}.pkl', 'rb')
+        prev_background_windows = pickle.load(file_background)
         file_background.close()
-        
-        # Make windows of the previous anomalous and background data
-        prev_anomalies_windows = self.windower(prev_anomalies)
-        prev_background_windows = self.windower(prev_background)
         
         # Conactenate new data with old data
         anomalies_windows = np.vstack((prev_anomalies_windows, add_anomalies_windows))
         background_windows = np.vstack((prev_background_windows, add_background_windows))
 
-        # TODO: Save the anomalies current anomalies file. The problem
-        # is that the data pickle data is not in windows format. SOLUTION:
-        # Work with windows from the beginning. Test on the older files?
+        # Save anomalies_data to disk as pickle object
+        with open(f'pickels/anomaly_data_{iteration}.pkl', 'wb') as file:
+            pickle.dump(anomalies_windows, file)
+        
+        # Save background data as a pickle object
+        with open(f'pickels/background_data_{iteration}.pkl', 'wb') as file:
+            pickle.dump(background_windows, file)
         
         # Retrain the model with the updated anomaly and background data
         # Generate labels for each window
@@ -428,7 +435,7 @@ class imRF():
 
         # Get the number of rows labeled as anomalies in y_test
         num_anomalies = len([i for i in y_test if i==1])
-        print('Number of anomalies', num_anomalies)
+        print('Number of anomalies in test set:', num_anomalies)
 
         # Save the model to disk
         filename = f'models/rf_model_{iteration}.sav'
@@ -441,9 +448,10 @@ if __name__ == '__main__':
                 window_size=4, stride=1, seed=0)
     
     # Implement iterative process
-    for i in range(0, 5):
+    for i in range(0, 10):
         
         if i == 0:
+            print(f'[INFO] Iteration {i}')
             # Extract the anomalies and first batch of background
             anomalies_indexes = imRF.anomalies()
             
@@ -453,6 +461,7 @@ if __name__ == '__main__':
             imRF.init_RandomForest()
 
         else:
+            print(f'[INFO] Iteration {i}')
             # Extract new background data
             background_indexes = imRF.background(anomalies_indexes, background_indexes, iteration=i)
             
