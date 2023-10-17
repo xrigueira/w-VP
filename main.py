@@ -305,48 +305,47 @@ class imRF():
         for i in range(len(anomalies_windows)):
             X.append(np.concatenate((anomalies_windows[i], background_windows[i])))
         
-        # Continue debugging here. Probably something fishy going on with the randomizer
-        # y = []
-        # for i in range(len(anomalies_windows)):
-        #     y.append(np.concatenate((anomalies_labels[i], background_labels[i])))
+        y = []
+        for i in range(len(anomalies_windows)):
+            y.append(np.concatenate((anomalies_labels[i], background_labels[i])))
         
-        # # Shuffle data
-        # randomized = []
-        # for i in range(len(anomalies_windows)):
-        #     combined = np.column_stack((X[i], y[i]))
-        #     np.random.seed(self.seed)
-        #     np.random.shuffle(combined)
-        #     randomized.append(combined)
-
-        # # Split the shuffled array back into data and labels
-        # for i in range(len(anomalies_windows)):    
-        #     X[i], y[i] = randomized[i][:, :-1], randomized[i][:, -1]
+        # Shuffle data
+        randomized = []
+        for i in range(len(anomalies_windows)):
+            combined = np.column_stack((X[i], y[i]))
+            np.random.seed(self.seed)
+            np.random.shuffle(combined)
+            randomized.append(combined)
+            
+        # Split the shuffled array back into data and labels
+        for i in range(len(anomalies_windows)):    
+            X[i], y[i] = randomized[i][:, :-1], randomized[i][:, -1]
         
-        # # Train the Random Forest classifiers
-        # model_high = RandomForestClassifier(random_state=self.seed)
-        # model_med = RandomForestClassifier(random_state=self.seed)
-        # model_low = RandomForestClassifier(random_state=self.seed)
+        # Train the Random Forest classifiers
+        model_high = RandomForestClassifier(random_state=self.seed)
+        model_med = RandomForestClassifier(random_state=self.seed)
+        model_low = RandomForestClassifier(random_state=self.seed)
         
-        # # Split the shuffled data into the training and testing set
-        # X_train, y_train, X_test, y_test = [], [], [], []
-        # for i in range(len(anomalies_windows)):
-        #     X_train.append(X[i][:int(len(X) * 0.75)])
-        #     y_train.append(y[i][:int(len(X) * 0.75)])
-        #     X_test.append(X[i][int(len(X) * 0.75):])
-        #     y_test.append(y[i][int(len(X) * 0.75):])
+        # Split the shuffled data into the training and testing set
+        X_train, y_train, X_test, y_test = [], [], [], []
+        for i in range(len(anomalies_windows)):
+            X_train.append(X[i][:int(len(X[i]) * 0.75)])
+            y_train.append(y[i][:int(len(X[i]) * 0.75)])
+            X_test.append(X[i][int(len(X[i]) * 0.75):])
+            y_test.append(y[i][int(len(X[i]) * 0.75):])
 
-        # # Fit the model to the training data
-        # model_high.fit(X_train[0], y_train[0]) # Long length data windows
-        # model_med.fit(X_train[1], y_train[1]) # Medium legth data windows
-        # model_low.fit(X_train[2], y_train[2]) # Short length data windows
+        # Fit the model to the training data
+        model_high.fit(X_train[0], y_train[0]) # Long length data windows
+        model_med.fit(X_train[1], y_train[1]) # Medium legth data windows
+        model_low.fit(X_train[2], y_train[2]) # Short length data windows
 
-        # from sklearn.metrics import confusion_matrix as cm
-        # confusion_matrix_high = cm(y_test[0], model_high.predict(X_test[0]))
-        # print(confusion_matrix_high)
-        # confusion_matrix_med = cm(y_test[1], model_med.predict(X_test[1]))
-        # print(confusion_matrix_med)
-        # confusion_matrix_low = cm(y_test[2], model_low.predict(X_test[2]))
-        # print(confusion_matrix_low)
+        from sklearn.metrics import confusion_matrix as cm
+        confusion_matrix_high = cm(y_test[0], model_high.predict(X_test[0]))
+        print(confusion_matrix_high)
+        confusion_matrix_med = cm(y_test[1], model_med.predict(X_test[1]))
+        print(confusion_matrix_med)
+        confusion_matrix_low = cm(y_test[2], model_low.predict(X_test[2]))
+        print(confusion_matrix_low)
         
         # # Get the number of rows labeled as anomalies in y_test
         # num_anomalies = len([i for i in y_test[0] if i==1])
