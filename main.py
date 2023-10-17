@@ -42,7 +42,7 @@ class imRF():
         windows (list): time series data grouped in windows"""
         
         windows = []
-        if self.window_size > 1:
+        if self.window_size > 4: # This way the maximum window would be 8 data points
             
             for i in data:
                 
@@ -60,6 +60,8 @@ class imRF():
         
         else:
             
+            # Restore the window size after recursion
+            self.window_size = window_size
             return []
     
     def anomalies(self):
@@ -109,7 +111,7 @@ class imRF():
         for start, end in trimmed_anomalies_indexes:
             subset_rows = data.iloc[start:end + 1, 1:-2].values.flatten()  # Extract rows within the subset
             anomaly_data.append(subset_rows)
-        
+
         # Group the data in windows before saving
         anomaly_data = self.windower(anomaly_data)
         
@@ -288,44 +290,75 @@ class imRF():
         file_background = open('pickels/background_data_0.pkl', 'rb')
         background_windows = pickle.load(file_background)
         file_background.close()
-
+        
         # Generate labels for each window
-        anomalies_labels = np.array([1 for i in anomalies_windows])
-        background_labels = np.array([0 for i in background_windows])
+        anomalies_labels = []
+        for i in range(len(anomalies_windows)):
+            anomalies_labels.append(np.array([1 for j in anomalies_windows[i]]))
         
-        # Concatenate arrays
-        X = np.concatenate((anomalies_windows, background_windows))
-        y = np.concatenate((anomalies_labels, background_labels))
+        background_labels = []
+        for i in range(len(background_windows)):
+            background_labels.append(np.array([0 for j in background_windows[i]]))
+        
+        # Concatenate array
+        X = []
+        for i in range(len(anomalies_windows)):
+            X.append(np.concatenate((anomalies_windows[i], background_windows[i])))
+        
+        # Continue debugging here. Probably something fishy going on with the randomizer
+        # y = []
+        # for i in range(len(anomalies_windows)):
+        #     y.append(np.concatenate((anomalies_labels[i], background_labels[i])))
+        
+        # # Shuffle data
+        # randomized = []
+        # for i in range(len(anomalies_windows)):
+        #     combined = np.column_stack((X[i], y[i]))
+        #     np.random.seed(self.seed)
+        #     np.random.shuffle(combined)
+        #     randomized.append(combined)
 
-        # Shuffle data
-        combined = np.column_stack((X, y))
-        np.random.seed(self.seed)
-        np.random.shuffle(combined)
+        # # Split the shuffled array back into data and labels
+        # for i in range(len(anomalies_windows)):    
+        #     X[i], y[i] = randomized[i][:, :-1], randomized[i][:, -1]
+        
+        # # Train the Random Forest classifiers
+        # model_high = RandomForestClassifier(random_state=self.seed)
+        # model_med = RandomForestClassifier(random_state=self.seed)
+        # model_low = RandomForestClassifier(random_state=self.seed)
+        
+        # # Split the shuffled data into the training and testing set
+        # X_train, y_train, X_test, y_test = [], [], [], []
+        # for i in range(len(anomalies_windows)):
+        #     X_train.append(X[i][:int(len(X) * 0.75)])
+        #     y_train.append(y[i][:int(len(X) * 0.75)])
+        #     X_test.append(X[i][int(len(X) * 0.75):])
+        #     y_test.append(y[i][int(len(X) * 0.75):])
 
-        # Split the shuffled array back into data and labels
-        X, y = combined[:, :-1], combined[:, -1]
-        
-        # Train the Random Forest classifier
-        model = RandomForestClassifier(random_state=self.seed)
-        
-        # Split the shuffled data into the training and testing set
-        X_train, y_train = X[:int(len(X) * 0.75)], y[:int(len(X) * 0.75)]
-        X_test, y_test = X[int(len(X) * 0.75):], y[int(len(X) * 0.75):]
+        # # Fit the model to the training data
+        # model_high.fit(X_train[0], y_train[0]) # Long length data windows
+        # model_med.fit(X_train[1], y_train[1]) # Medium legth data windows
+        # model_low.fit(X_train[2], y_train[2]) # Short length data windows
 
-        # Fit the model to the training data
-        model.fit(X_train, y_train)
-
-        from sklearn.metrics import confusion_matrix as cm
-        confusion_matrix = cm(y_test, model.predict(X_test))
-        print(confusion_matrix)
+        # from sklearn.metrics import confusion_matrix as cm
+        # confusion_matrix_high = cm(y_test[0], model_high.predict(X_test[0]))
+        # print(confusion_matrix_high)
+        # confusion_matrix_med = cm(y_test[1], model_med.predict(X_test[1]))
+        # print(confusion_matrix_med)
+        # confusion_matrix_low = cm(y_test[2], model_low.predict(X_test[2]))
+        # print(confusion_matrix_low)
         
-        # Get the number of rows labeled as anomalies in y_test
-        num_anomalies = len([i for i in y_test if i==1])
-        print('Number of anomalies in test set:', num_anomalies)
+        # # Get the number of rows labeled as anomalies in y_test
+        # num_anomalies = len([i for i in y_test[0] if i==1])
+        # print('Number of anomalies in test set:', num_anomalies)
+        # num_anomalies = len([i for i in y_test[1] if i==1])
+        # print('Number of anomalies in test set:', num_anomalies)
+        # num_anomalies = len([i for i in y_test[2] if i==1])
+        # print('Number of anomalies in test set:', num_anomalies)
         
-        # Save the model to disk
-        filename = 'models/rf_model_0.sav'
-        pickle.dump(model, open(filename, 'wb'))
+        # # Save the model to disk
+        # filename = 'models/rf_model_0.sav'
+        # pickle.dump(model, open(filename, 'wb'))
         
     def RandomForest(self, iteration):
         
@@ -452,8 +485,9 @@ class imRF():
 if __name__ == '__main__':
     
     # Create an instance of the model
+    window_size = 32
     imRF = imRF(station=901, trim_percentage=10, ratio=5, num_variables=6, 
-                window_size=8, stride=1, seed=0)
+                window_size=window_size, stride=1, seed=0)
     
     # Implement iterative process
     for i in range(0, 10):
@@ -465,10 +499,11 @@ if __name__ == '__main__':
             
             background_indexes = imRF.init_background(anomalies_indexes)
             
-            # # Train the first version of the model
-            # imRF.init_RandomForest()
+            # Train the first version of the model
+            imRF.init_RandomForest()
 
         else:
+            break
             print(f'[INFO] Iteration {i}')
             # Extract new background data
             background_indexes = imRF.background(anomalies_indexes, background_indexes, iteration=i)
