@@ -389,14 +389,16 @@ class imRF():
         file_background.close()
         
         # Variable name change to follow best practives in ML
-        X = background_windows
-
-        # Shuffle the data and variable name change to follow best practives in ML
         X = []
         for i in range(len(background_windows)):
-            np.random.seed(self.seed)
-            np.random.shuffle(background_windows[i])
             X.append(background_windows[i])
+
+        # # AVOID for now. Shuffle the data and variable name change to follow best practives in ML
+        # X = []
+        # for i in range(len(background_windows)):
+        #     np.random.seed(self.seed)
+        #     np.random.shuffle(background_windows[i])
+        #     X.append(background_windows[i])
         
         # Load the previous models
         filename = f'models/rf_model_high_{iteration - 1}.sav'
@@ -412,13 +414,20 @@ class imRF():
         trees_low = loaded_model_low.estimators_
 
         # Continue here adapting the code to having three models
-        # tree_classifications = [tree.predict(X) for tree in trees]
+        tree_classifications_high = [tree.predict(X[0]) for tree in trees_high]
+        tree_classifications_med = [tree.predict(X[1]) for tree in trees_med]
+        tree_classifications_low = [tree.predict(X[2]) for tree in trees_low]
 
-        # # Get the average score for each windows
-        # score_Xs = np.mean(tree_classifications, axis=0)
-
+        # Get the average score for each window
+        score_Xs_high = np.mean(tree_classifications_high, axis=0)
+        score_Xs_med = np.mean(tree_classifications_med, axis=0)
+        score_Xs_low = np.mean(tree_classifications_low, axis=0)
+        np.save('score_Xs_high', score_Xs_high, allow_pickle=False, fix_imports=False)
+        np.save('score_Xs_med', score_Xs_med, allow_pickle=False, fix_imports=False)
+        np.save('score_Xs_low', score_Xs_low, allow_pickle=False, fix_imports=False)
+        
         # plt.plot(score_Xs)
-        # # plt.show()
+        # plt.show()
         # plt.savefig(f'images/prediction_{iteration}.png', dpi=300)
         
         # # Get the indexes of those windows that are anomalies and background in the new data
@@ -504,7 +513,7 @@ if __name__ == '__main__':
                 window_size=window_size, stride=1, seed=0)
     
     # Implement iterative process
-    for i in range(0, 3):
+    for i in range(0, 2):
         
         if i == 0:
             print(f'[INFO] Iteration {i}')

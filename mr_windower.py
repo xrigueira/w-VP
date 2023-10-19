@@ -1,8 +1,6 @@
 import numpy as np
 
-data = [[*range(1, 65, 1)], 
-        [*range(1, 78, 1)],
-        [*range(1, 40, 1)]]
+data = [[*range(1, 65, 1)]]
 
 def windower(data, window_size, stride, num_variables):
 
@@ -25,13 +23,3 @@ stride = 1
 windows = windower(data, window_size, stride, num_variables)
 
 # print(windows)
-print(len(windows))
-print(windows[0][:1])
-print('---')
-print(windows[1][:5])
-print('---')
-print(windows[2][:7])
-
-print(len(windows[0][:1]))
-print(len(windows[1][:5]))
-print(len(windows[2][:7]))
