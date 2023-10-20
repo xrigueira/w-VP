@@ -116,5 +116,10 @@
 #     index_high = index_high + stride
 #     start_index_med, end_index_med = start_index_med + stride, end_index_med + stride
 #     start_index_low, end_index_low = start_index_low + stride, end_index_low + stride
-    
+
 # print(indexes_anomalies_windows_low)
+
+# Former majority_vote function
+# def majority_vote(self, *args):
+#         num_ones = sum(1 for result in args if result >= 0.51)
+#         return int(num_ones > len(args) / 2)

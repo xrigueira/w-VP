@@ -67,8 +67,8 @@ class imRF():
             return []
     
     def majority_vote(self, *args):
-        num_ones = sum(1 for result in args if result >= 0.51)
-        return int(num_ones > len(args) / 2)
+        total = sum(args)
+        return total / len(args)
     
     def anomalies(self):
         
@@ -429,9 +429,13 @@ class imRF():
         score_Xs_med = np.mean(tree_classifications_med, axis=0)
         score_Xs_low = np.mean(tree_classifications_low, axis=0)
         
-        # plt.plot(score_Xs)
-        # plt.show()
-        # plt.savefig(f'images/prediction_{iteration}.png', dpi=300)
+        variables = [(score_Xs_high, 'score_Xs_high'), (score_Xs_med, 'score_Xs_med'), (score_Xs_low, 'score_Xs_low')]
+
+        for variable, name in variables:
+            plt.plot(variable)
+            # plt.show()
+            plt.savefig(f'images/{name}_{iteration}.png', dpi=300)
+        plt.close()
         
         # Get the indexes of those windows considered anomalies or background
         stride = 1
@@ -454,12 +458,12 @@ class imRF():
             
             # Combine the float result with the majority voting of the lists
             multiresolution_vote = self.majority_vote(scores_high, *scores_med, *scores_low)
-            
-            if multiresolution_vote == 1:
+        
+            if multiresolution_vote >= 0.51:
                 indexes_anomalies_windows_high.append(index_high)
                 indexes_anomalies_windows_med.append((start_index_med, end_index_med))
                 indexes_anomalies_windows_low.append((start_index_low, end_index_low))
-            else:
+            elif multiresolution_vote <= 0.10:
                 indexes_background_windows_high.append(index_high)
                 indexes_background_windows_med.append((start_index_med, end_index_med))
                 indexes_background_windows_low.append((start_index_low, end_index_low))
