@@ -223,8 +223,14 @@ class imRF():
         # Filter the data to select only rows where the label column has a value of 0
         data_background = data[data["label"] == 0]
         
-        # Filter the dataset to include only days that meet the ammonium level the condition
         mean_ammonium = np.mean(data_background.ammonium_901)
+        # if self.iteration <= 1:
+            # Filter the dataset to include only days that are prone to be anomalous based on the ammonium (and cond?) levels
+            # data_background = data_background.groupby(data_background['date'].dt.date).filter(lambda x: x[f'ammonium_{self.station}'].max() > mean_ammonium)
+        # else:
+            # Filter the dataset to include only days that meet the ammonium level the condition
+            # data_background = data_background.groupby(data_background['date'].dt.date).filter(lambda x: x[f'ammonium_{self.station}'].max() <= mean_ammonium)
+        
         data_background = data_background.groupby(data_background['date'].dt.date).filter(lambda x: x[f'ammonium_{self.station}'].max() <= mean_ammonium)
         
         # Extract the length of the anomalies
@@ -431,6 +437,7 @@ class imRF():
         
         variables = [(score_Xs_high, 'score_Xs_high'), (score_Xs_med, 'score_Xs_med'), (score_Xs_low, 'score_Xs_low')]
 
+        # Here is where I could plot the distribution of the scores too
         for variable, name in variables:
             plt.plot(variable)
             # plt.show()
