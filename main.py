@@ -2,7 +2,9 @@ import random
 import pickle
 import numpy as np
 import pandas as pd
+import seaborn as sns
 import matplotlib.pyplot as plt
+plt.style.use('ggplot')
 
 from sklearn.ensemble import RandomForestClassifier
 
@@ -191,7 +193,7 @@ class imRF():
             
         return background_indexes
     
-    def background(self, anomalies_indexes, background_indexes, iteration):
+    def background(self, anomalies_indexes, background_indexes):
         
         """Creates the background file for each iteration by extracting
         'ratio' times more non anomalous data than the anomaly method and
@@ -269,7 +271,7 @@ class imRF():
         background_data = self.windower(background_data)
         
         # Save anomalies_data to disk as pickle object
-        with open(f'pickels/background_data_{iteration}.pkl', 'wb') as file:
+        with open(f'pickels/background_data_{self.iteration}.pkl', 'wb') as file:
             pickle.dump(background_data, file)
             
         return background_indexes
@@ -358,12 +360,12 @@ class imRF():
         print(confusion_matrix_low)
         
         # Get the number of rows labeled as anomalies in y_test
-        num_anomalies = len([i for i in y_test[0] if i==1])
-        print('Number of anomalies in test set:', num_anomalies)
-        num_anomalies = len([i for i in y_test[1] if i==1])
-        print('Number of anomalies in test set:', num_anomalies)
-        num_anomalies = len([i for i in y_test[2] if i==1])
-        print('Number of anomalies in test set:', num_anomalies)
+        num_anomalies_high = len([i for i in y_test[0] if i==1])
+        print('Number of anomalies in test set:', num_anomalies_high)
+        num_anomalies_med = len([i for i in y_test[1] if i==1])
+        print('Number of anomalies in test set:', num_anomalies_med)
+        num_anomalies_low = len([i for i in y_test[2] if i==1])
+        print('Number of anomalies in test set:', num_anomalies_low)
         
         # Save the model to disk
         filename = 'models/rf_model_high_0.sav'
@@ -374,7 +376,7 @@ class imRF():
         pickle.dump(model_low, open(filename, 'wb'))
     
     @tictoc
-    def RandomForest(self, iteration):
+    def RandomForest(self, num_anomalies_med):
         
         """Updates the Random Forest models on each iterations.
         The older models performs prediction on new background data.
@@ -394,7 +396,7 @@ class imRF():
         """
         
         # Read the current windowed background
-        file_background = open(f'pickels/background_data_{iteration}.pkl', 'rb')
+        file_background = open(f'pickels/background_data_{self.iteration}.pkl', 'rb')
         background_windows = pickle.load(file_background)
         file_background.close()
         
@@ -409,11 +411,11 @@ class imRF():
         #     X.append(background_windows[i])
         
         # Load the previous models
-        filename = f'models/rf_model_high_{iteration - 1}.sav'
+        filename = f'models/rf_model_high_{self.iteration - 1}.sav'
         loaded_model_high = pickle.load(open(filename, 'rb'))
-        filename = f'models/rf_model_med_{iteration - 1}.sav'
+        filename = f'models/rf_model_med_{self.iteration - 1}.sav'
         loaded_model_med = pickle.load(open(filename, 'rb'))
-        filename = f'models/rf_model_low_{iteration - 1}.sav'
+        filename = f'models/rf_model_low_{self.iteration - 1}.sav'
         loaded_model_low = pickle.load(open(filename, 'rb'))
         
         # Get the results from each tree
@@ -434,11 +436,17 @@ class imRF():
         variables = [(score_Xs_high, 'score_Xs_high'), (score_Xs_med, 'score_Xs_med'), (score_Xs_low, 'score_Xs_low')]
 
         # Here is where I could plot the distribution of the scores too
-        for variable, name in variables:
-            plt.plot(variable)
-            # plt.show()
-            plt.savefig(f'images/{name}_{iteration}.png', dpi=300)
-        plt.close()
+        # for variable, name in variables[1]:
+        variable, name = variables[1]
+        sns.kdeplot(variable, fill=True, label=f'Iteration {self.iteration}')
+        plt.xlabel('Value')
+        plt.ylabel('Density')
+        plt.title('Smoothed Classification Trend Line')
+        plt.legend()
+        plt.grid(True)
+        # plt.show()
+        plt.savefig(f'images/{name}_{self.iteration}.png', dpi=300)
+        # plt.close()
         
         # Get the indexes of those windows considered anomalies or background
         stride = 1
@@ -490,12 +498,12 @@ class imRF():
         # print(f'Percentage of anomalies {round(len(add_anomalies_windows) / len(background_windows) * 100, 2)}%')
 
         # Read the previous windowed anomalous data
-        file_anomalies = open(f'pickels/anomaly_data_{iteration - 1}.pkl', 'rb')
+        file_anomalies = open(f'pickels/anomaly_data_{self.iteration - 1}.pkl', 'rb')
         prev_anomalies_windows = pickle.load(file_anomalies)
         file_anomalies.close()
 
         # Read the previous windows background
-        file_background = open(f'pickels/background_data_{iteration - 1}.pkl', 'rb')
+        file_background = open(f'pickels/background_data_{self.iteration - 1}.pkl', 'rb')
         prev_background_windows = pickle.load(file_background)
         file_background.close()
         
@@ -509,11 +517,11 @@ class imRF():
                             np.vstack((prev_background_windows[2], add_background_windows_low))]
 
         # Save anomalies_data to disk as pickle object
-        with open(f'pickels/anomaly_data_{iteration}.pkl', 'wb') as file:
+        with open(f'pickels/anomaly_data_{self.iteration}.pkl', 'wb') as file:
             pickle.dump(anomalies_windows, file)
         
         # Save background data as a pickle object
-        with open(f'pickels/background_data_{iteration}.pkl', 'wb') as file:
+        with open(f'pickels/background_data_{self.iteration}.pkl', 'wb') as file:
             pickle.dump(background_windows, file)
         
         # Retrain the model with the updated anomaly and background data
@@ -547,11 +555,11 @@ class imRF():
             X[i], y[i] = randomized[i][:, :-1], randomized[i][:, -1]
 
         # Load the models
-        filename = f'models/rf_model_high_{iteration - 1}.sav'
+        filename = f'models/rf_model_high_{self.iteration - 1}.sav'
         model_high = pickle.load(open(filename, 'rb'))
-        filename = f'models/rf_model_med_{iteration - 1}.sav'
+        filename = f'models/rf_model_med_{self.iteration - 1}.sav'
         model_med = pickle.load(open(filename, 'rb'))
-        filename = f'models/rf_model_low_{iteration - 1}.sav'
+        filename = f'models/rf_model_low_{self.iteration - 1}.sav'
         model_low = pickle.load(open(filename, 'rb'))
 
         # Increase estimators and set warm_start to True
@@ -584,20 +592,26 @@ class imRF():
         print(confusion_matrix_low)
         
         # Get the number of rows labeled as anomalies in y_test
-        num_anomalies = len([i for i in y_test[0] if i==1])
-        print('Number of anomalies in test set:', num_anomalies)
-        num_anomalies = len([i for i in y_test[1] if i==1])
-        print('Number of anomalies in test set:', num_anomalies)
-        num_anomalies = len([i for i in y_test[2] if i==1])
-        print('Number of anomalies in test set:', num_anomalies)
+        prev_num_anomalies_med = num_anomalies_med
+        num_anomalies_high = len([i for i in y_test[0] if i==1])
+        print('Number of anomalies in test set:', num_anomalies_high)
+        num_anomalies_med = len([i for i in y_test[1] if i==1])
+        print('Number of anomalies in test set:', num_anomalies_med)
+        num_anomalies_low = len([i for i in y_test[2] if i==1])
+        print('Number of anomalies in test set:', num_anomalies_low)
         
         # Save the model to disk
-        filename = f'models/rf_model_high_{iteration}.sav'
+        filename = f'models/rf_model_high_{self.iteration}.sav'
         pickle.dump(model_high, open(filename, 'wb'))
-        filename = f'models/rf_model_med_{iteration}.sav'
+        filename = f'models/rf_model_med_{self.iteration}.sav'
         pickle.dump(model_med, open(filename, 'wb'))
-        filename = f'models/rf_model_low_{iteration}.sav'
+        filename = f'models/rf_model_low_{self.iteration}.sav'
         pickle.dump(model_low, open(filename, 'wb'))
+        
+        # Define stop criteria
+        difference = num_anomalies_med / prev_num_anomalies_med
+        print(difference)
+        return num_anomalies_med, difference
 
 if __name__ == '__main__':
     
@@ -606,8 +620,11 @@ if __name__ == '__main__':
     imRF = imRF(station=901, trim_percentage=10, ratio_init=12, ratio=2, num_variables=6, 
                 window_size=window_size, stride=1, seed=0)
     
+    # Start number of anomalies_med
+    num_anomalies_med = 1 # Set to 1 to avoid division by zero
+    
     # Implement iterative process
-    for i in range(0, 5):
+    for i in range(0, 10):
         
         # Update iteration value
         imRF.iteration = i
@@ -625,7 +642,10 @@ if __name__ == '__main__':
         else:
             print(f'[INFO] Iteration {i}')
             # Extract new background data
-            background_indexes = imRF.background(anomalies_indexes, background_indexes, iteration=i)
+            background_indexes = imRF.background(anomalies_indexes, background_indexes)
             
             # Iteratively predict on the new background data and update the model
-            imRF.RandomForest(iteration=i)
+            num_anomalies_med, difference = imRF.RandomForest(num_anomalies_med)
+            
+            if difference <= 1.1:
+                break
