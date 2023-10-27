@@ -13,15 +13,18 @@ iterative multiresolution Random Forest."""
 
 class imRF():
     
-    def __init__(self, station, trim_percentage, ratio, num_variables, window_size, stride, seed) -> None:
+    def __init__(self, station, trim_percentage, ratio_init, ratio, num_variables, window_size, stride, seed) -> None:
         
         self.station = station
         self.trim_percentage = trim_percentage
+        self.ratio_init = ratio_init
         self.ratio = ratio
         self.num_variables = num_variables
         self.window_size = window_size
         self.stride = stride
         self.seed = seed
+        
+        self.iteration = None
     
     def windower(self, data):
         
@@ -169,7 +172,7 @@ class imRF():
         for anomaly_length in len_anomalies:
             if anomaly_length != 0:
                 start = random.randint(0, len(data_background) - 1)
-                end = start + (anomaly_length * self.ratio)
+                end = start + (anomaly_length * self.ratio_init)
                 background_indexes.append((start, end))
         
         # Extract the data
@@ -223,15 +226,8 @@ class imRF():
         # Filter the data to select only rows where the label column has a value of 0
         data_background = data[data["label"] == 0]
         
-        mean_ammonium = np.mean(data_background.ammonium_901)
-        # if self.iteration <= 1:
-            # Filter the dataset to include only days that are prone to be anomalous based on the ammonium (and cond?) levels
-            # data_background = data_background.groupby(data_background['date'].dt.date).filter(lambda x: x[f'ammonium_{self.station}'].max() > mean_ammonium)
-        # else:
-            # Filter the dataset to include only days that meet the ammonium level the condition
-            # data_background = data_background.groupby(data_background['date'].dt.date).filter(lambda x: x[f'ammonium_{self.station}'].max() <= mean_ammonium)
-        
-        data_background = data_background.groupby(data_background['date'].dt.date).filter(lambda x: x[f'ammonium_{self.station}'].max() <= mean_ammonium)
+        # mean_ammonium = np.mean(data_background.ammonium_901)
+        # data_background = data_background.groupby(data_background['date'].dt.date).filter(lambda x: x[f'ammonium_{self.station}'].max() <= mean_ammonium)
         
         # Extract the length of the anomalies
         len_anomalies = [end - start for start, end in anomalies_indexes]
@@ -466,7 +462,7 @@ class imRF():
             # Combine the float result with the majority voting of the lists
             multiresolution_vote = self.majority_vote(scores_high, *scores_med, *scores_low)
         
-            if multiresolution_vote >= 0.51:
+            if multiresolution_vote >= 0.90:
                 indexes_anomalies_windows_high.append(index_high)
                 indexes_anomalies_windows_med.append((start_index_med, end_index_med))
                 indexes_anomalies_windows_low.append((start_index_low, end_index_low))
@@ -607,11 +603,14 @@ if __name__ == '__main__':
     
     # Create an instance of the model
     window_size = 32
-    imRF = imRF(station=901, trim_percentage=10, ratio=5, num_variables=6, 
+    imRF = imRF(station=901, trim_percentage=10, ratio_init=12, ratio=2, num_variables=6, 
                 window_size=window_size, stride=1, seed=0)
     
     # Implement iterative process
     for i in range(0, 5):
+        
+        # Update iteration value
+        imRF.iteration = i
         
         if i == 0:
             print(f'[INFO] Iteration {i}')
