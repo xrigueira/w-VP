@@ -418,12 +418,12 @@ class imRF():
         filename = f'models/rf_model_low_{self.iteration - 1}.sav'
         loaded_model_low = pickle.load(open(filename, 'rb'))
         
-        # Get the results from each tree
+        # Load the estimators (trees) of each model
         trees_high = loaded_model_high.estimators_
         trees_med = loaded_model_med.estimators_
         trees_low = loaded_model_low.estimators_
 
-        # Continue here adapting the code to having three models
+        # Get the results from each tree
         tree_classifications_high = [tree.predict(X[0]) for tree in trees_high]
         tree_classifications_med = [tree.predict(X[1]) for tree in trees_med]
         tree_classifications_low = [tree.predict(X[2]) for tree in trees_low]
@@ -624,7 +624,7 @@ if __name__ == '__main__':
     num_anomalies_med = 1 # Set to 1 to avoid division by zero
     
     # Implement iterative process
-    for i in range(0, 10):
+    for i in range(0, 5):
         
         # Update iteration value
         imRF.iteration = i

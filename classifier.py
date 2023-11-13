@@ -1,43 +1,56 @@
-# Load a Random Forest model
 import pickle
-filename = f'models/rf_model_med_{1}.sav'
-loaded_model_med = pickle.load(open(filename, 'rb'))
+import numpy as np
 
-# Access on of its estimators (trees)
-tree = loaded_model_med.estimators_[1]
-
-# Get the distance from each note to the root node (depth)
-print(tree.tree_.compute_node_depths())
-
-# I think that the key to clusteting would be getting the distance from each node to the others, not just to the root node.
-# Then I could try to apply a clustering algorithm.
-
-# Also I have to look into using dendograms as David said.
+from sklearn.cluster import KMeans
 
 # Random Forest docs: https://scikit-learn.org/stable/modules/generated/sklearn.ensemble.RandomForestClassifier.html
 # Decision Tree Classifier (estimator_) docs: https://scikit-learn.org/stable/modules/generated/sklearn.tree.DecisionTreeClassifier.html#sklearn.tree.DecisionTreeClassifier
 # This is key: Decision Tree Structure docs: https://scikit-learn.org/stable/auto_examples/tree/plot_unveil_tree_structure.html#sphx-glr-auto-examples-tree-plot-unveil-tree-structure-py
 
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.datasets import make_classification
-from sklearn.cluster import KMeans
-import numpy as np
+# Load a model. I am using the last model in this case -- 9.
+iteration = 9
+filename = f'models/rf_model_med_{iteration}.sav'
+model = pickle.load(open(filename, 'rb'))
 
-# Create a synthetic dataset (replace this with your actual data)
-X, y = make_classification(n_samples=1000, n_features=10, n_informative=5, n_clusters_per_class=1, random_state=42)
+# Load the data
+file_anomalies = open(f'pickels/anomaly_data_{iteration}.pkl', 'rb')
+anomalies_windows = pickle.load(file_anomalies)
+file_anomalies.close()
 
-# Assume you have trained a Random Forest classifier
-clf = RandomForestClassifier(n_estimators=100, random_state=42)
-clf.fit(X, y)
+# Read the previous windows background
+file_background = open(f'pickels/background_data_{iteration}.pkl', 'rb')
+background_windows = pickle.load(file_background)
+file_background.close
 
-# Assuming anomalies are instances where the predicted class is 1 (adjust as needed)
+# Define the labels
+anomalies_labels = []
+for i in range(len(anomalies_windows)):
+    anomalies_labels.append(np.array([1 for j in anomalies_windows[i]]))
+
+background_labels = []
+for i in range(len(background_windows)):
+    background_labels.append(np.array([0 for j in background_windows[i]]))
+
+# Concatenate array
+X = []
+for i in range(len(anomalies_windows)):
+    X.append(np.concatenate((anomalies_windows[i], background_windows[i])))
+
+y = []
+for i in range(len(anomalies_windows)):
+    y.append(np.concatenate((anomalies_labels[i], background_labels[i])))
+
+# Get the data corresponding to the resolution of the model (high:0, med:1, low:2)
+X, y = X[1], y[1]
+
+# Get the anomaly indices
 anomaly_indices = np.where(y == 1)[0]
 
 # Create an empty list to store decision paths
 decision_paths = []
 
 # Traverse each tree in the Random Forest
-for tree in clf.estimators_:
+for tree in model.estimators_:
     # Get the decision path for each anomaly instance
     tree_decision_paths = tree.decision_path(X[anomaly_indices]).toarray()
     decision_paths.append(tree_decision_paths)
@@ -50,7 +63,7 @@ integer_decision_paths = all_decision_paths.dot(1 << np.arange(all_decision_path
 
 # Reshape the integer decision paths to have one row per anomaly instance
 integer_decision_paths = integer_decision_paths.reshape(len(anomaly_indices), -1)
-print(integer_decision_paths)
+
 # Apply K-Means clustering
 num_clusters = 3  # Adjust as needed
 kmeans = KMeans(n_clusters=num_clusters, random_state=42)
