@@ -1,41 +1,58 @@
 import pickle
 import matplotlib.pyplot as plt
 
-"""Plot the multivariate data of those windows that are anomalous and background respectively"""
+def plotter(data, num_variables, windowed):
+    
+    if windowed == False:
 
-# Read the windowed anomalous data
-file_anomalies = open('anomaly_data_1.pkl', 'rb')
+        data_reshaped = data.reshape(-1, num_variables)
+
+        # Plot each variable
+        for i in range(num_variables):
+            plt.plot(data_reshaped[:, i], label=f'Variable {i+1}')
+
+        plt.xlabel('Time/Index')
+        plt.ylabel('Variable Value')
+        plt.legend()
+        plt.show()
+
+    if windowed == True:
+
+        for window_index, window in enumerate(data):
+            
+            # Reshape the window
+            window_reshaped = window.reshape(-1, num_variables)
+
+            # Create a new figure for each window
+            plt.figure(window_index)
+
+            # Plot each variable
+            for i in range(num_variables):
+                plt.plot(window_reshaped[:, i], label=f'Variable {i+1}')
+
+            plt.xlabel('Time/Index')
+            plt.ylabel('Variable Value')
+            plt.legend()
+            plt.title(f'Window {window_index+1}')
+
+        plt.show()
+
+# Read the last anomaly data file
+file_anomalies = open(f'pickels/anomaly_data_4.pkl', 'rb')
 anomalies_windows = pickle.load(file_anomalies)
 file_anomalies.close()
 
-# Read the windowed background data
-file_background = open('background_data_0.pkl', 'rb')
-background_windows = pickle.load(file_background)
-file_background.close()
+# Rename
+X = anomalies_windows
 
-anomalies_windows = anomalies_windows.reshape(-1, 6)
+stride = 1
+num_variables = 6
+med_subwindow_span = len(X[1][0]) // (num_variables * stride)
+low_subwindow_span = (len(X[0][0])- len(X[2][0])) // (num_variables * stride)
 
-grouped_data = [anomalies_windows[i:i+16] for i in range(0, len(anomalies_windows), 16)]
-print(grouped_data[-2])
+data_high = X[0][0]
+data_med = X[1][:(med_subwindow_span + 1)]
+data_low = X[2][:(low_subwindow_span + 1)]
 
-# Number of rows in each group
-num_data_points = 16
-
-# Loop through the groups and create separate plots for each
-for group in grouped_data:
-    
-    # Create X-axis values representing the indices of data points
-    x_values = list(range(1, num_data_points + 1))
-
-    # Create a line plot for each variable
-    for i in range(6):
-        y_values = [row[i] for row in group]
-        plt.plot(x_values, y_values, label=f'Variable {i+1}')
-
-    # Set labels and legend
-    plt.xlabel('Data Point Index')
-    plt.ylabel('Variable Value')
-    plt.legend()
-
-    # Show the plot
-    plt.show()
+# Plot the data
+plotter(data_low, num_variables=6, windowed=True)

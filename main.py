@@ -449,10 +449,8 @@ class imRF():
         # plt.close()
         
         # Get the indexes of those windows considered anomalies or background
-        stride = 1
-        num_variables = 6
-        med_subwindow_span = len(X[1][0]) // (num_variables * stride)
-        low_subwindow_span = (len(X[0][0])- len(X[2][0])) // (num_variables * stride)
+        med_subwindow_span = len(X[1][0]) // (self.num_variables * self.stride)
+        low_subwindow_span = (len(X[0][0])- len(X[2][0])) // (self.num_variables * self.stride)
 
         index_high = 0
         start_index_med, end_index_med = 0, med_subwindow_span + 1
@@ -480,9 +478,9 @@ class imRF():
                 indexes_background_windows_low.append((start_index_low, end_index_low))
             
             # Update the index values
-            index_high = index_high + stride
-            start_index_med, end_index_med = start_index_med + stride, end_index_med + stride
-            start_index_low, end_index_low = start_index_low + stride, end_index_low + stride
+            index_high = index_high + self.stride
+            start_index_med, end_index_med = start_index_med + self.stride, end_index_med + self.stride
+            start_index_low, end_index_low = start_index_low + self.stride, end_index_low + self.stride
         
         # Extract those new anomaly and background windows
         add_anomalies_windows_high = [X[0][i] for i in indexes_anomalies_windows_high]
