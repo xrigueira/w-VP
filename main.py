@@ -378,7 +378,7 @@ class imRF():
     @tictoc
     def RandomForest(self, num_anomalies_med):
         
-        """Updates the Random Forest models on each iterations.
+        """Updates the Random Forest models on each iteration.
         The older models performs prediction on new background data.
         Those windows classified as anomalies get added to previous
         anomaly data and those which are background get included in the
