@@ -187,7 +187,7 @@ class imRF():
         # Group data into windows before saving
         background_data = self.windower(background_data)
         
-        # Save anomalies_data to disk as numpy object
+        # Save background_data to disk as numpy object
         with open(f'pickels/background_data_0.pkl', 'wb') as file:
             pickle.dump(background_data, file)
             
