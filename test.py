@@ -1,7 +1,7 @@
 import pickle
 
 # Read the background data file
-file_background = open(f'pickels/background_data_0.pkl', 'rb')
+file_background = open(f'pickels/background_data_4.pkl', 'rb')
 background_windows = pickle.load(file_background)
 file_background.close()
 
