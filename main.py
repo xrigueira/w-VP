@@ -9,6 +9,7 @@ plt.style.use('ggplot')
 from sklearn.ensemble import RandomForestClassifier
 
 from tictoc import tictoc
+from dater import dater
 
 """This file contains the main class imRF which implements
 iterative multiresolution Random Forest."""
@@ -31,12 +32,12 @@ class imRF():
     def windower(self, data):
         
         """
-        Takes a 2D array with multivariate time series data
-        and creates multiresolution sliding windows. The size
-        of the slinding windows gets halved each time. The
-        resulting windows store different variables in a 
-        consecutive manner. E.g. [first 6 variables, next 6 
-        variables, and so on].
+        Takes a 2D list of NumPy arrays with multivariate 
+        time series data and creates multiresolution sliding 
+        windows. The size of the slinding windows gets halved 
+        each time. The resulting windows store different 
+        variables in a consecutive manner. E.g. [first 6 variables, 
+        next 6 variables, and so on].
         ----------
         Arguments:
         data (pickle): file with the time-series data to turn 
@@ -227,9 +228,6 @@ class imRF():
         
         # Filter the data to select only rows where the label column has a value of 0
         data_background = data[data["label"] == 0]
-        
-        # mean_ammonium = np.mean(data_background.ammonium_901)
-        # data_background = data_background.groupby(data_background['date'].dt.date).filter(lambda x: x[f'ammonium_{self.station}'].max() <= mean_ammonium)
         
         # Extract the length of the anomalies
         len_anomalies = [end - start for start, end in anomalies_indexes]
@@ -432,7 +430,7 @@ class imRF():
         score_Xs_high = np.mean(tree_classifications_high, axis=0)
         score_Xs_med = np.mean(tree_classifications_med, axis=0)
         score_Xs_low = np.mean(tree_classifications_low, axis=0)
-        
+
         variables = [(score_Xs_high, 'score_Xs_high'), (score_Xs_med, 'score_Xs_med'), (score_Xs_low, 'score_Xs_low')]
 
         # Here is where I could plot the distribution of the scores too
@@ -448,10 +446,12 @@ class imRF():
         plt.savefig(f'images/{name}_{self.iteration}.png', dpi=300)
         # plt.close()
         
+        # TODO: the spans will mostlikely become obsolete
         # Get the indexes of those windows considered anomalies or background
         med_subwindow_span = len(X[1][0]) // (self.num_variables * self.stride)
-        low_subwindow_span = (len(X[0][0])- len(X[2][0])) // (self.num_variables * self.stride)
+        low_subwindow_span = (len(X[0][0]) - len(X[2][0])) // (self.num_variables * self.stride)
 
+        # TODO: the end indexes will mostlikely need to be started here but defined later down
         index_high = 0
         start_index_med, end_index_med = 0, med_subwindow_span + 1
         start_index_low, end_index_low = 0, low_subwindow_span + 1
@@ -467,7 +467,6 @@ class imRF():
             
             # Combine the float result with the majority voting of the lists
             multiresolution_vote = self.majority_vote(scores_high, *scores_med, *scores_low)
-        
             if multiresolution_vote >= 0.90:
                 indexes_anomalies_windows_high.append(index_high)
                 indexes_anomalies_windows_med.append((start_index_med, end_index_med))
@@ -477,20 +476,29 @@ class imRF():
                 indexes_background_windows_med.append((start_index_med, end_index_med))
                 indexes_background_windows_low.append((start_index_low, end_index_low))
             
+            # TODO: Here is where I will have to redefine the index update
             # Update the index values
             index_high = index_high + self.stride
-            start_index_med, end_index_med = start_index_med + self.stride, end_index_med + self.stride
+            start_index_med, end_index_med = start_index_med + self.stride, end_index_med + self.stride 
             start_index_low, end_index_low = start_index_low + self.stride, end_index_low + self.stride
         
         # Extract those new anomaly and background windows
         add_anomalies_windows_high = [X[0][i] for i in indexes_anomalies_windows_high]
         add_background_windows_high = [X[0][i] for i in indexes_background_windows_high]
+
+        # add_anomalies_windows_med = [X[1][start:end] for (start, end) in indexes_anomalies_windows_med]
         add_anomalies_windows_med = []
         [add_anomalies_windows_med.extend(X[1][start:end]) for start, end in indexes_anomalies_windows_med]
+
+        # add_background_windows_med = [X[1][start:end] for (start, end) in indexes_background_windows_med]
         add_background_windows_med = []
         [add_background_windows_med.extend(X[1][start:end]) for start, end in indexes_background_windows_med]
+
+        # add_anomalies_windows_low = [X[2][start:end] for (start, end) in indexes_anomalies_windows_low]
         add_anomalies_windows_low = []
         [add_anomalies_windows_low.extend(X[2][start:end]) for start, end in indexes_anomalies_windows_low]
+        
+        # add_background_windows_low = [X[2][start:end] for (start, end) in indexes_background_windows_low]
         add_background_windows_low = []
         [add_background_windows_low.extend(X[2][start:end]) for start, end in indexes_background_windows_low]
         # print(f'Percentage of anomalies {round(len(add_anomalies_windows) / len(background_windows) * 100, 2)}%')
@@ -514,13 +522,13 @@ class imRF():
                             np.vstack((prev_background_windows[1], add_background_windows_med)),
                             np.vstack((prev_background_windows[2], add_background_windows_low))]
 
-        # Save anomalies_data to disk as pickle object
-        with open(f'pickels/anomaly_data_{self.iteration}.pkl', 'wb') as file:
-            pickle.dump(anomalies_windows, file)
+        # # Save anomalies_data to disk as pickle object
+        # with open(f'pickels/anomaly_data_{self.iteration}.pkl', 'wb') as file:
+        #     pickle.dump(anomalies_windows, file)
         
         # Save background data as a pickle object
-        with open(f'pickels/background_data_{self.iteration}.pkl', 'wb') as file:
-            pickle.dump(background_windows, file)
+        # with open(f'pickels/background_data_{self.iteration}.pkl', 'wb') as file:
+        #     pickle.dump(background_windows, file)
         
         # Retrain the model with the updated anomaly and background data
         anomalies_labels = []
@@ -608,21 +616,21 @@ class imRF():
         
         # Define stop criteria
         difference = num_anomalies_med / prev_num_anomalies_med
-        print(difference)
+        
         return num_anomalies_med, difference
 
 if __name__ == '__main__':
     
     # Create an instance of the model
     window_size = 32
-    imRF = imRF(station=901, trim_percentage=10, ratio_init=12, ratio=2, num_variables=6, 
+    imRF = imRF(station=901, trim_percentage=0, ratio_init=12, ratio=2, num_variables=6, 
                 window_size=window_size, stride=1, seed=0)
     
     # Start number of anomalies_med
     num_anomalies_med = 1 # Set to 1 to avoid division by zero
     
     # Implement iterative process
-    for i in range(0, 5):
+    for i in range(0, 2):
         
         # Update iteration value
         imRF.iteration = i
@@ -642,8 +650,10 @@ if __name__ == '__main__':
             # Extract new background data
             background_indexes = imRF.background(anomalies_indexes, background_indexes)
             
-            # Iteratively predict on the new background data and update the model
-            num_anomalies_med, difference = imRF.RandomForest(num_anomalies_med)
+            # # Iteratively predict on the new background data and update the model
+            # num_anomalies_med, difference = imRF.RandomForest(num_anomalies_med)
             
-            if difference <= 1.1:
-                break
+            # print('Difference:', difference)
+
+            # if difference <= 1.1:
+            #     break

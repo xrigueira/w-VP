@@ -37,22 +37,24 @@ def plotter(data, num_variables, windowed):
 
         plt.show()
 
-# Read the last anomaly data file
-file_anomalies = open(f'pickels/anomaly_data_4.pkl', 'rb')
-anomalies_windows = pickle.load(file_anomalies)
-file_anomalies.close()
+if __name__ == '__main__':
 
-# Rename
-X = anomalies_windows
+    # Read the last anomaly data file
+    file_anomalies = open(f'pickels/anomaly_data_4.pkl', 'rb')
+    anomalies_windows = pickle.load(file_anomalies)
+    file_anomalies.close()
 
-stride = 1
-num_variables = 6
-med_subwindow_span = len(X[1][0]) // (num_variables * stride)
-low_subwindow_span = (len(X[0][0])- len(X[2][0])) // (num_variables * stride)
+    # Rename
+    X = anomalies_windows
 
-data_high = X[0][0]
-data_med = X[1][:(med_subwindow_span + 1)]
-data_low = X[2][:(low_subwindow_span + 1)]
+    stride = 1
+    num_variables = 6
+    med_subwindow_span = len(X[1][0]) // (num_variables * stride)
+    low_subwindow_span = (len(X[0][0])- len(X[2][0])) // (num_variables * stride)
 
-# Plot the data
-plotter(data_low, num_variables=6, windowed=True)
+    data_high = X[0][0]
+    data_med = X[1][:(med_subwindow_span + 1)]
+    data_low = X[2][:(low_subwindow_span + 1)]
+
+    # Plot the data
+    plotter(data_low, num_variables=6, windowed=True)
