@@ -83,11 +83,14 @@ def anomalies(station, trim_percentage, window_size, stride, num_variables):
     anomaly_lengths = []
     for start, end in consecutive_labels_indexes:
         anomaly_length = end - start
-        anomaly_lengths.append(anomaly_length)
-        trim_amount = int(anomaly_length * trim_percentage / 100)
-        trimmed_start = start + trim_amount
-        trimmed_end = end - trim_amount
-        trimmed_anomalies_indexes.append((trimmed_start, trimmed_end))
+        for start, end in consecutive_labels_indexes:
+            anomaly_length = end - start
+            if anomaly_length >= window_size:
+                anomaly_lengths.append(anomaly_length)
+                trim_amount = int(anomaly_length * trim_percentage / 100)
+                trimmed_start = start + trim_amount
+                trimmed_end = end - trim_amount
+                trimmed_anomalies_indexes.append((trimmed_start, trimmed_end))
     
     # Extract the data
     anomaly_data = []
@@ -118,17 +121,40 @@ file_anomalies = open('pickels/anomaly_data_0.pkl', 'rb')
 anomalies_windows = pickle.load(file_anomalies)
 file_anomalies.close()
 
-window_size_high = 32
-window_size_med = 16
-window_size_low = 8
+window_size = 32
+window_size_med = window_size // 2
+window_size_low = window_size // 2
 
 X = anomalies_windows[0]
-lengths = anomalies_windows[-1][:-1]
-lengths = [i - window_size_high + 1 for i in lengths]
+lengths = anomalies_windows[-1]
+number_windows = [i - window_size + 1 for i in lengths]
+med_subwindow_span = window_size - window_size_med
+low_subwindow_span = window_size - window_size_low
 
-index = 14 # This index would give an error with the old indexing set up
-print(X[0][index])
-# print(X[1][index:index+17][0])
-# print(X[1][index:index+17][-1])
-print(dater(901, X[0][index]))
-# print(dater(901, X[1][index:index+17]))
+index_high = 0
+start_index_med, end_index_med = 0, med_subwindow_span 
+start_index_low, end_index_low = 0, low_subwindow_span
+
+counter_number_windows = 0
+current_window_number = 0
+for i in range(len(X[0])):
+    print(i)
+    print(start_index_med, end_index_med + 1)
+    print(current_window_number, number_windows[counter_number_windows])
+    # print('High', dater(901, X[0][index_high]))
+    # print('Med', dater(901, X[1][start_index_med:end_index_med + 1]))
+    print('------------------')
+    if current_window_number == number_windows[counter_number_windows]:
+        index_high = index_high + stride
+        start_index_med, end_index_med = end_index_med + 1, end_index_med + med_subwindow_span + 1
+        start_index_low, end_index_low = end_index_low + 1, end_index_low + low_subwindow_span + 1
+        counter_number_windows += 1
+        current_window_number = 0
+    else:
+        index_high = index_high + stride
+        start_index_med, end_index_med = start_index_med + stride, end_index_med + stride
+        start_index_low, end_index_low = start_index_low + stride, end_index_low + stride
+        current_window_number += 1
+
+    if i == 15:
+        break

@@ -26,6 +26,9 @@ class imRF():
         self.window_size = window_size
         self.stride = stride
         self.seed = seed
+
+        self.window_size_med = self.window_size // 2
+        self.window_size_low = self.window_size_med // 2
         
         self.iteration = None
     
@@ -43,7 +46,7 @@ class imRF():
         data (pickle): file with the time-series data to turn 
         into windows.
         num_variables (int): the number of variables in the data.
-        window_size (int): the size of the windows.
+        window_size (int): the size of the biggest window.
         stride (int): the stride of the windows.
         
         Returns:
@@ -70,6 +73,7 @@ class imRF():
             
             # Restore the window size after recursion
             self.window_size = window_size
+            
             return []
     
     def majority_vote(self, *args):
@@ -79,7 +83,8 @@ class imRF():
     def anomalies(self):
         
         """Extracts the anomalies from the database and
-        saves them to a pickle file.
+        saves them to a pickle file. An additional copy
+        is saved for testing purposes.
         ----------
         Arguments:
         self.
@@ -87,6 +92,9 @@ class imRF():
         Stores:
         anomaly_data (pickle): file with the multivariate data.
         from each anomaly.
+        anomaly_data_test (pickle): file with the multivariate for each
+        anomaly. This is needed because anomaly_data will get over written
+        with the added anomalies in the iterative learning process.
         
         Returns:
         trimmed_anomalies_indexes (list): start and end indexes of the extracted
@@ -95,28 +103,29 @@ class imRF():
         
         # Load the data
         data = pd.read_csv(f'data/labeled_{self.station}_smo.csv', sep=',', encoding='utf-8', parse_dates=['date'])
-        
-        # Filter the data to select only rows where the label column has a value of 1
-        data_anomalies = data[data["label"] == 1]
-        
-        # Create a new column with the difference between consecutive dates
-        date_diff = (data_anomalies['date'] - data_anomalies['date'].shift()).fillna(pd.Timedelta(minutes=15))
+        data_copy = data.copy()
 
-        # Create groups of consecutive dates
-        date_group = (date_diff != pd.Timedelta(minutes=15)).cumsum()
+        # Create a new column 'group' that increments by 1 each time the 'label' value changes
+        data_copy['group'] = (data['label'].diff() != 0).cumsum()
 
-        # Get the starting and ending indexes of each group of consecutive dates
-        grouped = data.groupby(date_group)
-        consecutive_dates_indexes = [(group.index[0], group.index[-1]) for _, group in grouped]
+        # Filter the data to select only rows where the 'label' column has a value of 1
+        data_anomalies = data_copy[data_copy["label"] == 1]
+
+        # Group by the 'group' column and get the first and last index of each group
+        grouped = data_anomalies.groupby('group')
+        consecutive_labels_indexes = [(group.index.min(), group.index.max()) for _, group in grouped]
         
         # Trim the start and end of the anomalies to remove the onset and the offset
         trimmed_anomalies_indexes = []
-        for start, end in consecutive_dates_indexes:
+        anomaly_lengths = []
+        for start, end in consecutive_labels_indexes:
             anomaly_length = end - start
-            trim_amount = int(anomaly_length * self.trim_percentage / 100)
-            trimmed_start = start + trim_amount
-            trimmed_end = end - trim_amount
-            trimmed_anomalies_indexes.append((trimmed_start, trimmed_end))
+            if anomaly_length >= self.window_size:
+                anomaly_lengths.append(anomaly_length)
+                trim_amount = int(anomaly_length * self.trim_percentage / 100)
+                trimmed_start = start + trim_amount
+                trimmed_end = end - trim_amount
+                trimmed_anomalies_indexes.append((trimmed_start, trimmed_end))
         
         # Extract the data
         anomaly_data = []
@@ -126,9 +135,15 @@ class imRF():
 
         # Group the data in windows before saving
         anomaly_data = self.windower(anomaly_data)
+
+        anomaly_data = [anomaly_data] + [anomaly_lengths]
         
         # Save anomaly_data to disk as pickle object
         with open('pickels/anomaly_data_0.pkl', 'wb') as file:
+            pickle.dump(anomaly_data, file)
+
+        # Save anomaly_data to disk as pickle object
+        with open('pickels/anomaly_data_test.pkl', 'wb') as file:
             pickle.dump(anomaly_data, file)
         
         return trimmed_anomalies_indexes
@@ -172,21 +187,24 @@ class imRF():
         
         # Define background data indexes
         background_indexes = []
+        background_lengths = []
         for anomaly_length in len_anomalies:
             if anomaly_length != 0:
                 start = random.randint(0, len(data_background) - 1)
                 end = start + (anomaly_length * self.ratio_init)
                 background_indexes.append((start, end))
+                background_lengths.append(end - start)
         
         # Extract the data
         background_data = []
         for start, end in background_indexes:
-            
             subset_rows = data_background.iloc[start:end + 1, 1:-2].values.flatten() # Extarct rows withing the subset
             background_data.append(subset_rows)
         
         # Group data into windows before saving
         background_data = self.windower(background_data)
+
+        background_data = [background_data] + [background_lengths]
         
         # Save background_data to disk as numpy object
         with open(f'pickels/background_data_0.pkl', 'wb') as file:
@@ -197,10 +215,9 @@ class imRF():
     def background(self, anomalies_indexes, background_indexes):
         
         """Creates the background file for each iteration by extracting
-        'ratio' times more non anomalous data than the anomaly method and
-        adding that that to the previous background file. The data is saved
-        to a pickle file. It makes sure that the new non anomalous data 
-        extracted has not been selected before.
+        'ratio' times more non anomalous data than the anomaly method. 
+        The data is saved to a pickle file. It makes sure that the 
+        new non anomalous data extracted has not been selected before.
         ----------
         Arguments:
         self.
@@ -234,6 +251,7 @@ class imRF():
 
         # Define new background data indexes
         new_background_indexes = []
+        background_lengths = []
         for anomaly_length in len_anomalies:
             if anomaly_length != 0:
                 new_start = random.randint(0, len(data_background) - 1)
@@ -256,6 +274,7 @@ class imRF():
                 
                 # Append the nonoverlaping indexes to the new list and the old one
                 new_background_indexes.append((new_start, new_end))
+                background_lengths.append(new_end - new_start)
                 background_indexes.append((new_start, new_end))
         
         # Extract the data
@@ -267,6 +286,8 @@ class imRF():
         
         # Group data into windows before saving
         background_data = self.windower(background_data)
+
+        background_data = [background_data] + [background_lengths]
         
         # Save background_data to disk as pickle object
         with open(f'pickels/background_data_{self.iteration}.pkl', 'wb') as file:
@@ -274,6 +295,88 @@ class imRF():
             
         return background_indexes
     
+    def test_background(self, anomalies_indexes, background_indexes):
+        
+        """Creates the background file for testing by extracting
+        'ratio' times more non anomalous data than the anomaly method and
+        . The data is saved to a pickle file. It makes sure that 
+        the new non anomalous data extracted has not been selected before.
+        ----------
+        Arguments:
+        self.
+        anomalies_indexes (list): start and end indexes of the extracted
+        anomaly data.
+        background_indexes (list): start and end indexes of the previously
+        extracted background data.
+        
+        Saves:
+        background_data_test (pickle): file with 'ratio' times more 
+        nonanomalous data, compared to the total legth of the 
+        anomalies in the dataset.
+        
+        Returns:
+        background_indexes (list): updated start and end indexes of the 
+        extracted background data.
+        """
+        
+        # Define random seed
+        random.seed(self.seed)
+    
+        # Load the DataFrame from your dataset
+        data = pd.read_csv(f'data/labeled_{self.station}_smo.csv', sep=',', encoding='utf-8', parse_dates=['date'])
+        
+        # Filter the data to select only rows where the label column has a value of 0
+        data_background = data[data["label"] == 0]
+        
+        # Extract the length of the anomalies
+        len_anomalies = [end - start for start, end in anomalies_indexes]
+
+        # Define new background data indexes
+        new_background_indexes = []
+        background_lengths = []
+        for anomaly_length in len_anomalies:
+            if anomaly_length != 0:
+                new_start = random.randint(0, len(data_background) - 1)
+                new_end = new_start + (anomaly_length * self.ratio)
+                
+                # Check for overlap
+                overlaps = any(start <= new_end and end >= new_start for start, end in background_indexes)
+                
+                # If there is an overlap, generate a new index
+                max_retries = 10  # Set a maximum number of retries
+                retry_count = 0
+                while overlaps:
+                    new_start = random.randint(0, len(data_background) - 1)
+                    new_end = new_start + (anomaly_length * self.ratio)
+                    overlaps = any(start <= new_end and end >= new_start for start, end in background_indexes)
+                    retry_count += 1
+                
+                    if retry_count == max_retries:
+                        break
+                
+                # Append the nonoverlaping indexes to the new list and the old one
+                new_background_indexes.append((new_start, new_end))
+                background_lengths.append(new_end - new_start)
+                background_indexes.append((new_start, new_end))
+        
+        # Extract the data
+        background_data = []
+        for start, end in new_background_indexes:
+            
+            subset_rows = data_background.iloc[start:end + 1, 1:-2].values.flatten() # Extarct rows withing the subset
+            background_data.append(subset_rows)
+        
+        # Group data into windows before saving
+        background_data = self.windower(background_data)
+
+        background_data = [background_data] + [background_lengths]
+        
+        # Save background_data to disk as pickle object
+        with open(f'pickels/background_data_test.pkl', 'wb') as file:
+            pickle.dump(background_data, file)
+            
+        return background_indexes
+
     @tictoc
     def init_RandomForest(self):
         
@@ -300,6 +403,10 @@ class imRF():
         file_background = open('pickels/background_data_0.pkl', 'rb')
         background_windows = pickle.load(file_background)
         file_background.close()
+
+        # Separate windows and lengths, although legths will not be used in this method
+        anomalies_windows, anomalies_lengths = anomalies_windows[0], anomalies_windows[-1]
+        background_windows, background_lengths = background_windows[0], background_windows[-1]
         
         # Generate labels for each window
         anomalies_labels = []
@@ -398,8 +505,12 @@ class imRF():
         background_windows = pickle.load(file_background)
         file_background.close()
         
-        # Variable name change to follow best practives in ML
-        X = background_windows
+        # Variable name change to follow best practives in ML and extract lengths
+        X = background_windows[0]
+        lengths = background_windows[-1]
+
+        # Extract the number of windows of each anomaly for indexing purposes (knowing when an anomaly end)
+        number_windows = [i - self.window_size + 1 for i in lengths]
 
         # # AVOID for now. Shuffle the data and variable name change to follow best practives in ML
         # X = []
@@ -446,43 +557,52 @@ class imRF():
         plt.savefig(f'images/{name}_{self.iteration}.png', dpi=300)
         # plt.close()
         
-        # TODO: the spans will mostlikely become obsolete
         # Get the indexes of those windows considered anomalies or background
-        med_subwindow_span = len(X[1][0]) // (self.num_variables * self.stride)
-        low_subwindow_span = (len(X[0][0]) - len(X[2][0])) // (self.num_variables * self.stride)
+        med_subwindow_span = self.window_size - self.window_size_med
+        low_subwindow_span = self.window_size - self.window_size_low
 
-        # TODO: the end indexes will mostlikely need to be started here but defined later down
+        # Set up the indexes
         index_high = 0
-        start_index_med, end_index_med = 0, med_subwindow_span + 1
-        start_index_low, end_index_low = 0, low_subwindow_span + 1
+        start_index_med, end_index_med = 0, med_subwindow_span 
+        start_index_low, end_index_low = 0, low_subwindow_span
 
+        counter_number_windows = 0 # Used to access the length
+        current_window_number = 0 # Keeps track of the number of windows analyzed within each anomaly
         indexes_anomalies_windows_high, indexes_background_windows_high = [], []
         indexes_anomalies_windows_med, indexes_background_windows_med = [], []
         indexes_anomalies_windows_low, indexes_background_windows_low = [], []
         for i in range(len(score_Xs_high)):
     
             scores_high = score_Xs_high[index_high]
-            scores_med = score_Xs_med[start_index_med:end_index_med]
-            scores_low = score_Xs_low[start_index_low:end_index_low]
+            scores_med = score_Xs_med[start_index_med:end_index_med + 1]
+            scores_low = score_Xs_low[start_index_low:end_index_low + 1]
             
             # Combine the float result with the majority voting of the lists
             multiresolution_vote = self.majority_vote(scores_high, *scores_med, *scores_low)
             if multiresolution_vote >= 0.90:
                 indexes_anomalies_windows_high.append(index_high)
-                indexes_anomalies_windows_med.append((start_index_med, end_index_med))
-                indexes_anomalies_windows_low.append((start_index_low, end_index_low))
+                indexes_anomalies_windows_med.append((start_index_med, end_index_med + 1))
+                indexes_anomalies_windows_low.append((start_index_low, end_index_low + 1))
+
             elif multiresolution_vote <= 0.10:
                 indexes_background_windows_high.append(index_high)
-                indexes_background_windows_med.append((start_index_med, end_index_med))
-                indexes_background_windows_low.append((start_index_low, end_index_low))
+                indexes_background_windows_med.append((start_index_med, end_index_med + 1))
+                indexes_background_windows_low.append((start_index_low, end_index_low + 1))
             
-            # TODO: Here is where I will have to redefine the index update
             # Update the index values
-            index_high = index_high + self.stride
-            start_index_med, end_index_med = start_index_med + self.stride, end_index_med + self.stride 
-            start_index_low, end_index_low = start_index_low + self.stride, end_index_low + self.stride
+            if current_window_number == number_windows[counter_number_windows]:
+                index_high = index_high + self.stride
+                start_index_med, end_index_med = end_index_med + 1, end_index_med + med_subwindow_span + 1
+                start_index_low, end_index_low = end_index_low + 1, end_index_low + low_subwindow_span + 1
+                counter_number_windows += 1
+                current_window_number = 0
+            else:
+                index_high = index_high + self.stride
+                start_index_med, end_index_med = start_index_med + self.stride, end_index_med + self.stride
+                start_index_low, end_index_low = start_index_low + self.stride, end_index_low + self.stride
+                current_window_number += 1
         
-        # Extract those new anomaly and background windows
+        # Extract those new anomaly, background windows and lengths
         add_anomalies_windows_high = [X[0][i] for i in indexes_anomalies_windows_high]
         add_background_windows_high = [X[0][i] for i in indexes_background_windows_high]
 
@@ -512,6 +632,11 @@ class imRF():
         file_background = open(f'pickels/background_data_{self.iteration - 1}.pkl', 'rb')
         prev_background_windows = pickle.load(file_background)
         file_background.close()
+
+        if self.iteration - 1 == 0:
+            # Separate windows and lengths before contatenating
+            prev_anomalies_windows, prev_anomalies_lengths = prev_anomalies_windows[0], prev_anomalies_windows[-1]
+            prev_background_windows, prev_background_lengths = prev_background_windows[0], prev_background_windows[-1]
         
         # Conactenate new data with old data
         anomalies_windows = [np.vstack((prev_anomalies_windows[0], add_anomalies_windows_high)),
@@ -522,14 +647,15 @@ class imRF():
                             np.vstack((prev_background_windows[1], add_background_windows_med)),
                             np.vstack((prev_background_windows[2], add_background_windows_low))]
 
-        # # Save anomalies_data to disk as pickle object
-        # with open(f'pickels/anomaly_data_{self.iteration}.pkl', 'wb') as file:
-        #     pickle.dump(anomalies_windows, file)
+
+        # Save anomalies_data to disk as pickle object
+        with open(f'pickels/anomaly_data_{self.iteration}.pkl', 'wb') as file:
+            pickle.dump(anomalies_windows, file)
         
         # Save background data as a pickle object
-        # with open(f'pickels/background_data_{self.iteration}.pkl', 'wb') as file:
-        #     pickle.dump(background_windows, file)
-        
+        with open(f'pickels/background_data_{self.iteration}.pkl', 'wb') as file:
+            pickle.dump(background_windows, file)
+
         # Retrain the model with the updated anomaly and background data
         anomalies_labels = []
         for i in range(len(anomalies_windows)):
@@ -619,6 +745,86 @@ class imRF():
         
         return num_anomalies_med, difference
 
+    @tictoc
+    def test_RandomForest(self):
+        
+        """Loads the last RF models trained and tests them.
+        ----------
+        Arguments:
+        self.
+        iteration (int): the last iteration number.
+        
+        Saves:
+        rf_model_test (sav): with the tested model saved to disk.
+        
+        Returns:
+        """
+        
+        # Read the testing windowed background
+        file_anomalies = open('pickels/anomaly_data_test.pkl', 'rb')
+        anomalies_windows = pickle.load(file_anomalies)
+        file_anomalies.close()
+
+        # Read the testing windowed background
+        file_background = open(f'pickels/background_data_test.pkl', 'rb')
+        background_windows = pickle.load(file_background)
+        file_background.close()
+        
+        # TODO: 1. test the trained model on the the anomalous data and get confusion matrices for all resolution levels (coded already). Also explain those anomalies-
+        # 2. run the model on the test background data to identify new anomalies and explain them.
+        # Draw inspiration (almost copy past) the code from init_RandomForest() and RandomForest() methods.
+
+        # Separate windows and lengths, although legths will not be used in this method
+        anomalies_windows, anomalies_lengths = anomalies_windows[0], anomalies_windows[-1]
+        background_windows, background_lengths = background_windows[0], background_windows[-1]
+        
+        # Generate labels for each window
+        anomalies_labels = []
+        for i in range(len(anomalies_windows)):
+            anomalies_labels.append(np.array([1 for j in anomalies_windows[i]]))
+
+        # Rename the variables for convention
+        X_test = anomalies_windows
+        y_test = anomalies_labels
+        
+        # Load the previous models
+        filename = f'models/rf_model_high_{self.iteration}.sav'
+        loaded_model_high = pickle.load(open(filename, 'rb'))
+        filename = f'models/rf_model_med_{self.iteration}.sav'
+        loaded_model_med = pickle.load(open(filename, 'rb'))
+        filename = f'models/rf_model_low_{self.iteration}.sav'
+        loaded_model_low = pickle.load(open(filename, 'rb'))
+        
+        from sklearn.metrics import confusion_matrix as cm
+        confusion_matrix_high = cm(y_test[0], loaded_model_high.predict(X_test[0]))
+        print(confusion_matrix_high)
+        confusion_matrix_med = cm(y_test[1], loaded_model_med.predict(X_test[1]))
+        print(confusion_matrix_med)
+        confusion_matrix_low = cm(y_test[2], loaded_model_low.predict(X_test[2]))
+        print(confusion_matrix_low)
+
+        # Get the number of rows labeled as anomalies in y_test
+        prev_num_anomalies_med = num_anomalies_med
+        num_anomalies_high = len([i for i in y_test[0] if i==1])
+        print('Number of anomalies in test set:', num_anomalies_high)
+        num_anomalies_med = len([i for i in y_test[1] if i==1])
+        print('Number of anomalies in test set:', num_anomalies_med)
+        num_anomalies_low = len([i for i in y_test[2] if i==1])
+        print('Number of anomalies in test set:', num_anomalies_low)
+
+        # Predict on the new background
+        y_hats_high = loaded_model_high.predict(background_windows[0])
+        y_hats_med = loaded_model_med.predict(background_windows[1])
+        y_hats_low = loaded_model_low.predict(background_windows[2])
+
+        num_anomalies_high = len([i for i in y_hats_high[0] if i==1])
+        print('Number of anomalies in test set:', num_anomalies_high)
+        num_anomalies_med = len([i for i in y_hats_med[1] if i==1])
+        print('Number of anomalies in test set:', num_anomalies_med)
+        num_anomalies_low = len([i for i in y_hats_low[2] if i==1])
+        print('Number of anomalies in test set:', num_anomalies_low)
+
+
 if __name__ == '__main__':
     
     # Create an instance of the model
@@ -630,7 +836,7 @@ if __name__ == '__main__':
     num_anomalies_med = 1 # Set to 1 to avoid division by zero
     
     # Implement iterative process
-    for i in range(0, 2):
+    for i in range(0, 8):
         
         # Update iteration value
         imRF.iteration = i
@@ -650,10 +856,17 @@ if __name__ == '__main__':
             # Extract new background data
             background_indexes = imRF.background(anomalies_indexes, background_indexes)
             
-            # # Iteratively predict on the new background data and update the model
-            # num_anomalies_med, difference = imRF.RandomForest(num_anomalies_med)
+            # Iteratively predict on the new background data and update the model
+            num_anomalies_med, difference = imRF.RandomForest(num_anomalies_med)
             
-            # print('Difference:', difference)
+            print('Difference:', difference)
 
-            # if difference <= 1.1:
-            #     break
+            if difference <= 1.1:
+                break
+        
+        print(f'[INFO] Testing')
+        # Extract new background data for testing
+        background_indexes = imRF.test_background(anomalies_indexes, background_indexes)
+
+        # Test the model
+        imRF.test_RandomForest()
