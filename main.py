@@ -804,7 +804,6 @@ class imRF():
         print(confusion_matrix_low)
 
         # Get the number of rows labeled as anomalies in y_test
-        prev_num_anomalies_med = num_anomalies_med
         num_anomalies_high = len([i for i in y_test[0] if i==1])
         print('Number of anomalies in test set:', num_anomalies_high)
         num_anomalies_med = len([i for i in y_test[1] if i==1])
@@ -817,12 +816,15 @@ class imRF():
         y_hats_med = loaded_model_med.predict(background_windows[1])
         y_hats_low = loaded_model_low.predict(background_windows[2])
 
-        num_anomalies_high = len([i for i in y_hats_high[0] if i==1])
-        print('Number of anomalies in test set:', num_anomalies_high)
-        num_anomalies_med = len([i for i in y_hats_med[1] if i==1])
-        print('Number of anomalies in test set:', num_anomalies_med)
-        num_anomalies_low = len([i for i in y_hats_low[2] if i==1])
-        print('Number of anomalies in test set:', num_anomalies_low)
+        num_anomalies_high = len([i for i in y_hats_high if i==1])
+        num_nonanomalies_high = len([i for i in y_hats_high if i==0])
+        print('Number of anomalies in background test set:', num_anomalies_high, '\nNumber of nonanomalies in background test set', num_nonanomalies_high)
+        num_anomalies_med = len([i for i in y_hats_med if i==1])
+        num_nonanomalies_med = len([i for i in y_hats_med if i==0])
+        print('Number of anomalies in background test set:', num_anomalies_med, '\nNumber of nonanomalies in background test set', num_nonanomalies_med)
+        num_anomalies_low = len([i for i in y_hats_low if i==1])
+        num_nonanomalies_low = len([i for i in y_hats_low if i==0])
+        print('Number of anomalies in background test set:', num_anomalies_low, '\nNumber of nonanomalies in background test set', num_nonanomalies_low)
 
 
 if __name__ == '__main__':
@@ -836,7 +838,7 @@ if __name__ == '__main__':
     num_anomalies_med = 1 # Set to 1 to avoid division by zero
     
     # Implement iterative process
-    for i in range(0, 8):
+    for i in range(0, 9):
         
         # Update iteration value
         imRF.iteration = i
@@ -864,9 +866,9 @@ if __name__ == '__main__':
             if difference <= 1.1:
                 break
         
-        print(f'[INFO] Testing')
-        # Extract new background data for testing
-        background_indexes = imRF.test_background(anomalies_indexes, background_indexes)
+    print(f'[INFO] Testing')
+    # Extract new background data for testing
+    background_indexes = imRF.test_background(anomalies_indexes, background_indexes)
 
-        # Test the model
-        imRF.test_RandomForest()
+    # Test the model
+    imRF.test_RandomForest()
