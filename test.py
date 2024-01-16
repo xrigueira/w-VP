@@ -1,6 +1,6 @@
 import pickle
 
-from dater import dater
+from utils import dater
 
 # Read the windowed anomalous data
 file_anomalies = open('pickels/anomaly_data_1.pkl', 'rb')

@@ -9,7 +9,7 @@ plt.style.use('ggplot')
 from sklearn.ensemble import RandomForestClassifier
 
 from tictoc import tictoc
-from dater import dater
+from utils import dater
 
 """This file contains the main class imRF which implements
 iterative multiresolution Random Forest."""
@@ -815,6 +815,11 @@ class imRF():
         y_hats_high = loaded_model_high.predict(background_windows[0])
         y_hats_med = loaded_model_med.predict(background_windows[1])
         y_hats_low = loaded_model_low.predict(background_windows[2])
+
+        # Save the predictions
+        np.save('preds/y_hats_high.npy', y_hats_high, allow_pickle=False, fix_imports=False)
+        np.save('preds/y_hats_med.npy', y_hats_med, allow_pickle=False, fix_imports=False)
+        np.save('preds/y_hats_low.npy', y_hats_low, allow_pickle=False, fix_imports=False)
 
         num_anomalies_high = len([i for i in y_hats_high if i==1])
         num_nonanomalies_high = len([i for i in y_hats_high if i==0])
