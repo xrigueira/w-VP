@@ -11,7 +11,7 @@ from utils import dater
 from utils import plotter
 from utils import explainer
 
-data_type = 'anomalies' # 'anomalies' or 'background
+data_type = 'background' # 'anomalies' or 'background
 resolution = 'high' # 'high', 'med', 'low'
 
 if resolution == 'high':

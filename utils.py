@@ -185,34 +185,34 @@ def explainer(X, model, resolution, window_to_explain):
     subset_feature_thresholds = []
     for i in tree_feature_thresholds:
         subset_feature_thresholds.append(i[:-1].tolist())
-    print(subset_feature_names)
-    # Variable-position plot
-    # Extract variable names and their positions
-    variables = {}
-    for sublist in subset_feature_names:
-        for i, item in enumerate(sublist):
-            var = item.split('-')[0].split('+')[0]
-            if var not in variables:
-                variables[var] = []
-            variables[var].append(i)
+    
+    # # Variable-position plot
+    # # Extract variable names and their positions
+    # variables = {}
+    # for sublist in subset_feature_names:
+    #     for i, item in enumerate(sublist):
+    #         var = item.split('-')[0].split('+')[0]
+    #         if var not in variables:
+    #             variables[var] = []
+    #         variables[var].append(i)
 
-    # Create a 2D array for the heatmap
-    max_len = max([len(sublist) for sublist in subset_feature_names])
-    heatmap_data = np.zeros((len(variables), max_len))
+    # # Create a 2D array for the heatmap
+    # max_len = max([len(sublist) for sublist in subset_feature_names])
+    # heatmap_data = np.zeros((len(variables), max_len))
 
-    for i, var in enumerate(variables.keys()):
-        for pos in variables[var]:
-            heatmap_data[i, pos] += 1
+    # for i, var in enumerate(variables.keys()):
+    #     for pos in variables[var]:
+    #         heatmap_data[i, pos] += 1
 
-    # Create the heatmap
-    heatmap_data = heatmap_data.astype(int) # Convert data to int
+    # # Create the heatmap
+    # heatmap_data = heatmap_data.astype(int) # Convert data to int
 
-    plt.figure(figsize=(10, 8))
-    sns.heatmap(heatmap_data, xticklabels=range(max_len), yticklabels=list(variables.keys()), cmap='viridis', annot=True, fmt="d")
-    plt.xlabel('Position')
-    plt.ylabel('Variable')
-    plt.title(f'Variable importance window {window_to_explain}')
-    plt.show()
+    # plt.figure(figsize=(10, 8))
+    # sns.heatmap(heatmap_data, xticklabels=range(max_len), yticklabels=list(variables.keys()), cmap='viridis', annot=True, fmt="d")
+    # plt.xlabel('Position')
+    # plt.ylabel('Variable')
+    # plt.title(f'Variable importance window {window_to_explain}')
+    # plt.show()
 
     # Variable-threshold plot
     variables_dict = {}
@@ -254,6 +254,56 @@ def explainer(X, model, resolution, window_to_explain):
         sns.violinplot(x='Variable', y='Threshold', data=df, order=df['Variable'].unique(), color=color_mapping.get(var_type, 'black'))
         plt.title(f'Violin plot for {var_type} variables')
         plt.show()
+
+    # New plot
+    # # Flatten the dictionary and get the maximum length of the lists
+    # max_len = max(len(lst) for time_steps in variables_dict.values() for lst in time_steps.values())
+
+    # # Initialize an empty dictionary
+    # padded_dict = {time_step: [] for time_step in feature_names_high}
+
+    # # Pad the lists and add them to padded_dict
+    # for variable, time_steps in variables_dict.items():
+    #     for time_step, thresholds in time_steps.items():
+    #         padded_list = thresholds + [np.nan] * (max_len - len(thresholds))
+    #         padded_dict[time_step] = padded_list
+    
+    # # Convert padded_dict to a DataFrame
+    # df = pd.DataFrame.from_dict(padded_dict, orient='index')
+
+    # # Transpose the DataFrame so that each column represents a time_step
+    # df = df.transpose()
+    
+    # # Sort the columns
+    # df = df.sort_index(axis=1)
+    
+    # num_histograms = 32*6
+
+    # # Create the grid of subplots
+    # n_rows = 6
+    # n_cols = 32
+    
+    # # Create a figure and subplots
+    # fig, axes = plt.subplots(n_rows, n_cols, figsize=(12, 3))
+
+    # # Flatten the axes array to iterate through subplots easily
+    # axes_flat = axes.flatten()
+
+    # # Get a list of (16) distinct colors from the tab20 colormap
+    # colors = plt.cm.tab20.colors[:num_histograms]
+
+    # # Iterate through the DataFrame columns and plot a histogram for each column
+    # for i, (column, ax) in enumerate(zip(df.columns, axes_flat)):
+    #     df[column].plot.hist(ax=ax, bins=10, edgecolor='black')
+    #     ax.set_title(column, fontsize=4)
+    #     ax.set_xlabel('')
+    #     ax.set_ylabel('')
+    #     ax.tick_params(axis='both', which='major', labelsize=4)  # Decrease the size of the numbers
+    
+    # # Adjust layout and display the plot
+    # # fig.tight_layout()
+    # plt.show()
+
 
 def tree_plotter(model, resolution):
 
