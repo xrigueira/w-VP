@@ -5,6 +5,8 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 plt.style.use('ggplot')
 
+from sklearn import tree
+
 from utils import dater
 from utils import plotter
 from utils import explainer

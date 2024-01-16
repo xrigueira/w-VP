@@ -185,7 +185,7 @@ def explainer(X, model, resolution, window_to_explain):
     subset_feature_thresholds = []
     for i in tree_feature_thresholds:
         subset_feature_thresholds.append(i[:-1].tolist())
-
+    print(subset_feature_names)
     # Variable-position plot
     # Extract variable names and their positions
     variables = {}
@@ -254,3 +254,99 @@ def explainer(X, model, resolution, window_to_explain):
         sns.violinplot(x='Variable', y='Threshold', data=df, order=df['Variable'].unique(), color=color_mapping.get(var_type, 'black'))
         plt.title(f'Violin plot for {var_type} variables')
         plt.show()
+
+def tree_plotter(model, resolution):
+
+    """This function plots a tree of a Random Forest model.
+    ---------
+    Arguments:
+    model: The Random Forest model to plot.
+    resolution: The resolution of the model.
+
+    Returns:
+    None.
+    """
+
+    # Plot an estimator (tree) of the Random Forest model
+    from sklearn.tree import export_graphviz
+
+    # Define feature names for all resolution levels
+    feature_names_high = [
+                    'am-16', 'co-16', 'do-16', 'ph-16', 'wt-16', 'tu-16',
+                    'am-15', 'co-15', 'do-15', 'ph-15', 'wt-15', 'tu-15',
+                    'am-14', 'co-14', 'do-14', 'ph-14', 'wt-14', 'tu-14',
+                    'am-13', 'co-13', 'do-13', 'ph-13', 'wt-13', 'tu-13',
+                    'am-12', 'co-12', 'do-12', 'ph-12', 'wt-12', 'tu-12',
+                    'am-11', 'co-11', 'do-11', 'ph-11', 'wt-11', 'tu-11',
+                    'am-10', 'co-10', 'do-10', 'ph-10', 'wt-10', 'tu-10',
+                    'am-9', 'co-9', 'do-9', 'ph-9', 'wt-9', 'tu-9',
+                    'am-8', 'co-8', 'do-8', 'ph-8', 'wt-8', 'tu-8',
+                    'am-7', 'co-7', 'do-7', 'ph-7', 'wt-7', 'tu-7',
+                    'am-6', 'co-6', 'do-6', 'ph-6', 'wt-6', 'tu-6',
+                    'am-5', 'co-5', 'do-5', 'ph-5', 'wt-5', 'tu-5',
+                    'am-4', 'co-4', 'do-4', 'ph-4', 'wt-4', 'tu-4',
+                    'am-3', 'co-3', 'do-3', 'ph-3', 'wt-3', 'tu-3',
+                    'am-2', 'co-2', 'do-2', 'ph-2', 'wt-2', 'tu-2',
+                    'am-1', 'co-1', 'do-1', 'ph-1', 'wt-1', 'tu-1',
+                    'am+1', 'co+1', 'do+1', 'ph+1', 'wt+1', 'tu+1',
+                    'am+2', 'co+2', 'do+2', 'ph+2', 'wt+2', 'tu+2',
+                    'am+3', 'co+3', 'do+3', 'ph+3', 'wt+3', 'tu+3',
+                    'am+4', 'co+4', 'do+4', 'ph+4', 'wt+4', 'tu+4',
+                    'am+5', 'co+5', 'do+5', 'ph+5', 'wt+5', 'tu+5',
+                    'am+6', 'co+6', 'do+6', 'ph+6', 'wt+6', 'tu+6',
+                    'am+7', 'co+7', 'do+7', 'ph+7', 'wt+7', 'tu+7',
+                    'am+8', 'co+8', 'do+8', 'ph+8', 'wt+8', 'tu+8',
+                    'am+9', 'co+9', 'do+9', 'ph+9', 'wt+9', 'tu+9',
+                    'am+10', 'co+10', 'do+10', 'ph+10', 'wt+10', 'tu+10',
+                    'am+11', 'co+11', 'do+11', 'ph+11', 'wt+11', 'tu+11',
+                    'am+12', 'co+12', 'do+12', 'ph+12', 'wt+12', 'tu+12',
+                    'am+13', 'co+13', 'do+13', 'ph+13', 'wt+13', 'tu+13',
+                    'am+14', 'co+14', 'do+14', 'ph+14', 'wt+14', 'tu+14',
+                    'am+15', 'co+15', 'do+15', 'ph+15', 'wt+15', 'tu+15',
+                    'am+16', 'co+16', 'do+16', 'ph+16', 'wt+16', 'tu+16'
+                    ]
+
+    feature_names_med = [
+                    'am-8', 'co-8', 'do-8', 'ph-8', 'wt-8', 'tu-8',
+                    'am-7', 'co-7', 'do-7', 'ph-7', 'wt-7', 'tu-7',
+                    'am-6', 'co-6', 'do-6', 'ph-6', 'wt-6', 'tu-6',
+                    'am-5', 'co-5', 'do-5', 'ph-5', 'wt-5', 'tu-5',
+                    'am-4', 'co-4', 'do-4', 'ph-4', 'wt-4', 'tu-4',
+                    'am-3', 'co-3', 'do-3', 'ph-3', 'wt-3', 'tu-3',
+                    'am-2', 'co-2', 'do-2', 'ph-2', 'wt-2', 'tu-2',
+                    'am-1', 'co-1', 'do-1', 'ph-1', 'wt-1', 'tu-1',
+                    'am+1', 'co+1', 'do+1', 'ph+1', 'wt+1', 'tu+1',
+                    'am+2', 'co+2', 'do+2', 'ph+2', 'wt+2', 'tu+2',
+                    'am+3', 'co+3', 'do+3', 'ph+3', 'wt+3', 'tu+3',
+                    'am+4', 'co+4', 'do+4', 'ph+4', 'wt+4', 'tu+4',
+                    'am+5', 'co+5', 'do+5', 'ph+5', 'wt+5', 'tu+5',
+                    'am+6', 'co+6', 'do+6', 'ph+6', 'wt+6', 'tu+6',
+                    'am+7', 'co+7', 'do+7', 'ph+7', 'wt+7', 'tu+7',
+                    'am+8', 'co+8', 'do+8', 'ph+8', 'wt+8', 'tu+8'
+                    ]
+
+    feature_names_low = [
+                    'am-4', 'co-4', 'do-4', 'ph-4', 'wt-4', 'tu-4',
+                    'am-3', 'co-3', 'do-3', 'ph-3', 'wt-3', 'tu-3',
+                    'am-2', 'co-2', 'do-2', 'ph-2', 'wt-2', 'tu-2',
+                    'am-1', 'co-1', 'do-1', 'ph-1', 'wt-1', 'tu-1',
+                    'am+1', 'co+1', 'do+1', 'ph+1', 'wt+1', 'tu+1',
+                    'am+2', 'co+2', 'do+2', 'ph+2', 'wt+2', 'tu+2',
+                    'am+3', 'co+3', 'do+3', 'ph+3', 'wt+3', 'tu+3',
+                    'am+4', 'co+4', 'do+4', 'ph+4', 'wt+4', 'tu+4'
+                    ]
+
+    # Select the resolution of the feature names
+    feature_names = feature_names_high if resolution == 'high' else feature_names_med if resolution == 'med' else feature_names_low
+
+    # Plot the tree ([0] for the first tree in the RF)
+    export_graphviz(model.estimators_[0], out_file='tree.dot',
+                    feature_names=feature_names, # Number of data points in a window
+                    rounded=True,
+                    proportion=False,
+                    precision=2,
+                    filled=True)
+
+    # Convert to png using system command (requires Graphviz)
+    from subprocess import call
+    call(['dot', '-Tpng', 'tree.dot', '-o', 'tree_0.png', '-Gdpi=600'])
