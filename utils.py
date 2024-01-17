@@ -220,7 +220,7 @@ def explainer(X, model, resolution, window_to_explain):
     data = pd.read_csv(f'data/labeled_{station}_smo.csv', sep=',', encoding='utf-8', parse_dates=['date'])
     
     stats_dict = {}
-    var_names = ['am', 'co', 'do', 'ph', 'wt', 'tu']
+    var_names = ['am', 'co', 'do', 'ph', 'tu', 'wt']
     for i, e in enumerate(data.iloc[:, 1:7]):
         stats_dict[var_names[i]] = data[e].quantile(0.25), data[e].mean(), data[e].quantile(0.75)
     
@@ -263,18 +263,29 @@ def explainer(X, model, resolution, window_to_explain):
         if var_type not in distance_dict:
             distance_dict[var_type] = {}
         for key, values in var_dict.items():
-                mean_distance = stats_dict[var_type][1] - np.mean(values)
+                mean_distance = stats_dict[var_type][1] - np.mean(values) # Here is where I can choose: 0: q1, 1: mean, 2: q3
                 distance_dict[var_type][key] = mean_distance
 
     # Plot the heatmap
-    print(distance_dict)
+    # Turn into a numpy array
+    distances = [np.array(list(distance_dict[var].values())) for var in var_names]
+    heatmap_data = np.vstack(distances)
+    
+    # Define xticklabels
+    xticklabels_high = [-16, -15, -14, -13, -12, -11, -10, -9, -8, -7, -6, -5, -4, -3, -2, -1, +1, +2, +3, +4, +5, +6, +7, +8, +9, +10, +11, +12, +13, +14, +15, +16]
+    xticklabels_med = [-8, -7, -6, -5, -4, -3, -2, -1, +1, +2, +3, +4, +5, +6, +7, +8]
+    xticklabels_low = [-4, -3, -2, -1, +1, +2, +3, +4]
 
-    # Convert the dictionary to a DataFrame
-    df = pd.DataFrame(distance_dict)
+    # Select the resolution of the feature names
+    xticklabels = xticklabels_high if resolution == 'high' else xticklabels_med if resolution == 'med' else xticklabels_low
 
-    # Plot the heatmap
-    sns.heatmap(df, cmap='coolwarm')
+    plt.figure(figsize=(10, 8))
+    sns.heatmap(heatmap_data, xticklabels=xticklabels, yticklabels=var_names, cmap='jet')
+    plt.xlabel('Position')
+    plt.ylabel('Variable')
+    plt.title(f'Threshold distance to the mean {window_to_explain}')
     plt.show()
+    
 
 def tree_plotter(model, resolution):
 
