@@ -272,9 +272,12 @@ def explainer(X, model, resolution, window_to_explain):
     heatmap_data = np.vstack(distances)
     
     # Define xticklabels
-    xticklabels_high = [-16, -15, -14, -13, -12, -11, -10, -9, -8, -7, -6, -5, -4, -3, -2, -1, +1, +2, +3, +4, +5, +6, +7, +8, +9, +10, +11, +12, +13, +14, +15, +16]
-    xticklabels_med = [-8, -7, -6, -5, -4, -3, -2, -1, +1, +2, +3, +4, +5, +6, +7, +8]
-    xticklabels_low = [-4, -3, -2, -1, +1, +2, +3, +4]
+    xticklabels_high = [-16, -15, -14, -13, -12, -11, -10, -9, -8, -7, -6, -5, -4, -3, -2, -1, 
+                        +1, +2, +3, +4, +5, +6, +7, +8, +9, +10, +11, +12, +13, +14, +15, +16]
+    xticklabels_med = [-8, -7, -6, -5, -4, -3, -2, -1, 
+                        +1, +2, +3, +4, +5, +6, +7, +8]
+    xticklabels_low = [-4, -3, -2, -1, 
+                        +1, +2, +3, +4]
 
     # Select the resolution of the feature names
     xticklabels = xticklabels_high if resolution == 'high' else xticklabels_med if resolution == 'med' else xticklabels_low
