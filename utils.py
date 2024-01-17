@@ -206,7 +206,7 @@ def explainer(X, model, resolution, window_to_explain):
 
     # # Create the heatmap
     # heatmap_data = heatmap_data.astype(int) # Convert data to int
-
+    
     # plt.figure(figsize=(10, 8))
     # sns.heatmap(heatmap_data, xticklabels=range(max_len), yticklabels=list(variables.keys()), cmap='viridis', annot=True, fmt="d")
     # plt.xlabel('Position')
@@ -215,6 +215,15 @@ def explainer(X, model, resolution, window_to_explain):
     # plt.show()
 
     # Variable-threshold plot
+    # Get the mean for each variable
+    station = 901
+    data = pd.read_csv(f'data/labeled_{station}_smo.csv', sep=',', encoding='utf-8', parse_dates=['date'])
+    
+    stats_dict = {}
+    var_names = ['am', 'co', 'do', 'ph', 'wt', 'tu']
+    for i, e in enumerate(data.iloc[:, 1:7]):
+        stats_dict[var_names[i]] = data[e].quantile(0.25), data[e].mean(), data[e].quantile(0.75)
+    
     variables_dict = {}
     for sublist, sublist_thresholds in zip(subset_feature_names, subset_feature_thresholds):
         for var, threshold in zip(sublist, sublist_thresholds):
@@ -224,86 +233,48 @@ def explainer(X, model, resolution, window_to_explain):
             if var not in variables_dict[var_type]:
                 variables_dict[var_type][var] = []
             variables_dict[var_type][var].append(threshold)
+    
+    # Add the missing feature names to the dictionary
+    for feature_name in feature_names:
+        # Extract variable type and specific feature
+        var_type = feature_name.split('-')[0].split('+')[0]
+        specific_feature = feature_name
 
-    # Define a color mapping for the variable types
-    color_mapping = {
-        'am': '#ff6961',
-        'co': '#ffb347',
-        'do': '#aec6cf',
-        'ph': '#b39eb5',
-        'tu': '#fdfd96',
-        'wt': '#77dd77'
-    }
+        # If the variable type exists in the dictionary
+        if var_type in variables_dict:
+            # If the specific feature doesn't exist in the sub-dictionary
+            if specific_feature not in variables_dict[var_type]:
+                # Add it with an empty list as the value
+                variables_dict[var_type][specific_feature] = []
+        else:
+            # If the variable type doesn't exist in the dictionary, add it
+            variables_dict[var_type] = {specific_feature: []}
 
-    # Create a violin plot for each variable type
+    # Sort the dictionary by keys
+    sorted_dict = {}
     for var_type, var_dict in variables_dict.items():
-        # Convert the dictionary to a DataFrame
-        df = pd.DataFrame([(key, var) for key, values in var_dict.items() for var in values], columns=['Variable', 'Threshold'])
-        
-        # Extract the numeric part of 'Variable' for sorting
-        df['SortKey'] = df['Variable'].apply(lambda x: int(x.split(var_type)[1]) if var_type in x else 0)
+        # Extract the numeric part, convert to integer, keep the sign and sort
+        sorted_keys = sorted(var_dict.keys(), key=lambda x: int(x.split(var_type)[1]) if var_type in x else 0)
+        sorted_dict[var_type] = {key: var_dict[key] for key in sorted_keys}
 
-        # Sort the DataFrame by 'SortKey'
-        df = df.sort_values('SortKey', ascending=False)
+    # Calculate the distance between the means
+    distance_dict = {}
+    for var_type, var_dict in sorted_dict.items():
+        if var_type not in distance_dict:
+            distance_dict[var_type] = {}
+        for key, values in var_dict.items():
+                mean_distance = stats_dict[var_type][1] - np.mean(values)
+                distance_dict[var_type][key] = mean_distance
 
-        # Drop the 'SortKey' as it's no longer needed
-        df = df.drop('SortKey', axis=1)
+    # Plot the heatmap
+    print(distance_dict)
 
-        # Create the violin plot with the color for the current variable type
-        plt.figure(figsize=(10, 8))
-        sns.violinplot(x='Variable', y='Threshold', data=df, order=df['Variable'].unique(), color=color_mapping.get(var_type, 'black'))
-        plt.title(f'Violin plot for {var_type} variables')
-        plt.show()
+    # Convert the dictionary to a DataFrame
+    df = pd.DataFrame(distance_dict)
 
-    # New plot
-    # # Flatten the dictionary and get the maximum length of the lists
-    # max_len = max(len(lst) for time_steps in variables_dict.values() for lst in time_steps.values())
-
-    # # Initialize an empty dictionary
-    # padded_dict = {time_step: [] for time_step in feature_names_high}
-
-    # # Pad the lists and add them to padded_dict
-    # for variable, time_steps in variables_dict.items():
-    #     for time_step, thresholds in time_steps.items():
-    #         padded_list = thresholds + [np.nan] * (max_len - len(thresholds))
-    #         padded_dict[time_step] = padded_list
-    
-    # # Convert padded_dict to a DataFrame
-    # df = pd.DataFrame.from_dict(padded_dict, orient='index')
-
-    # # Transpose the DataFrame so that each column represents a time_step
-    # df = df.transpose()
-    
-    # # Sort the columns
-    # df = df.sort_index(axis=1)
-    
-    # num_histograms = 32*6
-
-    # # Create the grid of subplots
-    # n_rows = 6
-    # n_cols = 32
-    
-    # # Create a figure and subplots
-    # fig, axes = plt.subplots(n_rows, n_cols, figsize=(12, 3))
-
-    # # Flatten the axes array to iterate through subplots easily
-    # axes_flat = axes.flatten()
-
-    # # Get a list of (16) distinct colors from the tab20 colormap
-    # colors = plt.cm.tab20.colors[:num_histograms]
-
-    # # Iterate through the DataFrame columns and plot a histogram for each column
-    # for i, (column, ax) in enumerate(zip(df.columns, axes_flat)):
-    #     df[column].plot.hist(ax=ax, bins=10, edgecolor='black')
-    #     ax.set_title(column, fontsize=4)
-    #     ax.set_xlabel('')
-    #     ax.set_ylabel('')
-    #     ax.tick_params(axis='both', which='major', labelsize=4)  # Decrease the size of the numbers
-    
-    # # Adjust layout and display the plot
-    # # fig.tight_layout()
-    # plt.show()
-
+    # Plot the heatmap
+    sns.heatmap(df, cmap='coolwarm')
+    plt.show()
 
 def tree_plotter(model, resolution):
 
