@@ -186,36 +186,36 @@ def explainer(X, model, resolution, window_to_explain):
     for i in tree_feature_thresholds:
         subset_feature_thresholds.append(i[:-1].tolist())
     
-    # # Variable-position plot
-    # # Extract variable names and their positions
-    # variables = {}
-    # for sublist in subset_feature_names:
-    #     for i, item in enumerate(sublist):
-    #         var = item.split('-')[0].split('+')[0]
-    #         if var not in variables:
-    #             variables[var] = []
-    #         variables[var].append(i)
+    # Variable-position plot
+    # Extract variable names and their positions
+    variables = {}
+    for sublist in subset_feature_names:
+        for i, item in enumerate(sublist):
+            var = item.split('-')[0].split('+')[0]
+            if var not in variables:
+                variables[var] = []
+            variables[var].append(i)
 
-    # # Create a 2D array for the heatmap
-    # max_len = max([len(sublist) for sublist in subset_feature_names])
-    # heatmap_data = np.zeros((len(variables), max_len))
+    # Create a 2D array for the heatmap
+    max_len = max([len(sublist) for sublist in subset_feature_names])
+    heatmap_data = np.zeros((len(variables), max_len))
 
-    # for i, var in enumerate(variables.keys()):
-    #     for pos in variables[var]:
-    #         heatmap_data[i, pos] += 1
+    for i, var in enumerate(variables.keys()):
+        for pos in variables[var]:
+            heatmap_data[i, pos] += 1
 
-    # # Create the heatmap
-    # heatmap_data = heatmap_data.astype(int) # Convert data to int
+    # Create the heatmap
+    heatmap_data = heatmap_data.astype(int) # Convert data to int
     
-    # plt.figure(figsize=(10, 8))
-    # sns.heatmap(heatmap_data, xticklabels=range(max_len), yticklabels=list(variables.keys()), cmap='viridis', annot=True, fmt="d")
-    # plt.xlabel('Position')
-    # plt.ylabel('Variable')
-    # plt.title(f'Variable importance window {window_to_explain}')
-    # plt.show()
+    plt.figure(figsize=(10, 8))
+    sns.heatmap(heatmap_data, xticklabels=range(max_len), yticklabels=list(variables.keys()), cmap='viridis', annot=True, fmt="d")
+    plt.xlabel('Position')
+    plt.ylabel('Variable')
+    plt.title(f'Variable importance window {window_to_explain}')
+    plt.show()
 
     # Variable-threshold plot
-    # Get the mean for each variable
+    # Read the data and get the mean for each variable
     station = 901
     data = pd.read_csv(f'data/labeled_{station}_smo.csv', sep=',', encoding='utf-8', parse_dates=['date'])
     
@@ -283,7 +283,7 @@ def explainer(X, model, resolution, window_to_explain):
     xticklabels = xticklabels_high if resolution == 'high' else xticklabels_med if resolution == 'med' else xticklabels_low
 
     plt.figure(figsize=(10, 8))
-    sns.heatmap(heatmap_data, xticklabels=xticklabels, yticklabels=var_names, cmap='jet')
+    sns.heatmap(heatmap_data, xticklabels=xticklabels, yticklabels=var_names, cmap='jet', vmin=-0.8, vmax=0.8)
     plt.xlabel('Position')
     plt.ylabel('Variable')
     plt.title(f'Threshold distance to the mean {window_to_explain}')

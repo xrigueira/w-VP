@@ -63,26 +63,49 @@ elif data_type == 'background':
     lengths = background_windows[-1]
     number_windows = [i - window_size + 1 for i in lengths]
 
-# Plot a given anomaly
-event_number = 5 # anomaly or background event number
+# Find the start and end window index for each resolution and save it in a 2D list: [[[high],[med],[low]],
+    #                                                                               [[high],[med],[low]], ... ,]
 
-event_start = sum(number_windows[:event_number]) + event_number
-event_end = sum(number_windows[:event_number + 1]) + 1 + event_number
+starts_ends = []
+for event_number in range(len(number_windows)):
 
-event_data = X[event_start]
-for i in range(event_start + 1, event_end):
+    event_start_high = sum(number_windows[:event_number]) + event_number
+    event_end_high = sum(number_windows[:event_number + 1]) + 1 + event_number
+
+    starts_ends.append([event_start_high, event_end_high])
+
+# 1. Given an event_number, get the indices of the windows that correspond to that event at the different resolutions
+# The objects event_start and event_end give the indices of the high resolution windows.
+# The first anomaly has 14 windows (counting 0, Python indexing, and not counting 14)
+# Therefore, in the first event, the number of med and low resolution windows is:
+event_start_med = 0
+event_end_med = (number_windows[event_number] + 1) * 17
+event_start_low = 0
+event_end_low = (number_windows[event_number] + 1) * 25
+
+# However, this works for the first event. In the subsiquent cases I have to take into account the number of windows
+# that came before.
+
+# 2. Once I have the indices, I can select the windows I want to plot and explain
+
+# # Plot a given anomaly (tested and verified)
+# event_number = 0 # anomaly or background event number
+
+# event_start_high = starts_ends[event_number][0]
+# event_end_high = starts_ends[event_number][1]
+
+# event_data = X[event_start_high]
+# for i in range(event_start_high + 1, event_end_high):
     
-    # Get the last row of the anomaly
-    last_row = X[i][-6:]
+#     # Get the last row of the anomaly
+#     last_row = X[i][-6:]
     
-    # Add the last row to anomaly_data
-    event_data = np.concatenate((event_data, last_row), axis=0)
+#     # Add the last row to anomaly_data
+#     event_data = np.concatenate((event_data, last_row), axis=0)
+
+# Tested an verified (plot a given anomaly)
 
 # plotter(data=event_data, num_variables=6, windowed=False)
 
-# Explain the given anomaly
-# 1. For a given anomaly I have to get the indices of the windows at all resolutions. This can be done based on how main gets the indices.
-# 2. Once I have the indices, I can select the windows I want to plot and explain
-
-X = X[:20] # Subset the data to the first 20 anomalies just for testing purposes
-explainer(X, model, resolution, window_to_explain=0)
+# X = X[:20] # Subset the data to the first 20 anomalies just for testing purposes
+# explainer(X, model, resolution, window_to_explain=0) (also tested and verified)
