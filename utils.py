@@ -72,7 +72,7 @@ def plotter(data, num_variables, windowed):
 
             # Plot each variable
             for i in range(num_variables):
-                plt.plot(dater(901, data), window_reshaped[:, i], label=f'{variables_names[i]}')
+                plt.plot(dater(901, window), window_reshaped[:, i], label=f'{variables_names[i]}')
 
             plt.xlabel('Time/Index')
             plt.ylabel('Variable Value')

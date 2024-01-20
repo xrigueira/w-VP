@@ -14,13 +14,11 @@ from utils import explainer
 data_type = 'anomalies' # 'anomalies' or 'background
 resolution = 'high' # 'high', 'med', 'low'
 
-if resolution == 'high':
-    window_size = 32
-elif resolution == 'med':
-    window_size = 16
-elif resolution == 'low':
-    window_size = 8
+window_size_high = 32
+window_size_med = 16
+window_size_low = 8
 
+# TODO: load all models because explainer needs them
 # Load a model. I am using the last model in this case -- 9.
 iteration = 7
 filename = f'models/rf_model_{resolution}_{iteration}.sav'
@@ -34,16 +32,13 @@ if data_type == 'anomalies':
     anomalies_windows = pickle.load(file_anomalies)
     file_anomalies.close()
 
-    # Get the data corresponding to the resolution of the model and rename it to X
-    if resolution == 'high':
-        X = anomalies_windows[0][0]
-    elif resolution == 'med':
-        X = anomalies_windows[0][1]
-    elif resolution == 'low':
-        X = anomalies_windows[0][2]
+    # Get windowed data and rename it to X
+    X = anomalies_windows[0]
     
     lengths = anomalies_windows[-1]
-    number_windows = [i - window_size + 1 for i in lengths]
+    number_windows_high = [i - window_size_high + 1 for i in lengths]
+    number_windows_med = [i - window_size_med + 1 for i in lengths]
+    number_windows_low = [i - window_size_low + 1 for i in lengths] 
 
 elif data_type == 'background':
     
@@ -52,60 +47,61 @@ elif data_type == 'background':
     background_windows = pickle.load(file_background)
     file_background.close
 
-    # Get the data corresponding to the resolution of the model and rename it to X
-    if resolution == 'high':
-        X = background_windows[0][0]
-    elif resolution == 'med':
-        X = background_windows[0][1]
-    elif resolution == 'low':
-        X = background_windows[0][2]
+    # Get windowed data and rename it to X
+    X = background_windows[0]
     
     lengths = background_windows[-1]
-    number_windows = [i - window_size + 1 for i in lengths]
+    number_windows_high = [i - window_size_high + 1 for i in lengths]
+    number_windows_med = [i - window_size_med + 1 for i in lengths]
+    number_windows_low = [i - window_size_med + 1 for i in lengths] 
 
-# Find the start and end window index for each resolution and save it in a 2D list: [[[high],[med],[low]],
-    #                                                                               [[high],[med],[low]], ... ,]
-
+# Find the start and end window index for each resolution and save it in a 2D list
 starts_ends = []
-for event_number in range(len(number_windows)):
+for event_number in range(len(number_windows_high)):
 
-    event_start_high = sum(number_windows[:event_number]) + event_number
-    event_end_high = sum(number_windows[:event_number + 1]) + 1 + event_number
+    event_start_high = sum(number_windows_high[:event_number]) + event_number
+    event_end_high = sum(number_windows_high[:event_number + 1]) + 1 + event_number
 
-    starts_ends.append([event_start_high, event_end_high])
+    event_start_med = sum(number_windows_med[:event_number]) + event_number
+    event_end_med = sum(number_windows_med[:event_number + 1]) + 1 + event_number
 
-# 1. Given an event_number, get the indices of the windows that correspond to that event at the different resolutions
-# The objects event_start and event_end give the indices of the high resolution windows.
-# The first anomaly has 14 windows (counting 0, Python indexing, and not counting 14)
-# Therefore, in the first event, the number of med and low resolution windows is:
-event_start_med = 0
-event_end_med = (number_windows[event_number] + 1) * 17
-event_start_low = 0
-event_end_low = (number_windows[event_number] + 1) * 25
+    event_start_low = sum(number_windows_low[:event_number]) + event_number
+    event_end_low = sum(number_windows_low[:event_number + 1]) + 1 + event_number
 
-# However, this works for the first event. In the subsiquent cases I have to take into account the number of windows
-# that came before.
+    starts_ends.append([[event_start_high, event_end_high], [event_start_med, event_end_med], [event_start_low, event_end_low]])
 
-# 2. Once I have the indices, I can select the windows I want to plot and explain
+# Plot a given event TODO: turn this into a function
+event_number = 0 # anomaly or background event number (anomalies: 4 and 24)
 
-# # Plot a given anomaly (tested and verified)
-# event_number = 0 # anomaly or background event number
+# event_start_high = starts_ends[event_number][0][0]
+# event_end_high = starts_ends[event_number][0][1]
 
-# event_start_high = starts_ends[event_number][0]
-# event_end_high = starts_ends[event_number][1]
-
-# event_data = X[event_start_high]
+# event_data = X[0][event_start_high]
 # for i in range(event_start_high + 1, event_end_high):
     
 #     # Get the last row of the anomaly
-#     last_row = X[i][-6:]
+#     last_row = X[0][i][-6:]
     
 #     # Add the last row to anomaly_data
 #     event_data = np.concatenate((event_data, last_row), axis=0)
 
-# Tested an verified (plot a given anomaly)
-
 # plotter(data=event_data, num_variables=6, windowed=False)
 
-# X = X[:20] # Subset the data to the first 20 anomalies just for testing purposes
-# explainer(X, model, resolution, window_to_explain=0) (also tested and verified)
+# Get multiresolution windows indixes of the event
+event_starts_ends = starts_ends[event_number]
+
+# TODO: modify plotter so it saves the images to a folder
+# Plot high resolution windows
+# plotter(data=X[0][event_starts_ends[0][0]:event_starts_ends[0][1]], num_variables=6, windowed=True)
+
+# Plot medium resolution windows
+# plotter(data=X[0][event_starts_ends[1][0]:event_starts_ends[1][1]], num_variables=6, windowed=True)
+
+# Plot low resolution windows
+# plotter(data=X[0][event_starts_ends[2][0]:event_starts_ends[2][1]], num_variables=6, windowed=True)
+
+# TODO: Here I would have to build a loop to pass each window_to_explain number to the explainer function
+# I don't think it is really efficient because it would have to ready the decision paths each time.
+# Also, I have to save the plots in a folder.
+# Get the explainer heatmaps for the high resolution windows
+explainer(X[0], model, 'high', window_to_explain=0)
