@@ -18,11 +18,17 @@ window_size_high = 32
 window_size_med = 16
 window_size_low = 8
 
-# TODO: load all models because explainer needs them
-# Load a model. I am using the last model in this case -- 9.
+# Load models.
 iteration = 7
-filename = f'models/rf_model_{resolution}_{iteration}.sav'
-model = pickle.load(open(filename, 'rb'))
+
+filename = f'models/rf_model_high_{iteration}.sav'
+model_high = pickle.load(open(filename, 'rb'))
+
+filename = f'models/rf_model_med_{iteration}.sav'
+model_med = pickle.load(open(filename, 'rb'))
+
+filename = f'models/rf_model_low_{iteration}.sav'
+model_low = pickle.load(open(filename, 'rb'))
 
 # Read the data: anomalies or background
 if data_type == 'anomalies':
@@ -70,7 +76,7 @@ for event_number in range(len(number_windows_high)):
 
     starts_ends.append([[event_start_high, event_end_high], [event_start_med, event_end_med], [event_start_low, event_end_low]])
 
-# Plot a given event TODO: turn this into a function
+# Plot a given event
 event_number = 0 # anomaly or background event number (anomalies: 4 and 24)
 
 # event_start_high = starts_ends[event_number][0][0]
@@ -90,7 +96,7 @@ event_number = 0 # anomaly or background event number (anomalies: 4 and 24)
 # Get multiresolution windows indixes of the event
 event_starts_ends = starts_ends[event_number]
 
-# TODO: modify plotter so it saves the images to a folder
+# TODO: modify plotter so it saves the images to a folder. Maybe I can pass the title as a parameter to the function.
 # Plot high resolution windows
 # plotter(data=X[0][event_starts_ends[0][0]:event_starts_ends[0][1]], num_variables=6, windowed=True)
 
@@ -102,6 +108,5 @@ event_starts_ends = starts_ends[event_number]
 
 # TODO: Here I would have to build a loop to pass each window_to_explain number to the explainer function
 # I don't think it is really efficient because it would have to ready the decision paths each time.
-# Also, I have to save the plots in a folder.
 # Get the explainer heatmaps for the high resolution windows
-explainer(X[0], model, 'high', window_to_explain=0)
+explainer(X[0], model_high, 'high', window_to_explain=0)

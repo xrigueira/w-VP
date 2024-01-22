@@ -214,6 +214,8 @@ def explainer(X, model, resolution, window_to_explain):
     plt.title(f'Variable importance window {window_to_explain}')
     plt.show()
 
+    plt.savefig(f'images/position_{window_to_explain}.png')
+
     # Variable-threshold plot
     # Read the data and get the mean for each variable
     station = 901
@@ -288,6 +290,8 @@ def explainer(X, model, resolution, window_to_explain):
     plt.ylabel('Variable')
     plt.title(f'Threshold distance to the mean {window_to_explain}')
     plt.show()
+
+    plt.savefig(f'images/thresholds_{window_to_explain}.png')
     
 
 def tree_plotter(model, resolution):
