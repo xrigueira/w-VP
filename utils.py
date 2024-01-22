@@ -32,10 +32,11 @@ def dater(station, window):
     
     return date_indices
 
-def plotter(data, num_variables, windowed):
+def plotter(data, num_variables, name):
     
-    """This function plots the original data,
-    and the windowed data at all resolution levels.
+    """This function plots the data passed as a 
+    numpy arrayoriginal data, for a given resolution 
+    level.
     ---------
     Arguments:
     data: The data to be plotted.
@@ -47,39 +48,22 @@ def plotter(data, num_variables, windowed):
 
     variables_names = ["Ammonium", "Conductivity", "Dissolved oxygen", "pH", "Turbidity", "Water temperature"]
 
-    if windowed == False:
+    data_reshaped = data.reshape(-1, num_variables)
 
-        data_reshaped = data.reshape(-1, num_variables)
+    # Plot each variable
+    for i in range(num_variables):
+        plt.plot(dater(901, data), data_reshaped[:, i], label=f'{variables_names[i]}')
 
-        # Plot each variable
-        for i in range(num_variables):
-            plt.plot(dater(901, data), data_reshaped[:, i], label=f'{variables_names[i]}')
+    plt.xlabel('Time/Index')
+    plt.ylabel('Variable Value')
+    plt.legend()
+    # plt.show()
 
-        plt.xlabel('Time/Index')
-        plt.ylabel('Variable Value')
-        plt.legend()
-        plt.show()
+    # Save figure
+    plt.savefig(f'images/{name}.png')
 
-    if windowed == True:
-
-        for window_index, window in enumerate(data):
-            
-            # Reshape the window
-            window_reshaped = window.reshape(-1, num_variables)
-
-            # Create a new figure for each window
-            plt.figure(window_index)
-
-            # Plot each variable
-            for i in range(num_variables):
-                plt.plot(dater(901, window), window_reshaped[:, i], label=f'{variables_names[i]}')
-
-            plt.xlabel('Time/Index')
-            plt.ylabel('Variable Value')
-            plt.legend()
-            plt.title(f'Window {window_index+1}')
-
-        plt.show()
+    # Close figure
+    plt.close()
 
 def explainer(X, model, resolution, window_to_explain):
 
@@ -88,7 +72,7 @@ def explainer(X, model, resolution, window_to_explain):
 
     # Create an empty list to store decision path for each window and all of the decision paths
     all_decision_paths = []
-    window_decision_paths =[]
+    window_decision_paths = []
 
     # Traverse each tree in the Random Forest to get the decision path across all tree for each window
     for window in range(len(X)):
@@ -214,7 +198,7 @@ def explainer(X, model, resolution, window_to_explain):
     plt.title(f'Variable importance window {window_to_explain}')
     plt.show()
 
-    plt.savefig(f'images/position_{window_to_explain}.png')
+    # plt.savefig(f'images/position_{window_to_explain}.png')
 
     # Variable-threshold plot
     # Read the data and get the mean for each variable
@@ -291,7 +275,7 @@ def explainer(X, model, resolution, window_to_explain):
     plt.title(f'Threshold distance to the mean {window_to_explain}')
     plt.show()
 
-    plt.savefig(f'images/thresholds_{window_to_explain}.png')
+    # plt.savefig(f'images/thresholds_{window_to_explain}.png')
     
 
 def tree_plotter(model, resolution):
