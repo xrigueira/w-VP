@@ -90,7 +90,7 @@ if data_type == 'anomalies':
         # Add the last row to anomaly_data
         event_data = np.concatenate((event_data, last_row), axis=0)
 
-    plotter(data=event_data, num_variables=6, name=f'anomaly_{event_number}')
+    plotter(data=event_data, num_variables=6, name=f'event_{event_number}')
 
     # Get multiresolution windows indixes of the event
     event_starts_ends = starts_ends[event_number]
@@ -98,31 +98,31 @@ if data_type == 'anomalies':
     # Plot high resolution windows
     for window_num, window in enumerate(X[0][event_starts_ends[0][0]:event_starts_ends[0][1]]):
 
-        plotter(data=window, num_variables=6, name=f'anomaly_{event_number}_high_{window_num}')
+        plotter(data=window, num_variables=6, name=f'event_{event_number}_high_{window_num}')
 
     # Plot medium resolution windows
-    for window_num, window in enumerate(X[0][event_starts_ends[1][0]:event_starts_ends[1][1]]):
+    for window_num, window in enumerate(X[1][event_starts_ends[1][0]:event_starts_ends[1][1]]):
         
-        plotter(data=window, num_variables=6, name=f'anomaly_{event_number}_med_{window_num}')
+        plotter(data=window, num_variables=6, name=f'event_{event_number}_med_{window_num}')
     
-    for window_num, window in enumerate(X[0][event_starts_ends[2][0]:event_starts_ends[2][1]]):
+    for window_num, window in enumerate(X[2][event_starts_ends[2][0]:event_starts_ends[2][1]]):
         
-        plotter(data=window, num_variables=6, name=f'anomaly_{event_number}_low_{window_num}')
+        plotter(data=window, num_variables=6, name=f'event_{event_number}_low_{window_num}')
 
-    # TODO: I don't think it is really efficient because it would have to ready the decision paths each time.
+    
     # Get the explainer heatmaps for the high resolution windows
 
-    # for window in range(len(X[0][event_starts_ends[0][0]:event_starts_ends[0][1]])):
+    for window_num, window in enumerate(X[0][event_starts_ends[0][0]:event_starts_ends[0][1]]):
         
-    #     explainer(X[0], model_high, 'high', window_to_explain=window)
+        explainer(data=window, model=model_high, resolution='high', name=f'event_{event_number}_high_{window_num}')
 
-    # for window in range(len(X[0][event_starts_ends[1][0]:event_starts_ends[1][1]])):
+    for window_num, window in enumerate(X[1][event_starts_ends[1][0]:event_starts_ends[1][1]]):
         
-    #     explainer(X[0], model_med, 'med', window_to_explain=window)
+        explainer(data=window, model=model_med, resolution='med', name=f'event_{event_number}_med_{window_num}')
 
-    # for window in range(len(X[0][event_starts_ends[2][0]:event_starts_ends[2][1]])):
+    for window_num, window in enumerate(X[2][event_starts_ends[2][0]:event_starts_ends[2][1]]):
 
-    #     explainer(X[0], model_low, 'low', window_to_explain=window)
+        explainer(data=window, model=model_low, resolution='low', name=f'event_{event_number}_low_{window_num}')
 
 elif data_type == 'background':
     

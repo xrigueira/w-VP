@@ -65,25 +65,18 @@ def plotter(data, num_variables, name):
     # Close figure
     plt.close()
 
-def explainer(X, model, resolution, window_to_explain):
+def explainer(data, model, resolution, name):
 
     """This function explains the decision of a Random Forest model
     for a given window."""
 
     # Create an empty list to store decision path for each window and all of the decision paths
-    all_decision_paths = []
-    window_decision_paths = []
+    decision_paths = []
 
-    # Traverse each tree in the Random Forest to get the decision path across all tree for each window
-    for window in range(len(X)):
-        for tree in model.estimators_:
-            tree_decision_path = tree.decision_path(X[window][np.newaxis, :]).toarray()
-            window_decision_paths.append(tree_decision_path)
-        all_decision_paths.append(window_decision_paths) # The first elemnt would be all decision paths of the first window
-        window_decision_paths = []
-
-    # Retrieve the decision paths of this window across all trees in the RF
-    decision_paths = all_decision_paths[window_to_explain]
+    # Traverse each tree in the Random Forest to get the decision path across all trees for each window
+    for tree in model.estimators_:
+        tree_decision_paths = tree.decision_path(data[np.newaxis, :]).toarray()
+        decision_paths.append(tree_decision_paths)
 
     # Get the indices where the window has passed through
     passed_nodes_indices = [np.where(decision_path == 1)[1] for decision_path in decision_paths]
@@ -195,10 +188,12 @@ def explainer(X, model, resolution, window_to_explain):
     sns.heatmap(heatmap_data, xticklabels=range(max_len), yticklabels=list(variables.keys()), cmap='viridis', annot=True, fmt="d")
     plt.xlabel('Position')
     plt.ylabel('Variable')
-    plt.title(f'Variable importance window {window_to_explain}')
-    plt.show()
+    # plt.show()
 
-    # plt.savefig(f'images/position_{window_to_explain}.png')
+    plt.savefig(f'images/{name}_var.png')
+
+    # Close figure
+    plt.close()
 
     # Variable-threshold plot
     # Read the data and get the mean for each variable
@@ -272,11 +267,12 @@ def explainer(X, model, resolution, window_to_explain):
     sns.heatmap(heatmap_data, xticklabels=xticklabels, yticklabels=var_names, cmap='jet', vmin=-0.8, vmax=0.8)
     plt.xlabel('Position')
     plt.ylabel('Variable')
-    plt.title(f'Threshold distance to the mean {window_to_explain}')
-    plt.show()
+    # plt.show()
 
-    # plt.savefig(f'images/thresholds_{window_to_explain}.png')
-    
+    plt.savefig(f'images/{name}_thre.png')
+
+    # Close figure
+    plt.close()
 
 def tree_plotter(model, resolution):
 
