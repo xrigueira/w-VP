@@ -769,10 +769,6 @@ class imRF():
         file_background = open(f'pickels/background_data_test.pkl', 'rb')
         background_windows = pickle.load(file_background)
         file_background.close()
-        
-        # TODO: 1. test the trained model on the the anomalous data and get confusion matrices for all resolution levels (coded already). Also explain those anomalies-
-        # 2. run the model on the test background data to identify new anomalies and explain them.
-        # Draw inspiration (almost copy past) the code from init_RandomForest() and RandomForest() methods.
 
         # Separate windows and lengths, although legths will not be used in this method
         anomalies_windows, anomalies_lengths = anomalies_windows[0], anomalies_windows[-1]
@@ -833,7 +829,7 @@ class imRF():
 
 
 if __name__ == '__main__':
-    
+
     # Create an instance of the model
     window_size = 32
     imRF = imRF(station=901, trim_percentage=0, ratio_init=12, ratio=2, num_variables=6, 

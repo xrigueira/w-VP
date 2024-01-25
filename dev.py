@@ -11,6 +11,63 @@ from utils import dater
 from utils import plotter
 from utils import explainer
 
+def get_results(event_number):
+
+    event_start_high = starts_ends[event_number][0][0]
+    event_end_high = starts_ends[event_number][0][1]
+
+    event_data = X[0][event_start_high]
+    for i in range(event_start_high + 1, event_end_high):
+        
+        # Get the last row of the anomaly
+        last_row = X[0][i][-6:]
+        
+        # Add the last row to anomaly_data
+        event_data = np.concatenate((event_data, last_row), axis=0)
+
+    plotter(data=event_data, num_variables=6, name=f'event_{event_number}')
+
+    # # Get multiresolution windows indixes of the event
+    # event_starts_ends = starts_ends[event_number]
+
+    # # Plot high resolution windows
+    # for window_num, window in enumerate(X[0][event_starts_ends[0][0]:event_starts_ends[0][1]]):
+
+    #     plotter(data=window, num_variables=6, name=f'event_{event_number}_high_{window_num}')
+
+    # # Plot medium resolution windows
+    # for window_num, window in enumerate(X[1][event_starts_ends[1][0]:event_starts_ends[1][1]]):
+        
+    #     plotter(data=window, num_variables=6, name=f'event_{event_number}_med_{window_num}')
+    
+    # for window_num, window in enumerate(X[2][event_starts_ends[2][0]:event_starts_ends[2][1]]):
+        
+    #     plotter(data=window, num_variables=6, name=f'event_{event_number}_low_{window_num}')
+
+    # # Get the explainer heatmaps for the high resolution windows
+    # for window_num, window in enumerate(X[0][event_starts_ends[0][0]:event_starts_ends[0][1]]):
+        
+    #     explainer(data=window, model=model_high, resolution='high', name=f'event_{event_number}_high_{window_num}')
+
+    # for window_num, window in enumerate(X[1][event_starts_ends[1][0]:event_starts_ends[1][1]]):
+        
+    #     explainer(data=window, model=model_med, resolution='med', name=f'event_{event_number}_med_{window_num}')
+
+    # for window_num, window in enumerate(X[2][event_starts_ends[2][0]:event_starts_ends[2][1]]):
+
+    #     explainer(data=window, model=model_low, resolution='low', name=f'event_{event_number}_low_{window_num}')
+
+def majority_vote(data_high, data_med, data_low):
+        
+    vote_high = round(sum(data_high) / len(data_high))
+    vote_med = round(sum(data_med) / len(data_med))
+    vote_low = round(sum(data_low) / len(data_low))
+    
+    if sum([vote_high, vote_med, vote_low]) >= 2:
+        return 1
+    else:
+        return 0
+
 data_type = 'anomalies' # 'anomalies' or 'background
 
 window_size_high, window_size_med, window_size_low = 32, 16, 8
@@ -56,7 +113,7 @@ elif data_type == 'background':
     lengths = background_windows[-1]
     number_windows_high = [i - window_size_high + 1 for i in lengths]
     number_windows_med = [i - window_size_med + 1 for i in lengths]
-    number_windows_low = [i - window_size_med + 1 for i in lengths] 
+    number_windows_low = [i - window_size_low + 1 for i in lengths] 
 
 # Find the start and end window index for each resolution and save it in a 2D list
 starts_ends = []
@@ -75,77 +132,26 @@ for event_number in range(len(number_windows_high)):
 
 if data_type == 'anomalies':
 
-    # Plot a given event
-    event_number = 0 # anomaly or background event number (anomalies: 4 and 24)
-
-    event_start_high = starts_ends[event_number][0][0]
-    event_end_high = starts_ends[event_number][0][1]
-
-    event_data = X[0][event_start_high]
-    for i in range(event_start_high + 1, event_end_high):
-        
-        # Get the last row of the anomaly
-        last_row = X[0][i][-6:]
-        
-        # Add the last row to anomaly_data
-        event_data = np.concatenate((event_data, last_row), axis=0)
-
-    plotter(data=event_data, num_variables=6, name=f'event_{event_number}')
-
-    # Get multiresolution windows indixes of the event
-    event_starts_ends = starts_ends[event_number]
-
-    # Plot high resolution windows
-    for window_num, window in enumerate(X[0][event_starts_ends[0][0]:event_starts_ends[0][1]]):
-
-        plotter(data=window, num_variables=6, name=f'event_{event_number}_high_{window_num}')
-
-    # Plot medium resolution windows
-    for window_num, window in enumerate(X[1][event_starts_ends[1][0]:event_starts_ends[1][1]]):
-        
-        plotter(data=window, num_variables=6, name=f'event_{event_number}_med_{window_num}')
-    
-    for window_num, window in enumerate(X[2][event_starts_ends[2][0]:event_starts_ends[2][1]]):
-        
-        plotter(data=window, num_variables=6, name=f'event_{event_number}_low_{window_num}')
-
-    
-    # Get the explainer heatmaps for the high resolution windows
-
-    for window_num, window in enumerate(X[0][event_starts_ends[0][0]:event_starts_ends[0][1]]):
-        
-        explainer(data=window, model=model_high, resolution='high', name=f'event_{event_number}_high_{window_num}')
-
-    for window_num, window in enumerate(X[1][event_starts_ends[1][0]:event_starts_ends[1][1]]):
-        
-        explainer(data=window, model=model_med, resolution='med', name=f'event_{event_number}_med_{window_num}')
-
-    for window_num, window in enumerate(X[2][event_starts_ends[2][0]:event_starts_ends[2][1]]):
-
-        explainer(data=window, model=model_low, resolution='low', name=f'event_{event_number}_low_{window_num}')
+    get_results(event_number=0) # 4 or 24
 
 elif data_type == 'background':
     
-    # Plot a given event
-    event_number = 0 # anomaly or background event number (anomalies: 4 and 24)
-
-    event_start_high = starts_ends[event_number][0][0]
-    event_end_high = starts_ends[event_number][0][1]
-
-    event_data = X[0][event_start_high]
-    for i in range(event_start_high + 1, event_end_high):
-        
-        # Get the last row of the anomaly
-        last_row = X[0][i][-6:]
-        
-        # Add the last row to anomaly_data
-        event_data = np.concatenate((event_data, last_row), axis=0)
-
-    plotter(data=event_data, num_variables=6, windowed=False)
-
     # Read background results
     y_hats_high = np.load('preds/y_hats_high.npy', allow_pickle=False, fix_imports=False)
     y_hats_med = np.load('preds/y_hats_med.npy', allow_pickle=False, fix_imports=False)
     y_hats_low = np.load('preds/y_hats_low.npy', allow_pickle=False, fix_imports=False)
+    
+    # Get multiresolution votes for each event
+    votes = [majority_vote(y_hats_high[i[0][0]:i[0][1]], y_hats_med[i[1][0]:i[1][1]], y_hats_low[i[2][0]:i[2][1]]) for i in starts_ends]
 
-    # TODO: see how to combine these results to define which events are anomalous or not
+    anomalies_events = np.where(np.array(votes) == 1)[0]
+    background_events = np.where(np.array(votes) == 0)[0]
+
+    event_type = input('Choose event type (anomalies (1) or background (0)): ')
+
+    if event_type == '1':
+        event_number = int(input(f'Choose an event number {anomalies_events}: '))
+    elif event_type == '0':
+        event_number = int(input(f'Choose an event number {background_events}: '))
+
+    get_results(event_number=event_number)
