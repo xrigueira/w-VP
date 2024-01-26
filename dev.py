@@ -27,35 +27,35 @@ def get_results(event_number):
 
     plotter(data=event_data, num_variables=6, name=f'event_{event_number}')
 
-    # # Get multiresolution windows indixes of the event
-    # event_starts_ends = starts_ends[event_number]
-
-    # # Plot high resolution windows
-    # for window_num, window in enumerate(X[0][event_starts_ends[0][0]:event_starts_ends[0][1]]):
-
-    #     plotter(data=window, num_variables=6, name=f'event_{event_number}_high_{window_num}')
-
-    # # Plot medium resolution windows
-    # for window_num, window in enumerate(X[1][event_starts_ends[1][0]:event_starts_ends[1][1]]):
-        
-    #     plotter(data=window, num_variables=6, name=f'event_{event_number}_med_{window_num}')
+    # Get multiresolution windows indixes of the event
+    event_starts_ends = starts_ends[event_number]
     
-    # for window_num, window in enumerate(X[2][event_starts_ends[2][0]:event_starts_ends[2][1]]):
+    # Plot high resolution windows
+    for window_num, window in enumerate(X[0][event_starts_ends[0][0]:event_starts_ends[0][1]]):
+
+        plotter(data=window, num_variables=6, name=f'event_{event_number}_high_{window_num}')
+
+    # Plot medium resolution windows
+    for window_num, window in enumerate(X[1][event_starts_ends[1][0]:event_starts_ends[1][1]]):
         
-    #     plotter(data=window, num_variables=6, name=f'event_{event_number}_low_{window_num}')
-
-    # # Get the explainer heatmaps for the high resolution windows
-    # for window_num, window in enumerate(X[0][event_starts_ends[0][0]:event_starts_ends[0][1]]):
+        plotter(data=window, num_variables=6, name=f'event_{event_number}_med_{window_num}')
+    
+    for window_num, window in enumerate(X[2][event_starts_ends[2][0]:event_starts_ends[2][1]]):
         
-    #     explainer(data=window, model=model_high, resolution='high', name=f'event_{event_number}_high_{window_num}')
+        plotter(data=window, num_variables=6, name=f'event_{event_number}_low_{window_num}')
 
-    # for window_num, window in enumerate(X[1][event_starts_ends[1][0]:event_starts_ends[1][1]]):
+    # Get the explainer heatmaps for the high resolution windows
+    for window_num, window in enumerate(X[0][event_starts_ends[0][0]:event_starts_ends[0][1]]):
         
-    #     explainer(data=window, model=model_med, resolution='med', name=f'event_{event_number}_med_{window_num}')
+        explainer(data=window, model=model_high, resolution='high', name=f'event_{event_number}_high_{window_num}')
 
-    # for window_num, window in enumerate(X[2][event_starts_ends[2][0]:event_starts_ends[2][1]]):
+    for window_num, window in enumerate(X[1][event_starts_ends[1][0]:event_starts_ends[1][1]]):
+        
+        explainer(data=window, model=model_med, resolution='med', name=f'event_{event_number}_med_{window_num}')
 
-    #     explainer(data=window, model=model_low, resolution='low', name=f'event_{event_number}_low_{window_num}')
+    for window_num, window in enumerate(X[2][event_starts_ends[2][0]:event_starts_ends[2][1]]):
+
+        explainer(data=window, model=model_low, resolution='low', name=f'event_{event_number}_low_{window_num}')
 
 def majority_vote(data_high, data_med, data_low):
         
@@ -68,90 +68,92 @@ def majority_vote(data_high, data_med, data_low):
     else:
         return 0
 
-data_type = 'anomalies' # 'anomalies' or 'background
+if __name__ == '__main__':
 
-window_size_high, window_size_med, window_size_low = 32, 16, 8
+    data_type = 'background' # 'anomalies' or 'background
 
-# Load models.
-iteration = 7
+    window_size_high, window_size_med, window_size_low = 32, 16, 8
 
-filename = f'models/rf_model_high_{iteration}.sav'
-model_high = pickle.load(open(filename, 'rb'))
+    # Load models.
+    iteration = 7
 
-filename = f'models/rf_model_med_{iteration}.sav'
-model_med = pickle.load(open(filename, 'rb'))
+    filename = f'models/rf_model_high_{iteration}.sav'
+    model_high = pickle.load(open(filename, 'rb'))
 
-filename = f'models/rf_model_low_{iteration}.sav'
-model_low = pickle.load(open(filename, 'rb'))
+    filename = f'models/rf_model_med_{iteration}.sav'
+    model_med = pickle.load(open(filename, 'rb'))
 
-# Read the data: anomalies or background
-if data_type == 'anomalies':
-    
-    # Load the anomalies data
-    file_anomalies = open(f'pickels/anomaly_data_test.pkl', 'rb')
-    anomalies_windows = pickle.load(file_anomalies)
-    file_anomalies.close()
+    filename = f'models/rf_model_low_{iteration}.sav'
+    model_low = pickle.load(open(filename, 'rb'))
 
-    # Get windowed data and rename it to X
-    X = anomalies_windows[0]
-    
-    lengths = anomalies_windows[-1]
-    number_windows_high = [i - window_size_high + 1 for i in lengths]
-    number_windows_med = [i - window_size_med + 1 for i in lengths]
-    number_windows_low = [i - window_size_low + 1 for i in lengths] 
+    # Read the data: anomalies or background
+    if data_type == 'anomalies':
+        
+        # Load the anomalies data
+        file_anomalies = open(f'pickels/anomaly_data_test.pkl', 'rb')
+        anomalies_windows = pickle.load(file_anomalies)
+        file_anomalies.close()
 
-elif data_type == 'background':
-    
-    # Load the background data
-    file_background = open(f'pickels/background_data_test.pkl', 'rb')
-    background_windows = pickle.load(file_background)
-    file_background.close
+        # Get windowed data and rename it to X
+        X = anomalies_windows[0]
+        
+        lengths = anomalies_windows[-1]
+        number_windows_high = [i - window_size_high + 1 for i in lengths]
+        number_windows_med = [i - window_size_med + 1 for i in lengths]
+        number_windows_low = [i - window_size_low + 1 for i in lengths] 
 
-    # Get windowed data and rename it to X
-    X = background_windows[0]
-    
-    lengths = background_windows[-1]
-    number_windows_high = [i - window_size_high + 1 for i in lengths]
-    number_windows_med = [i - window_size_med + 1 for i in lengths]
-    number_windows_low = [i - window_size_low + 1 for i in lengths] 
+    elif data_type == 'background':
+        
+        # Load the background data
+        file_background = open(f'pickels/background_data_test.pkl', 'rb')
+        background_windows = pickle.load(file_background)
+        file_background.close
 
-# Find the start and end window index for each resolution and save it in a 2D list
-starts_ends = []
-for event_number in range(len(number_windows_high)):
+        # Get windowed data and rename it to X
+        X = background_windows[0]
+        
+        lengths = background_windows[-1]
+        number_windows_high = [i - window_size_high + 1 for i in lengths]
+        number_windows_med = [i - window_size_med + 1 for i in lengths]
+        number_windows_low = [i - window_size_low + 1 for i in lengths] 
 
-    event_start_high = sum(number_windows_high[:event_number]) + event_number
-    event_end_high = sum(number_windows_high[:event_number + 1]) + 1 + event_number
+    # Find the start and end window index for each resolution and save it in a 2D list
+    starts_ends = []
+    for event_number in range(len(number_windows_high)):
 
-    event_start_med = sum(number_windows_med[:event_number]) + event_number
-    event_end_med = sum(number_windows_med[:event_number + 1]) + 1 + event_number
+        event_start_high = sum(number_windows_high[:event_number]) + event_number
+        event_end_high = sum(number_windows_high[:event_number + 1]) + 1 + event_number
 
-    event_start_low = sum(number_windows_low[:event_number]) + event_number
-    event_end_low = sum(number_windows_low[:event_number + 1]) + 1 + event_number
+        event_start_med = sum(number_windows_med[:event_number]) + event_number
+        event_end_med = sum(number_windows_med[:event_number + 1]) + 1 + event_number
 
-    starts_ends.append([[event_start_high, event_end_high], [event_start_med, event_end_med], [event_start_low, event_end_low]])
+        event_start_low = sum(number_windows_low[:event_number]) + event_number
+        event_end_low = sum(number_windows_low[:event_number + 1]) + 1 + event_number
 
-if data_type == 'anomalies':
+        starts_ends.append([[event_start_high, event_end_high], [event_start_med, event_end_med], [event_start_low, event_end_low]])
 
-    get_results(event_number=0) # 4 or 24
+    if data_type == 'anomalies':
+        
+        get_results(event_number=4) # 4 or 24
 
-elif data_type == 'background':
-    
-    # Read background results
-    y_hats_high = np.load('preds/y_hats_high.npy', allow_pickle=False, fix_imports=False)
-    y_hats_med = np.load('preds/y_hats_med.npy', allow_pickle=False, fix_imports=False)
-    y_hats_low = np.load('preds/y_hats_low.npy', allow_pickle=False, fix_imports=False)
-    
-    # Get multiresolution votes for each event
-    votes = [majority_vote(y_hats_high[i[0][0]:i[0][1]], y_hats_med[i[1][0]:i[1][1]], y_hats_low[i[2][0]:i[2][1]]) for i in starts_ends]
+    elif data_type == 'background':
+        
+        # Read background results
+        y_hats_high = np.load('preds/y_hats_high.npy', allow_pickle=False, fix_imports=False)
+        y_hats_med = np.load('preds/y_hats_med.npy', allow_pickle=False, fix_imports=False)
+        y_hats_low = np.load('preds/y_hats_low.npy', allow_pickle=False, fix_imports=False)
+        
+        # Get multiresolution votes for each event
+        votes = [majority_vote(y_hats_high[i[0][0]:i[0][1]], y_hats_med[i[1][0]:i[1][1]], y_hats_low[i[2][0]:i[2][1]]) for i in starts_ends]
 
-    anomalies_events = np.where(np.array(votes) == 1)[0]
-    background_events = np.where(np.array(votes) == 0)[0]
+        anomalies_events = np.where(np.array(votes) == 1)[0]
+        background_events = np.where(np.array(votes) == 0)[0]
 
-    event_type = input('Choose event type (anomalies (1) or background (0)): ')
+        event_type = input('Choose event type (anomalies (1) or background (0)): ')
 
-    if event_type == '1':
-        event_number = int(input(f'Choose an event number {anomalies_events}: '))
-    elif event_type == '0':
-        event_number = int(input(f'Choose an event number {background_events}: '))
+        if event_type == '1':
+            event_number = int(input(f'Choose an event number {anomalies_events}: '))
+        elif event_type == '0':
+            event_number = int(input(f'Choose an event number {background_events}: '))
 
-    get_results(event_number=event_number)
+        get_results(event_number=event_number) # 0 for true background, 28 for idenfitied anomaly

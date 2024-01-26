@@ -49,7 +49,7 @@ def plotter(data, num_variables, name):
     variables_names = ["Ammonium", "Conductivity", "Dissolved oxygen", "pH", "Turbidity", "Water temperature"]
 
     data_reshaped = data.reshape(-1, num_variables)
-
+    
     # Plot each variable
     for i in range(num_variables):
         plt.plot(dater(901, data), data_reshaped[:, i], label=f'{variables_names[i]}')
