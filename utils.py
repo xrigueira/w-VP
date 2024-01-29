@@ -68,7 +68,16 @@ def plotter(data, num_variables, name):
 def explainer(data, model, resolution, name):
 
     """This function explains the decision of a Random Forest model
-    for a given window."""
+    for a given window.
+    ---------
+    Arguments:
+    data: The data to be explained.
+    model: The Random Forest model to be explained.
+    resolution: The resolution of the model.
+    name: The title of the plot.
+    
+    Returns:
+    None."""
 
     # Create an empty list to store decision path for each window and all of the decision paths
     decision_paths = []
@@ -198,12 +207,12 @@ def explainer(data, model, resolution, name):
     # Variable-threshold plot
     # Read the data and get the mean for each variable
     station = 901
-    data = pd.read_csv(f'data/labeled_{station}_smo.csv', sep=',', encoding='utf-8', parse_dates=['date'])
+    df = pd.read_csv(f'data/labeled_{station}_smo.csv', sep=',', encoding='utf-8', parse_dates=['date'])
     
     stats_dict = {}
     var_names = ['am', 'co', 'do', 'ph', 'tu', 'wt']
-    for i, e in enumerate(data.iloc[:, 1:7]):
-        stats_dict[var_names[i]] = data[e].quantile(0.25), data[e].mean(), data[e].quantile(0.75)
+    for i, e in enumerate(df.iloc[:, 1:7]):
+        stats_dict[var_names[i]] = df[e].quantile(0.25), df[e].mean(), df[e].quantile(0.75)
     
     variables_dict = {}
     for sublist, sublist_thresholds in zip(subset_feature_names, subset_feature_thresholds):
@@ -270,6 +279,54 @@ def explainer(data, model, resolution, name):
     # plt.show()
 
     plt.savefig(f'images/{name}_thre.png')
+
+    # Close figure
+    plt.close()
+
+# Mean-position plot
+def mean_plotter(data, resolution, num_variables, name):
+    
+    # Read the data and get the mean for each variable
+    station = 901
+    df = pd.read_csv(f'data/labeled_{station}_smo.csv', sep=',', encoding='utf-8', parse_dates=['date'])
+
+    stats_dict = {}
+    var_names = ['am', 'co', 'do', 'ph', 'tu', 'wt']
+    for i, e in enumerate(df.iloc[:, 1:7]):
+        stats_dict[var_names[i]] = df[e].quantile(0.25), df[e].mean(), df[e].quantile(0.75)
+
+    # Reshape the data
+    data = data.reshape(-1, num_variables).T
+
+    # Get the difference between the variables at each position and the mean
+    for i, arr in enumerate(data):
+        # Get the corresponding variable name
+        var_name = var_names[i]
+        
+        # Get the mean for this variable
+        mean = stats_dict[var_name][1]
+        
+        # Subtract the mean from each element in the array
+        data[i] = arr - mean
+    
+    # Define xticklabels
+    xticklabels_high = [-16, -15, -14, -13, -12, -11, -10, -9, -8, -7, -6, -5, -4, -3, -2, -1, 
+                        +1, +2, +3, +4, +5, +6, +7, +8, +9, +10, +11, +12, +13, +14, +15, +16]
+    xticklabels_med = [-8, -7, -6, -5, -4, -3, -2, -1, 
+                        +1, +2, +3, +4, +5, +6, +7, +8]
+    xticklabels_low = [-4, -3, -2, -1, 
+                        +1, +2, +3, +4]
+
+    # Select the resolution of the feature names
+    xticklabels = xticklabels_high if resolution == 'high' else xticklabels_med if resolution == 'med' else xticklabels_low
+
+    plt.figure(figsize=(10, 8))
+    sns.heatmap(data, xticklabels=xticklabels, yticklabels=var_names, cmap='jet', vmin=-0.8, vmax=0.8)
+    plt.xlabel('Position')
+    plt.ylabel('Variable')
+    # plt.show()
+
+    plt.savefig(f'images/{name}_mean.png')
 
     # Close figure
     plt.close()
