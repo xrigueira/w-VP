@@ -76,9 +76,15 @@ class imRF():
             
             return []
     
-    def majority_vote(self, *args):
+    def averaged_vote(self, *args):
         total = sum(args)
         return total / len(args)
+    
+    def majority_vote(self, high, med, low):
+        vote_high = high
+        vote_med = sum(med) / len(med)
+        vote_low = sum(low) / len(low)
+        return 1/3 * vote_high + 1/3 * vote_med + 1/3 * vote_low
     
     def anomalies(self):
         
@@ -578,7 +584,8 @@ class imRF():
             scores_low = score_Xs_low[start_index_low:end_index_low + 1]
             
             # Combine the float result with the majority voting of the lists
-            multiresolution_vote = self.majority_vote(scores_high, *scores_med, *scores_low)
+            # multiresolution_vote = self.averaged_vote(scores_high, *scores_med, *scores_low)
+            multiresolution_vote = self.majority_vote(scores_high, scores_med, scores_low)
             if multiresolution_vote >= 0.90:
                 indexes_anomalies_windows_high.append(index_high)
                 indexes_anomalies_windows_med.append((start_index_med, end_index_med + 1))

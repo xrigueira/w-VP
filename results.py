@@ -15,6 +15,22 @@ from utils import plotter
 from utils import explainer
 from utils import mean_plotter
 
+def plot_all(event_number):
+
+    event_start_high = starts_ends[event_number][0][0]
+    event_end_high = starts_ends[event_number][0][1]
+
+    event_data = X[0][event_start_high]
+    for i in range(event_start_high + 1, event_end_high):
+        
+        # Get the last row of the anomaly
+        last_row = X[0][i][-6:]
+        
+        # Add the last row to anomaly_data
+        event_data = np.concatenate((event_data, last_row), axis=0)
+
+    plotter(data=event_data, num_variables=6, name=f'event_{event_number}')
+
 def get_results(event_number):
 
     event_start_high = starts_ends[event_number][0][0]
@@ -53,7 +69,6 @@ def get_results(event_number):
         plotter(data=window, num_variables=6, name=f'event_{event_number}_low_{window_num}')
         explainer(data=window, model=model_low, resolution='low', name=f'event_{event_number}_low_{window_num}')
 
-
 def majority_vote(data_high, data_med, data_low):
         
     vote_high = round(sum(data_high) / len(data_high))
@@ -67,12 +82,12 @@ def majority_vote(data_high, data_med, data_low):
 
 if __name__ == '__main__':
 
-    data_type = 'anomalies' # 'anomalies' or 'background
+    data_type = 'background' # 'anomalies' or 'background
 
     window_size_high, window_size_med, window_size_low = 32, 16, 8
 
-    # Load models.
-    iteration = 7
+    # Load models
+    iteration = 8
 
     filename = f'models/rf_model_high_{iteration}.sav'
     model_high = pickle.load(open(filename, 'rb'))
@@ -128,6 +143,11 @@ if __name__ == '__main__':
         event_end_low = sum(number_windows_low[:event_number + 1]) + 1 + event_number
 
         starts_ends.append([[event_start_high, event_end_high], [event_start_med, event_end_med], [event_start_low, event_end_low]])
+
+    plot_all = input('Plot all events? (y/n): ')
+    if plot_all == 'y':
+        for event_number in range(len(number_windows_high)):
+            plot_all(event_number)
 
     if data_type == 'anomalies':
         
