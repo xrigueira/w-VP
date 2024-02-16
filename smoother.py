@@ -17,7 +17,7 @@ def preprocessor(station):
     """This function normalizes and smoothes the data.
     ---------
     Arguments:
-    self
+    station (str): the station name.
 
     Returns:
     smoothed_data (Pandas DataFrame): smoothed data."""
@@ -46,4 +46,8 @@ def preprocessor(station):
         for col, smoothed_values in zip(data.columns[1:-2], smoothed_columns):
             smoothed_data[col] = smoothed_values
 
-    # smoothed_data.to_csv(f'data/labeled_{self.station}_smo.csv', encoding='utf-8', sep=',', index=False)
+    smoothed_data.to_csv(f'data/labeled_{station}_smo.csv', encoding='utf-8', sep=',', index=False)
+
+if __name__ == '__main__':
+
+    preprocessor(station='907')

@@ -82,7 +82,7 @@ def explainer(data, model, resolution, name):
     # Create an empty list to store decision path for each window and all of the decision paths
     decision_paths = []
 
-    # Traverse each tree in the Random Forest to get the decision path across all trees for each window
+    # Traverse each tree in the Random Forest to get the decision path across all trees for the given window (data)
     for tree in model.estimators_:
         tree_decision_paths = tree.decision_path(data[np.newaxis, :]).toarray()
         decision_paths.append(tree_decision_paths)
