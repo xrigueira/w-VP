@@ -185,7 +185,7 @@ class imRF():
         data_background = data[data["label"] == 0]
         
         # Filter the dataset to include only days that meet the ammonium level the condition
-        mean_ammonium = np.mean(data_background.ammonium_901)
+        mean_ammonium = np.mean(data_background.ammonium_907)
         data_background = data_background.groupby(data_background['date'].dt.date).filter(lambda x: x[f'ammonium_{self.station}'].max() <= mean_ammonium)
         
         # Extract the length of the anomalies
@@ -839,14 +839,14 @@ if __name__ == '__main__':
 
     # Create an instance of the model
     window_size = 32
-    imRF = imRF(station=901, trim_percentage=0, ratio_init=12, ratio=2, num_variables=6, 
+    imRF = imRF(station=907, trim_percentage=0, ratio_init=12, ratio=2, num_variables=6, 
                 window_size=window_size, stride=1, seed=0)
     
     # Start number of anomalies_med
     num_anomalies_med = 1 # Set to 1 to avoid division by zero
     
     # Implement iterative process
-    for i in range(0, 9):
+    for i in range(0, 10):
         
         # Update iteration value
         imRF.iteration = i
@@ -871,7 +871,7 @@ if __name__ == '__main__':
             
             print('Difference:', difference)
 
-            if difference <= 1.1:
+            if difference <= 1.125:
                 break
         
     print(f'[INFO] Testing')
