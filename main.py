@@ -1,5 +1,7 @@
 import random
 import pickle
+import shap
+shap.initjs()
 import numpy as np
 import pandas as pd
 import seaborn as sns
@@ -10,6 +12,7 @@ from sklearn.ensemble import RandomForestClassifier
 
 from tictoc import tictoc
 from utils import dater
+from utils import summarizer
 
 """This file contains the main class imRF which implements
 iterative multiresolution Random Forest."""
@@ -185,7 +188,7 @@ class imRF():
         data_background = data[data["label"] == 0]
         
         # Filter the dataset to include only days that meet the ammonium level the condition
-        mean_ammonium = np.mean(data_background.ammonium_907)
+        mean_ammonium = np.mean(data_background.ammonium_901)
         data_background = data_background.groupby(data_background['date'].dt.date).filter(lambda x: x[f'ammonium_{self.station}'].max() <= mean_ammonium)
         
         # Extract the length of the anomalies
@@ -552,15 +555,15 @@ class imRF():
 
         # Here is where I could plot the distribution of the scores too
         # for variable, name in variables[1]:
-        variable, name = variables[1]
-        sns.kdeplot(variable, fill=True, label=f'Iteration {self.iteration}')
-        plt.xlabel('Value')
-        plt.ylabel('Density')
-        plt.title('Smoothed Classification Trend Line')
-        plt.legend()
-        plt.grid(True)
-        # plt.show()
-        plt.savefig(f'images/{name}_{self.iteration}.png', dpi=300)
+        # variable, name = variables[1]
+        # sns.kdeplot(variable, fill=True, label=f'Iteration {self.iteration}')
+        # plt.xlabel('Value')
+        # plt.ylabel('Density')
+        # plt.title('Smoothed Classification Trend Line')
+        # plt.legend()
+        # plt.grid(True)
+        # # plt.show()
+        # plt.savefig(f'images/{name}_{self.iteration}.png', dpi=300)
         # plt.close()
         
         # Get the indexes of those windows considered anomalies or background
@@ -762,12 +765,12 @@ class imRF():
         iteration (int): the last iteration number.
         
         Saves:
-        rf_model_test (sav): with the tested model saved to disk.
+        y_hats (npy): the prediction results at each resolution.
         
         Returns:
         """
         
-        # Read the testing windowed background
+        # Read the testing windowed anomalous data
         file_anomalies = open('pickels/anomaly_data_test.pkl', 'rb')
         anomalies_windows = pickle.load(file_anomalies)
         file_anomalies.close()
@@ -834,12 +837,121 @@ class imRF():
         num_nonanomalies_low = len([i for i in y_hats_low if i==0])
         print('Number of anomalies in background test set:', num_anomalies_low, '\nNumber of nonanomalies in background test set', num_nonanomalies_low)
 
+    @tictoc
+    def shap_RandomForest(self):
+        
+        """Loads the last RF models trained and gets the SHAP plots.
+        It uses the first anomalies and background files as these do not
+        contain any new data and are certified to be actual anomalies
+        and background data.
+        ----------
+        Arguments:
+        self.
+        iteration (int): the last iteration number.
+        
+        Returns:
+        """
+
+        # Read the testing windowed anomalous data
+        file_anomalies = open('pickels/anomaly_data_test.pkl', 'rb')
+        anomalies_windows = pickle.load(file_anomalies)
+        file_anomalies.close()
+
+        # Read the testing windowed background
+        file_background = open(f'pickels/background_data_0.pkl', 'rb')
+        background_windows = pickle.load(file_background)
+        file_background.close()
+
+        # Separate windows and lengths, although legths will not be used in this method
+        anomalies_windows, anomalies_lengths = anomalies_windows[0], anomalies_windows[-1]
+        background_windows, background_lengths = background_windows[0], background_windows[-1]
+        
+        # Generate labels for each window
+        anomalies_labels = []
+        for i in range(len(anomalies_windows)):
+            anomalies_labels.append(np.array([1 for j in anomalies_windows[i]]))
+        
+        background_labels = []
+        for i in range(len(background_windows)):
+            background_labels.append(np.array([0 for j in background_windows[i]]))
+        
+        # Concatenate array
+        X = []
+        for i in range(len(anomalies_windows)):
+            X.append(np.concatenate((anomalies_windows[i], background_windows[i])))
+        
+        y = []
+        for i in range(len(anomalies_windows)):
+            y.append(np.concatenate((anomalies_labels[i], background_labels[i])))
+        
+        # Shuffle data
+        randomized = []
+        for i in range(len(anomalies_windows)):
+            combined = np.column_stack((X[i], y[i]))
+            np.random.seed(self.seed)
+            np.random.shuffle(combined)
+            randomized.append(combined)
+            
+        # Split the shuffled array back into data and labels
+        for i in range(len(anomalies_windows)):    
+            X[i], y[i] = randomized[i][:, :-1], randomized[i][:, -1]
+        
+        # Load the previous models
+        filename = f'models/rf_model_high_{self.iteration}.sav'
+        loaded_model_high = pickle.load(open(filename, 'rb'))
+        filename = f'models/rf_model_med_{self.iteration}.sav'
+        loaded_model_med = pickle.load(open(filename, 'rb'))
+        filename = f'models/rf_model_low_{self.iteration}.sav'
+        loaded_model_low = pickle.load(open(filename, 'rb'))
+
+        # Define the explainer object
+        GPU = False
+        if GPU: # The GPU version is experimental according to the API documentation: https://shap.readthedocs.io/en/latest/api.html
+            explainer_high = shap.GPUTreeExplainer(loaded_model_high)
+            explainer_med = shap.GPUTreeExplainer(loaded_model_med)
+            explainer_low = shap.GPUTreeExplainer(loaded_model_low)
+        else:
+            explainer_high = shap.TreeExplainer(loaded_model_high)
+            explainer_med = shap.TreeExplainer(loaded_model_med)
+            explainer_low = shap.TreeExplainer(loaded_model_low)
+
+        # Get the SHAP values
+        shap_values_high = explainer_high.shap_values(X[0])
+        shap_values_med = explainer_med.shap_values(X[1])
+        shap_values_low = explainer_low.shap_values(X[2])
+
+        # Get the SHAP plots for the label 1 (anomalies)
+        shap.summary_plot(
+            summarizer(shap_values_high[1], num_variables=self.num_variables), 
+            summarizer(X[0], num_variables=self.num_variables), 
+            feature_names=['am', 'co', 'do', 'ph', 'tu', 'wt']
+            )
+        shap.summary_plot(
+            summarizer(shap_values_med[1], num_variables=self.num_variables), 
+            summarizer(X[1], num_variables=self.num_variables), 
+            feature_names=['am', 'co', 'do', 'ph', 'tu', 'wt']
+            )
+        shap.summary_plot(
+            summarizer(shap_values_low[1], num_variables=self.num_variables), 
+            summarizer(X[2], num_variables=self.num_variables), 
+            feature_names=['am', 'co', 'do', 'ph', 'tu', 'wt']
+            )
+        
+        # # Ge the force plot to explain a particular window
+        # window = 0
+        # shap.plots.force(explainer_high.expected_value[window], 
+        #                 summarizer(shap_values_high[1], num_variables=self.num_variables)[window],
+        #                 summarizer(X[0], num_variables=self.num_variables)[window],
+        #                 feature_names=['am', 'co', 'do', 'ph', 'tu', 'wt'], 
+        #                 matplotlib=True
+        #                 )
+
 
 if __name__ == '__main__':
 
     # Create an instance of the model
     window_size = 32
-    imRF = imRF(station=907, trim_percentage=0, ratio_init=12, ratio=2, num_variables=6, 
+    imRF = imRF(station=1, trim_percentage=0, ratio_init=12, ratio=2, num_variables=6, 
                 window_size=window_size, stride=1, seed=0)
     
     # Start number of anomalies_med
@@ -880,3 +992,7 @@ if __name__ == '__main__':
 
     # Test the model
     imRF.test_RandomForest()
+
+    # print(f'[INFO] SHAP plots')
+    # Get the SHAP plots
+    imRF.shap_RandomForest()

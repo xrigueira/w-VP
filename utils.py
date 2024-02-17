@@ -32,7 +32,7 @@ def dater(station, window):
     
     return date_indices
 
-def plotter(data, num_variables, name):
+def plotter(data, num_variables, legend, name):
     
     """This function plots the data passed as a 
     numpy arrayoriginal data, for a given resolution 
@@ -46,7 +46,7 @@ def plotter(data, num_variables, name):
     Returns:
     None"""
 
-    variables_names = ["Ammonium", "Conductivity", "Dissolved oxygen", "pH", "Turbidity", "Water temperature"]
+    variables_names = ["am", "co", "do", "ph", "tu", "wt"]
 
     data_reshaped = data.reshape(-1, num_variables)
     
@@ -54,9 +54,12 @@ def plotter(data, num_variables, name):
     for i in range(num_variables):
         plt.plot(dater(901, data), data_reshaped[:, i], label=f'{variables_names[i]}')
 
+    plt.xticks(rotation=30)
     plt.xlabel('Time/Index')
     plt.ylabel('Variable Value')
-    plt.legend()
+    # plt.title(f'Event {name}', loc='left')
+    if legend: plt.legend()
+    plt.tight_layout()
     # plt.show()
 
     # Save figure
@@ -96,68 +99,68 @@ def explainer(data, model, resolution, name):
 
     # Define feature names for all resolution levels
     feature_names_high = [
-                    'am-16', 'co-16', 'do-16', 'ph-16', 'wt-16', 'tu-16',
-                    'am-15', 'co-15', 'do-15', 'ph-15', 'wt-15', 'tu-15',
-                    'am-14', 'co-14', 'do-14', 'ph-14', 'wt-14', 'tu-14',
-                    'am-13', 'co-13', 'do-13', 'ph-13', 'wt-13', 'tu-13',
-                    'am-12', 'co-12', 'do-12', 'ph-12', 'wt-12', 'tu-12',
-                    'am-11', 'co-11', 'do-11', 'ph-11', 'wt-11', 'tu-11',
-                    'am-10', 'co-10', 'do-10', 'ph-10', 'wt-10', 'tu-10',
-                    'am-9', 'co-9', 'do-9', 'ph-9', 'wt-9', 'tu-9',
-                    'am-8', 'co-8', 'do-8', 'ph-8', 'wt-8', 'tu-8',
-                    'am-7', 'co-7', 'do-7', 'ph-7', 'wt-7', 'tu-7',
-                    'am-6', 'co-6', 'do-6', 'ph-6', 'wt-6', 'tu-6',
-                    'am-5', 'co-5', 'do-5', 'ph-5', 'wt-5', 'tu-5',
-                    'am-4', 'co-4', 'do-4', 'ph-4', 'wt-4', 'tu-4',
-                    'am-3', 'co-3', 'do-3', 'ph-3', 'wt-3', 'tu-3',
-                    'am-2', 'co-2', 'do-2', 'ph-2', 'wt-2', 'tu-2',
-                    'am-1', 'co-1', 'do-1', 'ph-1', 'wt-1', 'tu-1',
-                    'am+1', 'co+1', 'do+1', 'ph+1', 'wt+1', 'tu+1',
-                    'am+2', 'co+2', 'do+2', 'ph+2', 'wt+2', 'tu+2',
-                    'am+3', 'co+3', 'do+3', 'ph+3', 'wt+3', 'tu+3',
-                    'am+4', 'co+4', 'do+4', 'ph+4', 'wt+4', 'tu+4',
-                    'am+5', 'co+5', 'do+5', 'ph+5', 'wt+5', 'tu+5',
-                    'am+6', 'co+6', 'do+6', 'ph+6', 'wt+6', 'tu+6',
-                    'am+7', 'co+7', 'do+7', 'ph+7', 'wt+7', 'tu+7',
-                    'am+8', 'co+8', 'do+8', 'ph+8', 'wt+8', 'tu+8',
-                    'am+9', 'co+9', 'do+9', 'ph+9', 'wt+9', 'tu+9',
-                    'am+10', 'co+10', 'do+10', 'ph+10', 'wt+10', 'tu+10',
-                    'am+11', 'co+11', 'do+11', 'ph+11', 'wt+11', 'tu+11',
-                    'am+12', 'co+12', 'do+12', 'ph+12', 'wt+12', 'tu+12',
-                    'am+13', 'co+13', 'do+13', 'ph+13', 'wt+13', 'tu+13',
-                    'am+14', 'co+14', 'do+14', 'ph+14', 'wt+14', 'tu+14',
-                    'am+15', 'co+15', 'do+15', 'ph+15', 'wt+15', 'tu+15',
-                    'am+16', 'co+16', 'do+16', 'ph+16', 'wt+16', 'tu+16'
+                    'am-16', 'co-16', 'do-16', 'ph-16', 'tu-16', 'wt-16',
+                    'am-15', 'co-15', 'do-15', 'ph-15', 'tu-15', 'wt-15',
+                    'am-14', 'co-14', 'do-14', 'ph-14', 'tu-14', 'wt-14',
+                    'am-13', 'co-13', 'do-13', 'ph-13', 'tu-13', 'wt-13',
+                    'am-12', 'co-12', 'do-12', 'ph-12', 'tu-12', 'wt-12',
+                    'am-11', 'co-11', 'do-11', 'ph-11', 'tu-11', 'wt-11',
+                    'am-10', 'co-10', 'do-10', 'ph-10', 'tu-10', 'wt-10',
+                    'am-9', 'co-9', 'do-9', 'ph-9', 'tu-9', 'wt-9',
+                    'am-8', 'co-8', 'do-8', 'ph-8', 'tu-8', 'wt-8',
+                    'am-7', 'co-7', 'do-7', 'ph-7', 'tu-7', 'wt-7',
+                    'am-6', 'co-6', 'do-6', 'ph-6', 'tu-6', 'wt-6',
+                    'am-5', 'co-5', 'do-5', 'ph-5', 'tu-5', 'wt-5',
+                    'am-4', 'co-4', 'do-4', 'ph-4', 'tu-4', 'wt-4',
+                    'am-3', 'co-3', 'do-3', 'ph-3', 'tu-3', 'wt-3',
+                    'am-2', 'co-2', 'do-2', 'ph-2', 'tu-2', 'wt-2',
+                    'am-1', 'co-1', 'do-1', 'ph-1', 'tu-1', 'wt-1',
+                    'am+1', 'co+1', 'do+1', 'ph+1', 'tu+1', 'wt+1',
+                    'am+2', 'co+2', 'do+2', 'ph+2', 'tu+2', 'wt+2',
+                    'am+3', 'co+3', 'do+3', 'ph+3', 'tu+3', 'wt+3',
+                    'am+4', 'co+4', 'do+4', 'ph+4', 'tu+4', 'wt+4',
+                    'am+5', 'co+5', 'do+5', 'ph+5', 'tu+5', 'wt+5',
+                    'am+6', 'co+6', 'do+6', 'ph+6', 'tu+6', 'wt+6',
+                    'am+7', 'co+7', 'do+7', 'ph+7', 'tu+7', 'wt+7',
+                    'am+8', 'co+8', 'do+8', 'ph+8', 'tu+8', 'wt+8',
+                    'am+9', 'co+9', 'do+9', 'ph+9', 'tu+9', 'wt+9',
+                    'am+10', 'co+10', 'do+10', 'ph+10', 'tu+10', 'wt+10',
+                    'am+11', 'co+11', 'do+11', 'ph+11', 'tu+11', 'wt+11',
+                    'am+12', 'co+12', 'do+12', 'ph+12', 'tu+12', 'wt+12',
+                    'am+13', 'co+13', 'do+13', 'ph+13', 'tu+13', 'wt+13',
+                    'am+14', 'co+14', 'do+14', 'ph+14', 'tu+14', 'wt+14',
+                    'am+15', 'co+15', 'do+15', 'ph+15', 'tu+15', 'wt15',
+                    'am+16', 'co+16', 'do+16', 'ph+16', 'tu+16', 'wt+16'
                     ]
 
     feature_names_med = [
-                    'am-8', 'co-8', 'do-8', 'ph-8', 'wt-8', 'tu-8',
-                    'am-7', 'co-7', 'do-7', 'ph-7', 'wt-7', 'tu-7',
-                    'am-6', 'co-6', 'do-6', 'ph-6', 'wt-6', 'tu-6',
-                    'am-5', 'co-5', 'do-5', 'ph-5', 'wt-5', 'tu-5',
-                    'am-4', 'co-4', 'do-4', 'ph-4', 'wt-4', 'tu-4',
-                    'am-3', 'co-3', 'do-3', 'ph-3', 'wt-3', 'tu-3',
-                    'am-2', 'co-2', 'do-2', 'ph-2', 'wt-2', 'tu-2',
-                    'am-1', 'co-1', 'do-1', 'ph-1', 'wt-1', 'tu-1',
-                    'am+1', 'co+1', 'do+1', 'ph+1', 'wt+1', 'tu+1',
-                    'am+2', 'co+2', 'do+2', 'ph+2', 'wt+2', 'tu+2',
-                    'am+3', 'co+3', 'do+3', 'ph+3', 'wt+3', 'tu+3',
-                    'am+4', 'co+4', 'do+4', 'ph+4', 'wt+4', 'tu+4',
-                    'am+5', 'co+5', 'do+5', 'ph+5', 'wt+5', 'tu+5',
-                    'am+6', 'co+6', 'do+6', 'ph+6', 'wt+6', 'tu+6',
-                    'am+7', 'co+7', 'do+7', 'ph+7', 'wt+7', 'tu+7',
-                    'am+8', 'co+8', 'do+8', 'ph+8', 'wt+8', 'tu+8'
+                    'am-8', 'co-8', 'do-8', 'ph-8', 'tu-8', 'wt-8',
+                    'am-7', 'co-7', 'do-7', 'ph-7', 'tu-7', 'wt-7',
+                    'am-6', 'co-6', 'do-6', 'ph-6', 'tu-6', 'wt-6',
+                    'am-5', 'co-5', 'do-5', 'ph-5', 'tu-5', 'wt-5',
+                    'am-4', 'co-4', 'do-4', 'ph-4', 'tu-4', 'wt-4',
+                    'am-3', 'co-3', 'do-3', 'ph-3', 'tu-3', 'wt-3',
+                    'am-2', 'co-2', 'do-2', 'ph-2', 'tu-2', 'wt-2',
+                    'am-1', 'co-1', 'do-1', 'ph-1', 'tu-1', 'wt-1',
+                    'am+1', 'co+1', 'do+1', 'ph+1', 'tu+1', 'wt+1',
+                    'am+2', 'co+2', 'do+2', 'ph+2', 'tu+2', 'wt+2',
+                    'am+3', 'co+3', 'do+3', 'ph+3', 'tu+3', 'wt+3',
+                    'am+4', 'co+4', 'do+4', 'ph+4', 'tu+4', 'wt+4',
+                    'am+5', 'co+5', 'do+5', 'ph+5', 'tu+5', 'wt+5',
+                    'am+6', 'co+6', 'do+6', 'ph+6', 'tu+6', 'wt+6',
+                    'am+7', 'co+7', 'do+7', 'ph+7', 'tu+7', 'wt+7',
+                    'am+8', 'co+8', 'do+8', 'ph+8', 'tu+8', 'wt+8',
                     ]
 
     feature_names_low = [
-                    'am-4', 'co-4', 'do-4', 'ph-4', 'wt-4', 'tu-4',
-                    'am-3', 'co-3', 'do-3', 'ph-3', 'wt-3', 'tu-3',
-                    'am-2', 'co-2', 'do-2', 'ph-2', 'wt-2', 'tu-2',
-                    'am-1', 'co-1', 'do-1', 'ph-1', 'wt-1', 'tu-1',
-                    'am+1', 'co+1', 'do+1', 'ph+1', 'wt+1', 'tu+1',
-                    'am+2', 'co+2', 'do+2', 'ph+2', 'wt+2', 'tu+2',
-                    'am+3', 'co+3', 'do+3', 'ph+3', 'wt+3', 'tu+3',
-                    'am+4', 'co+4', 'do+4', 'ph+4', 'wt+4', 'tu+4'
+                    'am-4', 'co-4', 'do-4', 'ph-4', 'tu-4', 'wt-4',
+                    'am-3', 'co-3', 'do-3', 'ph-3', 'tu-3', 'wt-3',
+                    'am-2', 'co-2', 'do-2', 'ph-2', 'tu-2', 'wt-2',
+                    'am-1', 'co-1', 'do-1', 'ph-1', 'tu-1', 'wt-1',
+                    'am+1', 'co+1', 'do+1', 'ph+1', 'tu+1', 'wt+1',
+                    'am+2', 'co+2', 'do+2', 'ph+2', 'tu+2', 'wt+2',
+                    'am+3', 'co+3', 'do+3', 'ph+3', 'tu+3', 'wt+3',
+                    'am+4', 'co+4', 'do+4', 'ph+4', 'tu+4', 'wt+4',
                     ]
 
     # Select the resolution of the feature names
@@ -348,68 +351,68 @@ def tree_plotter(model, resolution):
 
     # Define feature names for all resolution levels
     feature_names_high = [
-                    'am-16', 'co-16', 'do-16', 'ph-16', 'wt-16', 'tu-16',
-                    'am-15', 'co-15', 'do-15', 'ph-15', 'wt-15', 'tu-15',
-                    'am-14', 'co-14', 'do-14', 'ph-14', 'wt-14', 'tu-14',
-                    'am-13', 'co-13', 'do-13', 'ph-13', 'wt-13', 'tu-13',
-                    'am-12', 'co-12', 'do-12', 'ph-12', 'wt-12', 'tu-12',
-                    'am-11', 'co-11', 'do-11', 'ph-11', 'wt-11', 'tu-11',
-                    'am-10', 'co-10', 'do-10', 'ph-10', 'wt-10', 'tu-10',
-                    'am-9', 'co-9', 'do-9', 'ph-9', 'wt-9', 'tu-9',
-                    'am-8', 'co-8', 'do-8', 'ph-8', 'wt-8', 'tu-8',
-                    'am-7', 'co-7', 'do-7', 'ph-7', 'wt-7', 'tu-7',
-                    'am-6', 'co-6', 'do-6', 'ph-6', 'wt-6', 'tu-6',
-                    'am-5', 'co-5', 'do-5', 'ph-5', 'wt-5', 'tu-5',
-                    'am-4', 'co-4', 'do-4', 'ph-4', 'wt-4', 'tu-4',
-                    'am-3', 'co-3', 'do-3', 'ph-3', 'wt-3', 'tu-3',
-                    'am-2', 'co-2', 'do-2', 'ph-2', 'wt-2', 'tu-2',
-                    'am-1', 'co-1', 'do-1', 'ph-1', 'wt-1', 'tu-1',
-                    'am+1', 'co+1', 'do+1', 'ph+1', 'wt+1', 'tu+1',
-                    'am+2', 'co+2', 'do+2', 'ph+2', 'wt+2', 'tu+2',
-                    'am+3', 'co+3', 'do+3', 'ph+3', 'wt+3', 'tu+3',
-                    'am+4', 'co+4', 'do+4', 'ph+4', 'wt+4', 'tu+4',
-                    'am+5', 'co+5', 'do+5', 'ph+5', 'wt+5', 'tu+5',
-                    'am+6', 'co+6', 'do+6', 'ph+6', 'wt+6', 'tu+6',
-                    'am+7', 'co+7', 'do+7', 'ph+7', 'wt+7', 'tu+7',
-                    'am+8', 'co+8', 'do+8', 'ph+8', 'wt+8', 'tu+8',
-                    'am+9', 'co+9', 'do+9', 'ph+9', 'wt+9', 'tu+9',
-                    'am+10', 'co+10', 'do+10', 'ph+10', 'wt+10', 'tu+10',
-                    'am+11', 'co+11', 'do+11', 'ph+11', 'wt+11', 'tu+11',
-                    'am+12', 'co+12', 'do+12', 'ph+12', 'wt+12', 'tu+12',
-                    'am+13', 'co+13', 'do+13', 'ph+13', 'wt+13', 'tu+13',
-                    'am+14', 'co+14', 'do+14', 'ph+14', 'wt+14', 'tu+14',
-                    'am+15', 'co+15', 'do+15', 'ph+15', 'wt+15', 'tu+15',
-                    'am+16', 'co+16', 'do+16', 'ph+16', 'wt+16', 'tu+16'
+                    'am-16', 'co-16', 'do-16', 'ph-16', 'tu-16', 'wt-16',
+                    'am-15', 'co-15', 'do-15', 'ph-15', 'tu-15', 'wt-15',
+                    'am-14', 'co-14', 'do-14', 'ph-14', 'tu-14', 'wt-14',
+                    'am-13', 'co-13', 'do-13', 'ph-13', 'tu-13', 'wt-13',
+                    'am-12', 'co-12', 'do-12', 'ph-12', 'tu-12', 'wt-12',
+                    'am-11', 'co-11', 'do-11', 'ph-11', 'tu-11', 'wt-11',
+                    'am-10', 'co-10', 'do-10', 'ph-10', 'tu-10', 'wt-10',
+                    'am-9', 'co-9', 'do-9', 'ph-9', 'tu-9', 'wt-9',
+                    'am-8', 'co-8', 'do-8', 'ph-8', 'tu-8', 'wt-8',
+                    'am-7', 'co-7', 'do-7', 'ph-7', 'tu-7', 'wt-7',
+                    'am-6', 'co-6', 'do-6', 'ph-6', 'tu-6', 'wt-6',
+                    'am-5', 'co-5', 'do-5', 'ph-5', 'tu-5', 'wt-5',
+                    'am-4', 'co-4', 'do-4', 'ph-4', 'tu-4', 'wt-4',
+                    'am-3', 'co-3', 'do-3', 'ph-3', 'tu-3', 'wt-3',
+                    'am-2', 'co-2', 'do-2', 'ph-2', 'tu-2', 'wt-2',
+                    'am-1', 'co-1', 'do-1', 'ph-1', 'tu-1', 'wt-1',
+                    'am+1', 'co+1', 'do+1', 'ph+1', 'tu+1', 'wt+1',
+                    'am+2', 'co+2', 'do+2', 'ph+2', 'tu+2', 'wt+2',
+                    'am+3', 'co+3', 'do+3', 'ph+3', 'tu+3', 'wt+3',
+                    'am+4', 'co+4', 'do+4', 'ph+4', 'tu+4', 'wt+4',
+                    'am+5', 'co+5', 'do+5', 'ph+5', 'tu+5', 'wt+5',
+                    'am+6', 'co+6', 'do+6', 'ph+6', 'tu+6', 'wt+6',
+                    'am+7', 'co+7', 'do+7', 'ph+7', 'tu+7', 'wt+7',
+                    'am+8', 'co+8', 'do+8', 'ph+8', 'tu+8', 'wt+8',
+                    'am+9', 'co+9', 'do+9', 'ph+9', 'tu+9', 'wt+9',
+                    'am+10', 'co+10', 'do+10', 'ph+10', 'tu+10', 'wt+10',
+                    'am+11', 'co+11', 'do+11', 'ph+11', 'tu+11', 'wt+11',
+                    'am+12', 'co+12', 'do+12', 'ph+12', 'tu+12', 'wt+12',
+                    'am+13', 'co+13', 'do+13', 'ph+13', 'tu+13', 'wt+13',
+                    'am+14', 'co+14', 'do+14', 'ph+14', 'tu+14', 'wt+14',
+                    'am+15', 'co+15', 'do+15', 'ph+15', 'tu+15', 'wt15',
+                    'am+16', 'co+16', 'do+16', 'ph+16', 'tu+16', 'wt+16'
                     ]
 
     feature_names_med = [
-                    'am-8', 'co-8', 'do-8', 'ph-8', 'wt-8', 'tu-8',
-                    'am-7', 'co-7', 'do-7', 'ph-7', 'wt-7', 'tu-7',
-                    'am-6', 'co-6', 'do-6', 'ph-6', 'wt-6', 'tu-6',
-                    'am-5', 'co-5', 'do-5', 'ph-5', 'wt-5', 'tu-5',
-                    'am-4', 'co-4', 'do-4', 'ph-4', 'wt-4', 'tu-4',
-                    'am-3', 'co-3', 'do-3', 'ph-3', 'wt-3', 'tu-3',
-                    'am-2', 'co-2', 'do-2', 'ph-2', 'wt-2', 'tu-2',
-                    'am-1', 'co-1', 'do-1', 'ph-1', 'wt-1', 'tu-1',
-                    'am+1', 'co+1', 'do+1', 'ph+1', 'wt+1', 'tu+1',
-                    'am+2', 'co+2', 'do+2', 'ph+2', 'wt+2', 'tu+2',
-                    'am+3', 'co+3', 'do+3', 'ph+3', 'wt+3', 'tu+3',
-                    'am+4', 'co+4', 'do+4', 'ph+4', 'wt+4', 'tu+4',
-                    'am+5', 'co+5', 'do+5', 'ph+5', 'wt+5', 'tu+5',
-                    'am+6', 'co+6', 'do+6', 'ph+6', 'wt+6', 'tu+6',
-                    'am+7', 'co+7', 'do+7', 'ph+7', 'wt+7', 'tu+7',
-                    'am+8', 'co+8', 'do+8', 'ph+8', 'wt+8', 'tu+8'
+                    'am-8', 'co-8', 'do-8', 'ph-8', 'tu-8', 'wt-8',
+                    'am-7', 'co-7', 'do-7', 'ph-7', 'tu-7', 'wt-7',
+                    'am-6', 'co-6', 'do-6', 'ph-6', 'tu-6', 'wt-6',
+                    'am-5', 'co-5', 'do-5', 'ph-5', 'tu-5', 'wt-5',
+                    'am-4', 'co-4', 'do-4', 'ph-4', 'tu-4', 'wt-4',
+                    'am-3', 'co-3', 'do-3', 'ph-3', 'tu-3', 'wt-3',
+                    'am-2', 'co-2', 'do-2', 'ph-2', 'tu-2', 'wt-2',
+                    'am-1', 'co-1', 'do-1', 'ph-1', 'tu-1', 'wt-1',
+                    'am+1', 'co+1', 'do+1', 'ph+1', 'tu+1', 'wt+1',
+                    'am+2', 'co+2', 'do+2', 'ph+2', 'tu+2', 'wt+2',
+                    'am+3', 'co+3', 'do+3', 'ph+3', 'tu+3', 'wt+3',
+                    'am+4', 'co+4', 'do+4', 'ph+4', 'tu+4', 'wt+4',
+                    'am+5', 'co+5', 'do+5', 'ph+5', 'tu+5', 'wt+5',
+                    'am+6', 'co+6', 'do+6', 'ph+6', 'tu+6', 'wt+6',
+                    'am+7', 'co+7', 'do+7', 'ph+7', 'tu+7', 'wt+7',
+                    'am+8', 'co+8', 'do+8', 'ph+8', 'tu+8', 'wt+8',
                     ]
 
     feature_names_low = [
-                    'am-4', 'co-4', 'do-4', 'ph-4', 'wt-4', 'tu-4',
-                    'am-3', 'co-3', 'do-3', 'ph-3', 'wt-3', 'tu-3',
-                    'am-2', 'co-2', 'do-2', 'ph-2', 'wt-2', 'tu-2',
-                    'am-1', 'co-1', 'do-1', 'ph-1', 'wt-1', 'tu-1',
-                    'am+1', 'co+1', 'do+1', 'ph+1', 'wt+1', 'tu+1',
-                    'am+2', 'co+2', 'do+2', 'ph+2', 'wt+2', 'tu+2',
-                    'am+3', 'co+3', 'do+3', 'ph+3', 'wt+3', 'tu+3',
-                    'am+4', 'co+4', 'do+4', 'ph+4', 'wt+4', 'tu+4'
+                    'am-4', 'co-4', 'do-4', 'ph-4', 'tu-4', 'wt-4',
+                    'am-3', 'co-3', 'do-3', 'ph-3', 'tu-3', 'wt-3',
+                    'am-2', 'co-2', 'do-2', 'ph-2', 'tu-2', 'wt-2',
+                    'am-1', 'co-1', 'do-1', 'ph-1', 'tu-1', 'wt-1',
+                    'am+1', 'co+1', 'do+1', 'ph+1', 'tu+1', 'wt+1',
+                    'am+2', 'co+2', 'do+2', 'ph+2', 'tu+2', 'wt+2',
+                    'am+3', 'co+3', 'do+3', 'ph+3', 'tu+3', 'wt+3',
+                    'am+4', 'co+4', 'do+4', 'ph+4', 'tu+4', 'wt+4',
                     ]
 
     # Select the resolution of the feature names
@@ -426,3 +429,22 @@ def tree_plotter(model, resolution):
     # Convert to png using system command (requires Graphviz)
     from subprocess import call
     call(['dot', '-Tpng', 'tree.dot', '-o', 'tree_0.png', '-Gdpi=600'])
+
+def summarizer(data, num_variables):
+    
+    """Gets a 1D data window and returns a summarized version 
+    with the mean for each variable.
+    ----------
+    Arguments:
+    data (np.array): The data to be summarized.
+    num_variables (int): The number of variables in the data.
+    
+    Returns:
+    data_summarized (np.array): The summarized data."""
+
+    data_summarized = []
+    for i in data:
+        i = i.reshape(-1, num_variables)
+        data_summarized.append(i.mean(axis=0))
+    
+    return np.array(data_summarized)

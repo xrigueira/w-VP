@@ -15,7 +15,7 @@ from utils import plotter
 from utils import explainer
 from utils import mean_plotter
 
-def plot_all(event_number):
+def plotter_all(event_number):
 
     event_start_high = starts_ends[event_number][0][0]
     event_end_high = starts_ends[event_number][0][1]
@@ -29,7 +29,7 @@ def plot_all(event_number):
         # Add the last row to anomaly_data
         event_data = np.concatenate((event_data, last_row), axis=0)
 
-    plotter(data=event_data, num_variables=6, name=f'event_{event_number}')
+    plotter(data=event_data, num_variables=6, legend=True, name=f'event_{event_number}')
 
 def get_results(event_number):
 
@@ -45,7 +45,7 @@ def get_results(event_number):
         # Add the last row to anomaly_data
         event_data = np.concatenate((event_data, last_row), axis=0)
 
-    plotter(data=event_data, num_variables=6, name=f'event_{event_number}')
+    plotter(data=event_data, num_variables=6, legend=True, name=f'event_{event_number}')
 
     # Get multiresolution windows indixes of the event
     event_starts_ends = starts_ends[event_number]
@@ -53,20 +53,20 @@ def get_results(event_number):
     # Plot, explan and get mean for high resolution windows
     for window_num, window in enumerate(X[0][event_starts_ends[0][0]:event_starts_ends[0][1]]):
 
-        plotter(data=window, num_variables=6, name=f'event_{event_number}_high_{window_num}')
+        plotter(data=window, num_variables=6, legend=False, name=f'event_{event_number}_high_{window_num}')
         explainer(data=window, model=model_high, resolution='high', name=f'event_{event_number}_high_{window_num}')
         mean_plotter(data=window, resolution='high', num_variables=6, name=f'event_{event_number}_high_{window_num}')
 
     # Plot, explan and get mean for medium resolution windows
     for window_num, window in enumerate(X[1][event_starts_ends[1][0]:event_starts_ends[1][1]]):
         
-        plotter(data=window, num_variables=6, name=f'event_{event_number}_med_{window_num}')
+        plotter(data=window, num_variables=6, legend=False, name=f'event_{event_number}_med_{window_num}')
         explainer(data=window, model=model_med, resolution='med', name=f'event_{event_number}_med_{window_num}')
     
     # Plot, explan and get mean for low resolution windows
     for window_num, window in enumerate(X[2][event_starts_ends[2][0]:event_starts_ends[2][1]]):
         
-        plotter(data=window, num_variables=6, name=f'event_{event_number}_low_{window_num}')
+        plotter(data=window, num_variables=6, legend=False, name=f'event_{event_number}_low_{window_num}')
         explainer(data=window, model=model_low, resolution='low', name=f'event_{event_number}_low_{window_num}')
 
 def majority_vote(data_high, data_med, data_low):
@@ -87,7 +87,7 @@ if __name__ == '__main__':
     window_size_high, window_size_med, window_size_low = 32, 16, 8
 
     # Load models
-    iteration = 8
+    iteration = 5
 
     filename = f'models/rf_model_high_{iteration}.sav'
     model_high = pickle.load(open(filename, 'rb'))
@@ -143,15 +143,18 @@ if __name__ == '__main__':
         event_end_low = sum(number_windows_low[:event_number + 1]) + 1 + event_number
 
         starts_ends.append([[event_start_high, event_end_high], [event_start_med, event_end_med], [event_start_low, event_end_low]])
-
-    plot_all = input('Plot all events? (y/n): ')
+    
+    plot_all = str(input('Plot all events? (y/n): '))
     if plot_all == 'y':
         for event_number in range(len(number_windows_high)):
-            plot_all(event_number)
+            plotter_all(event_number)
 
     if data_type == 'anomalies':
         
-        get_results(event_number=4) # 4 or 24
+        get_results(event_number=4) # 901: anomalies 4 or 24
+                                    # 905: anomalies 18 or 33
+                                    # 906: anomalies 1 or 3
+                                    # 907: anomalies 25 or 34
 
     elif data_type == 'background':
         
@@ -173,4 +176,7 @@ if __name__ == '__main__':
         elif event_type == '0':
             event_number = int(input(f'Choose an event number {background_events}: '))
 
-        get_results(event_number=event_number) # 0 for true background, 28 for idenfitied anomaly
+    #     get_results(event_number=event_number) # 901: 0 for true background, 28 for idenfitied anomaly
+    #                                             # 905: 8 for true background, 21 for identified anomaly
+    #                                             # 906: 1 for everything?
+    #                                             # 907: 25 for true background, 16 for identified anomaly
