@@ -5,7 +5,7 @@ plt.style.use('ggplot')
 
 from scipy.interpolate import interp1d
 
-station = 901
+station = 906
 
 # Read the data
 df_original = pd.read_csv(f'plots/{station}_plots.csv', delimiter=',', index_col=['iteration'])
@@ -40,9 +40,18 @@ ax.set(xlim=(df.index[0]-1, df.index[-1]+1), ylim=(-0.2, 1.2),
     # title='Metrics 901',
     xlabel='Iteration', ylabel='Score')
 
-# Add legend
-plt.legend()
+# Change the fontsize of the axis titles
+ax.set_xlabel('Iteration', fontsize=16)
+ax.set_ylabel('Score', fontsize=16)
+ax.set_title(f'Metrics station {station}', fontsize=18, loc='right')
 
+# Change the fontsize of the ticks
+ax.tick_params(axis='x', labelsize=12)
+ax.tick_params(axis='y', labelsize=12)
+
+# Add legend
+plt.legend(fontsize=12)
+plt.tight_layout()
 plt.show()
 
 # plt.savefig(f'plots/{station}_plots.png', dpi=300)

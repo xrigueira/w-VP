@@ -56,11 +56,16 @@ def plotter(data, num_variables, station, legend, name):
     for i in range(num_variables):
         plt.plot(dater(station, data), data_reshaped[:, i], label=f'{variables_names[i]}')
 
-    plt.xticks(rotation=30)
-    plt.xlabel('Time/Index')
-    plt.ylabel('Variable Value')
-    # plt.title(f'Event {name}', loc='left')
-    if legend: plt.legend()
+    # Change the fontsize of the ticks
+    plt.xticks(rotation=30, fontsize=12)
+    plt.yticks(fontsize=12)
+
+    # Define axes limits, title and labels
+    plt.xlabel('Time/Index', fontsize=16)
+    plt.ylabel('Variable Value', fontsize=16)
+    # plt.title(f'Event {name}', fontsize=18, loc='right')
+    
+    if legend: plt.legend(fontsize=12)
     plt.tight_layout()
     # plt.show()
 
@@ -200,8 +205,10 @@ def explainer(data, model, resolution, name):
     
     plt.figure(figsize=(10, 8))
     sns.heatmap(heatmap_data, xticklabels=range(max_len), yticklabels=list(variables.keys()), cmap='viridis', annot=True, fmt="d")
-    plt.xlabel('Position')
-    plt.ylabel('Variable')
+    plt.xticks(fontsize=12)
+    plt.yticks(fontsize=12)
+    plt.xlabel('Position', fontsize=16)
+    plt.ylabel('Variable', fontsize=16)
     # plt.show()
 
     plt.savefig(f'images/{name}_var.png')
@@ -279,8 +286,10 @@ def explainer(data, model, resolution, name):
 
     plt.figure(figsize=(10, 8))
     sns.heatmap(heatmap_data, xticklabels=xticklabels, yticklabels=var_names, cmap='jet', vmin=-0.8, vmax=0.8)
-    plt.xlabel('Position')
-    plt.ylabel('Variable')
+    plt.xticks(fontsize=12)
+    plt.yticks(fontsize=12)
+    plt.xlabel('Position', fontsize=16)
+    plt.ylabel('Variable', fontsize=16)
     # plt.show()
 
     plt.savefig(f'images/{name}_thre.png')
@@ -327,8 +336,10 @@ def mean_plotter(data, resolution, num_variables, name):
 
     plt.figure(figsize=(10, 8))
     sns.heatmap(data, xticklabels=xticklabels, yticklabels=var_names, cmap='jet', vmin=-0.8, vmax=0.8)
-    plt.xlabel('Position')
-    plt.ylabel('Variable')
+    plt.xticks(fontsize=12)
+    plt.yticks(fontsize=12)
+    plt.xlabel('Position', fontsize=16)
+    plt.ylabel('Variable', fontsize=16)
     # plt.show()
 
     plt.savefig(f'images/{name}_mean.png')
