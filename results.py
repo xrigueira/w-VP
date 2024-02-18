@@ -29,7 +29,7 @@ def plotter_all(event_number):
         # Add the last row to anomaly_data
         event_data = np.concatenate((event_data, last_row), axis=0)
 
-    plotter(data=event_data, num_variables=6, legend=True, name=f'event_{event_number}')
+    plotter(data=event_data, num_variables=6, station=station, legend=True, name=f'event_{event_number}')
 
 def get_results(event_number):
 
@@ -45,7 +45,7 @@ def get_results(event_number):
         # Add the last row to anomaly_data
         event_data = np.concatenate((event_data, last_row), axis=0)
 
-    plotter(data=event_data, num_variables=6, legend=True, name=f'event_{event_number}')
+    plotter(data=event_data, num_variables=6, station=station, legend=True, name=f'event_{event_number}')
 
     # Get multiresolution windows indixes of the event
     event_starts_ends = starts_ends[event_number]
@@ -53,20 +53,20 @@ def get_results(event_number):
     # Plot, explan and get mean for high resolution windows
     for window_num, window in enumerate(X[0][event_starts_ends[0][0]:event_starts_ends[0][1]]):
 
-        plotter(data=window, num_variables=6, legend=False, name=f'event_{event_number}_high_{window_num}')
+        plotter(data=window, num_variables=6, station=station, legend=False, name=f'event_{event_number}_high_{window_num}')
         explainer(data=window, model=model_high, resolution='high', name=f'event_{event_number}_high_{window_num}')
         mean_plotter(data=window, resolution='high', num_variables=6, name=f'event_{event_number}_high_{window_num}')
 
     # Plot, explan and get mean for medium resolution windows
     for window_num, window in enumerate(X[1][event_starts_ends[1][0]:event_starts_ends[1][1]]):
         
-        plotter(data=window, num_variables=6, legend=False, name=f'event_{event_number}_med_{window_num}')
+        plotter(data=window, num_variables=6, station=station, legend=False, name=f'event_{event_number}_med_{window_num}')
         explainer(data=window, model=model_med, resolution='med', name=f'event_{event_number}_med_{window_num}')
     
     # Plot, explan and get mean for low resolution windows
     for window_num, window in enumerate(X[2][event_starts_ends[2][0]:event_starts_ends[2][1]]):
         
-        plotter(data=window, num_variables=6, legend=False, name=f'event_{event_number}_low_{window_num}')
+        plotter(data=window, num_variables=6, station=station, legend=False, name=f'event_{event_number}_low_{window_num}')
         explainer(data=window, model=model_low, resolution='low', name=f'event_{event_number}_low_{window_num}')
 
 def majority_vote(data_high, data_med, data_low):
@@ -82,6 +82,7 @@ def majority_vote(data_high, data_med, data_low):
 
 if __name__ == '__main__':
 
+    station = '901'
     data_type = 'background' # 'anomalies' or 'background
 
     window_size_high, window_size_med, window_size_low = 32, 16, 8

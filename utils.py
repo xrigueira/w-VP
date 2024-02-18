@@ -32,7 +32,7 @@ def dater(station, window):
     
     return date_indices
 
-def plotter(data, num_variables, legend, name):
+def plotter(data, num_variables, station, legend, name):
     
     """This function plots the data passed as a 
     numpy arrayoriginal data, for a given resolution 
@@ -41,7 +41,9 @@ def plotter(data, num_variables, legend, name):
     Arguments:
     data: The data to be plotted.
     num_variables: The number of variables in the data.
-    windowed: Whether the data is windowed or not.
+    station: the station number.
+    legend: Whether to show the legend or not.
+    name: The title of the plot.
     
     Returns:
     None"""
@@ -52,7 +54,7 @@ def plotter(data, num_variables, legend, name):
     
     # Plot each variable
     for i in range(num_variables):
-        plt.plot(dater(901, data), data_reshaped[:, i], label=f'{variables_names[i]}')
+        plt.plot(dater(station, data), data_reshaped[:, i], label=f'{variables_names[i]}')
 
     plt.xticks(rotation=30)
     plt.xlabel('Time/Index')
