@@ -82,13 +82,13 @@ def majority_vote(data_high, data_med, data_low):
 
 if __name__ == '__main__':
 
-    station = '901'
+    station = 906
     data_type = 'background' # 'anomalies' or 'background
 
     window_size_high, window_size_med, window_size_low = 32, 16, 8
 
     # Load models
-    iteration = 5
+    iteration = 2
 
     filename = f'models/rf_model_high_{iteration}.sav'
     model_high = pickle.load(open(filename, 'rb'))
@@ -154,7 +154,7 @@ if __name__ == '__main__':
         
         get_results(event_number=4) # 901: anomalies 4 or 24
                                     # 905: anomalies 18 or 33
-                                    # 906: anomalies 1 or 3
+                                    # 906: anomalies 0
                                     # 907: anomalies 25 or 34
 
     elif data_type == 'background':
@@ -179,5 +179,5 @@ if __name__ == '__main__':
 
     #     get_results(event_number=event_number) # 901: 0 for true background, 28 for idenfitied anomaly
     #                                             # 905: 8 for true background, 21 for identified anomaly
-    #                                             # 906: 1 for everything?
+    #                                             # 906: 2 for true background
     #                                             # 907: 25 for true background, 16 for identified anomaly

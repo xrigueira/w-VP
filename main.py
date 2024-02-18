@@ -648,15 +648,20 @@ class imRF():
             prev_anomalies_windows, prev_anomalies_lengths = prev_anomalies_windows[0], prev_anomalies_windows[-1]
             prev_background_windows, prev_background_lengths = prev_background_windows[0], prev_background_windows[-1]
         
-        # Conactenate new data with old data
-        anomalies_windows = [np.vstack((prev_anomalies_windows[0], add_anomalies_windows_high)),
-                            np.vstack((prev_anomalies_windows[1], add_anomalies_windows_med)),
-                            np.vstack((prev_anomalies_windows[2], add_anomalies_windows_low))]
+        # Conactenate new data with old data if there is any
+        if add_anomalies_windows_high and add_anomalies_windows_med and add_anomalies_windows_low:
+            anomalies_windows = [np.vstack((prev_anomalies_windows[0], add_anomalies_windows_high)),
+                                np.vstack((prev_anomalies_windows[1], add_anomalies_windows_med)),
+                                np.vstack((prev_anomalies_windows[2], add_anomalies_windows_low))]
+        else:
+            anomalies_windows = prev_anomalies_windows
         
-        background_windows = [np.vstack((prev_background_windows[0], add_background_windows_high)),
-                            np.vstack((prev_background_windows[1], add_background_windows_med)),
-                            np.vstack((prev_background_windows[2], add_background_windows_low))]
-
+        if add_background_windows_high and add_background_windows_med and add_background_windows_low:
+            background_windows = [np.vstack((prev_background_windows[0], add_background_windows_high)),
+                                np.vstack((prev_background_windows[1], add_background_windows_med)),
+                                np.vstack((prev_background_windows[2], add_background_windows_low))]
+        else:
+            background_windows = prev_background_windows
 
         # Save anomalies_data to disk as pickle object
         with open(f'pickels/anomaly_data_{self.iteration}.pkl', 'wb') as file:
@@ -995,4 +1000,4 @@ if __name__ == '__main__':
 
     # print(f'[INFO] SHAP plots')
     # Get the SHAP plots
-    imRF.shap_RandomForest()
+    # imRF.shap_RandomForest()
