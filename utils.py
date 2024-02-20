@@ -55,8 +55,7 @@ def plotter(data, num_variables, station, legend, name):
     # Plot each variable
     for i in range(num_variables):
         x = dater(station, data)
-        # print('Length # items x:', len(x))
-        if len(x) != 32: x = range(32)
+        # if len(x) != 32: x = range(32)
         plt.plot(x, data_reshaped[:, i], label=f'{variables_names[i]}')
 
     # Change the fontsize of the ticks
@@ -207,7 +206,8 @@ def explainer(data, model, resolution, station, name):
     heatmap_data = heatmap_data.astype(int) # Convert data to int
     
     plt.figure(figsize=(10, 8))
-    sns.heatmap(heatmap_data, xticklabels=range(max_len), yticklabels=list(variables.keys()), cmap='viridis', annot=True, annot_kws={"size": 14}, fmt="d") # annot size 14 for anomalies and 10 for background
+    sns.heatmap(heatmap_data, xticklabels=range(max_len), yticklabels=list(variables.keys()), 
+                cmap='viridis', annot=True, annot_kws={"size": 14}, fmt="d") # annot size 14 for anomalies and 10 for background
     plt.xticks(fontsize=12)
     plt.yticks(fontsize=12)
     plt.xlabel('Position', fontsize=16)

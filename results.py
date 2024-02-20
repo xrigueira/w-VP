@@ -88,7 +88,7 @@ if __name__ == '__main__':
     window_size_high, window_size_med, window_size_low = 32, 16, 8
 
     # Load models
-    iteration = 9
+    iteration = 8
 
     filename = f'models/rf_model_high_{iteration}.sav'
     model_high = pickle.load(open(filename, 'rb'))
