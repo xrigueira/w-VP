@@ -29,7 +29,7 @@ def dater(station, window):
     indices = np.where(mask)[0]
     
     date_indices = data.index[indices]
-    
+
     return date_indices
 
 def plotter(data, num_variables, station, legend, name):
@@ -54,7 +54,10 @@ def plotter(data, num_variables, station, legend, name):
     
     # Plot each variable
     for i in range(num_variables):
-        plt.plot(dater(station, data), data_reshaped[:, i], label=f'{variables_names[i]}')
+        x = dater(station, data)
+        # print('Length # items x:', len(x))
+        if len(x) != 32: x = range(32)
+        plt.plot(x, data_reshaped[:, i], label=f'{variables_names[i]}')
 
     # Change the fontsize of the ticks
     plt.xticks(rotation=30, fontsize=12)
@@ -62,7 +65,7 @@ def plotter(data, num_variables, station, legend, name):
 
     # Define axes limits, title and labels
     plt.xlabel('Time/Index', fontsize=16)
-    plt.ylabel('Variable Value', fontsize=16)
+    plt.ylabel('Variable value', fontsize=16)
     # plt.title(f'Event {name}', fontsize=18, loc='right')
     
     if legend: plt.legend(fontsize=12)
@@ -75,7 +78,7 @@ def plotter(data, num_variables, station, legend, name):
     # Close figure
     plt.close()
 
-def explainer(data, model, resolution, name):
+def explainer(data, model, resolution, station, name):
 
     """This function explains the decision of a Random Forest model
     for a given window.
@@ -136,7 +139,7 @@ def explainer(data, model, resolution, name):
                     'am+12', 'co+12', 'do+12', 'ph+12', 'tu+12', 'wt+12',
                     'am+13', 'co+13', 'do+13', 'ph+13', 'tu+13', 'wt+13',
                     'am+14', 'co+14', 'do+14', 'ph+14', 'tu+14', 'wt+14',
-                    'am+15', 'co+15', 'do+15', 'ph+15', 'tu+15', 'wt15',
+                    'am+15', 'co+15', 'do+15', 'ph+15', 'tu+15', 'wt+15',
                     'am+16', 'co+16', 'do+16', 'ph+16', 'tu+16', 'wt+16'
                     ]
 
@@ -204,7 +207,7 @@ def explainer(data, model, resolution, name):
     heatmap_data = heatmap_data.astype(int) # Convert data to int
     
     plt.figure(figsize=(10, 8))
-    sns.heatmap(heatmap_data, xticklabels=range(max_len), yticklabels=list(variables.keys()), cmap='viridis', annot=True, fmt="d")
+    sns.heatmap(heatmap_data, xticklabels=range(max_len), yticklabels=list(variables.keys()), cmap='viridis', annot=True, annot_kws={"size": 14}, fmt="d") # annot size 14 for anomalies and 10 for background
     plt.xticks(fontsize=12)
     plt.yticks(fontsize=12)
     plt.xlabel('Position', fontsize=16)
@@ -218,7 +221,6 @@ def explainer(data, model, resolution, name):
 
     # Variable-threshold plot
     # Read the data and get the mean for each variable
-    station = 901
     df = pd.read_csv(f'data/labeled_{station}_smo.csv', sep=',', encoding='utf-8', parse_dates=['date'])
     
     stats_dict = {}
@@ -298,10 +300,9 @@ def explainer(data, model, resolution, name):
     plt.close()
 
 # Mean-position plot
-def mean_plotter(data, resolution, num_variables, name):
+def mean_plotter(data, resolution, num_variables, station, name):
     
     # Read the data and get the mean for each variable
-    station = 901
     df = pd.read_csv(f'data/labeled_{station}_smo.csv', sep=',', encoding='utf-8', parse_dates=['date'])
 
     stats_dict = {}
@@ -394,7 +395,7 @@ def tree_plotter(model, resolution):
                     'am+12', 'co+12', 'do+12', 'ph+12', 'tu+12', 'wt+12',
                     'am+13', 'co+13', 'do+13', 'ph+13', 'tu+13', 'wt+13',
                     'am+14', 'co+14', 'do+14', 'ph+14', 'tu+14', 'wt+14',
-                    'am+15', 'co+15', 'do+15', 'ph+15', 'tu+15', 'wt15',
+                    'am+15', 'co+15', 'do+15', 'ph+15', 'tu+15', 'wt+15',
                     'am+16', 'co+16', 'do+16', 'ph+16', 'tu+16', 'wt+16'
                     ]
 

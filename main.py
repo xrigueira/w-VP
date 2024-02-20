@@ -188,7 +188,7 @@ class imRF():
         data_background = data[data["label"] == 0]
         
         # Filter the dataset to include only days that meet the ammonium level the condition
-        mean_ammonium = np.mean(data_background.ammonium_906)
+        mean_ammonium = np.mean(data_background.ammonium_901)
         data_background = data_background.groupby(data_background['date'].dt.date).filter(lambda x: x[f'ammonium_{self.station}'].max() <= mean_ammonium)
         
         # Extract the length of the anomalies
@@ -929,20 +929,26 @@ class imRF():
         shap.summary_plot(
             summarizer(shap_values_high[1], num_variables=self.num_variables), 
             summarizer(X[0], num_variables=self.num_variables), 
-            feature_names=['am', 'co', 'do', 'ph', 'tu', 'wt']
+            feature_names=['am', 'co', 'do', 'ph', 'tu', 'wt'],
+            title=f'Summary plot station {self.station} high resolution',
+            cmap='viridis'
             )
         shap.summary_plot(
             summarizer(shap_values_med[1], num_variables=self.num_variables), 
             summarizer(X[1], num_variables=self.num_variables), 
-            feature_names=['am', 'co', 'do', 'ph', 'tu', 'wt']
+            feature_names=['am', 'co', 'do', 'ph', 'tu', 'wt'],
+            title=f'Summary plot station {self.station} med resolution',
+            cmap='viridis'
             )
         shap.summary_plot(
             summarizer(shap_values_low[1], num_variables=self.num_variables), 
             summarizer(X[2], num_variables=self.num_variables), 
-            feature_names=['am', 'co', 'do', 'ph', 'tu', 'wt']
+            feature_names=['am', 'co', 'do', 'ph', 'tu', 'wt'],
+            title=f'Summary plot station {self.station} low resolution',
+            cmap='viridis'
             )
         
-        # # Ge the force plot to explain a particular window
+        # # Get the force plot to explain a particular window
         # window = 0
         # shap.plots.force(explainer_high.expected_value[window], 
         #                 summarizer(shap_values_high[1], num_variables=self.num_variables)[window],
@@ -956,7 +962,7 @@ if __name__ == '__main__':
 
     # Create an instance of the model
     window_size = 32
-    imRF = imRF(station=906, trim_percentage=0, ratio_init=12, ratio=2, num_variables=6, 
+    imRF = imRF(station=901, trim_percentage=0, ratio_init=12, ratio=2, num_variables=6, 
                 window_size=window_size, stride=1, seed=0)
     
     # Start number of anomalies_med
@@ -990,7 +996,7 @@ if __name__ == '__main__':
 
             if difference <= 1.125:
                 break
-        
+    
     print(f'[INFO] Testing')
     # Extract new background data for testing
     background_indexes = imRF.test_background(anomalies_indexes, background_indexes)
@@ -998,6 +1004,6 @@ if __name__ == '__main__':
     # Test the model
     imRF.test_RandomForest()
 
-    # print(f'[INFO] SHAP plots')
+    print(f'[INFO] SHAP plots')
     # Get the SHAP plots
-    # imRF.shap_RandomForest()
+    imRF.shap_RandomForest()
