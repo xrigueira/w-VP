@@ -5,7 +5,7 @@ plt.style.use('ggplot')
 
 from scipy.interpolate import interp1d
 
-station = 906
+station = 901
 
 # Read the data
 df_original = pd.read_csv(f'plots/{station}_plots.csv', delimiter=',', index_col=['iteration'])
@@ -47,11 +47,11 @@ xnew = np.linspace(0, df.index[-1], num=500, endpoint=True) # The second paramet
 
 # Plot number of background windows
 accuracy = interp1d(list(df.index), list(df['background_windows']), kind='cubic')
-ax.plot(xnew, accuracy(xnew), color='#a2bffe', label='Background windows high')
+ax.plot(xnew, accuracy(xnew), color='#a2bffe', label='Background windows low')
 
 # Plot number of anomaly windows
 error_rate = interp1d(list(df.index), list(df['anomalous_windows']), kind='cubic')
-ax.plot(xnew, error_rate(xnew), color='#fc5a50', label='Anomalous windows med')
+ax.plot(xnew, error_rate(xnew), color='#fc5a50', label='Anomalous windows low')
 
 # Define axes limits, title and labels
 ax.set(xlim=(df.index[0]-1, df.index[-1]+1), ylim=(-0.2, max(list(df['background_windows']))*1.2),
@@ -60,7 +60,7 @@ ax.set(xlim=(df.index[0]-1, df.index[-1]+1), ylim=(-0.2, max(list(df['background
 
 # Change the fontsize of the axis titles
 ax.set_xlabel('Iteration', fontsize=16)
-ax.set_ylabel('Score', fontsize=16)
+ax.set_ylabel('Number of windows', fontsize=16)
 ax.set_title(f'Window number change {station}', fontsize=18, loc='right')
 
 # Change the fontsize of the ticks
