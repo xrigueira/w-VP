@@ -1,3 +1,4 @@
+
 import pickle
 import numpy as np
 import pandas as pd
@@ -69,16 +70,25 @@ def get_results(event_number, station):
         plotter(data=window, num_variables=6, station=station, legend=False, name=f'event_{event_number}_low_{window_num}')
         explainer(data=window, model=model_low, resolution='low', station=station, name=f'event_{event_number}_low_{window_num}')
 
-def majority_vote(data_high, data_med, data_low):
-        
-    vote_high = round(sum(data_high) / len(data_high))
-    vote_med = round(sum(data_med) / len(data_med))
-    vote_low = round(sum(data_low) / len(data_low))
+def majority_vote(high, med, low):
     
-    if sum([vote_high, vote_med, vote_low]) >= 2:
+    vote_high = sum(high) / len(high)
+    vote_med = sum(med) / len(med)
+    vote_low = sum(low) / len(low)
+
+    if (1/3 * vote_high + 1/3 * vote_med + 1/3 * vote_low) >= 0.9:
         return 1
-    else:
+    elif (1/3 * vote_high + 1/3 * vote_med + 1/3 * vote_low) <= 0.1:
         return 0
+
+    # vote_high = round(sum(high) / len(high))
+    # vote_med = round(sum(med) / len(med))
+    # vote_low = round(sum(low) / len(low))
+    
+    # if sum([vote_high, vote_med, vote_low]) >= 2:
+    #     return 1
+    # else:
+    #     return 0
 
 if __name__ == '__main__':
 
@@ -88,7 +98,7 @@ if __name__ == '__main__':
     window_size_high, window_size_med, window_size_low = 32, 16, 8
 
     # Load models
-    iteration = 8
+    iteration = 9
 
     filename = f'models/rf_model_high_{iteration}.sav'
     model_high = pickle.load(open(filename, 'rb'))
