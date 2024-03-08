@@ -89,6 +89,16 @@ class imRF():
         vote_low = sum(low) / len(low)
         return 1/3 * vote_high + 1/3 * vote_med + 1/3 * vote_low
     
+    def abs_majority_vote(self, high, med, low):
+        vote_high = high
+        vote_med = sum(med) / len(med)
+        vote_low = sum(low) / len(low)
+        # I use 0.5 here because it is the same threshold that the individual models use
+        if (1/3 * vote_high + 1/3 * vote_med + 1/3 * vote_low) >= 0.5:
+            return 1
+        else:
+            return 0
+
     def anomalies(self):
         
         """Extracts the anomalies from the database and
@@ -737,6 +747,54 @@ class imRF():
         print(confusion_matrix_med)
         confusion_matrix_low = cm(y_test[2], model_low.predict(X_test[2]))
         print(confusion_matrix_low)
+
+        ##################################################################
+        # Get the voting ground truth
+        y_truth = []
+        
+        # Set up the indexes
+        index_high = 0
+        start_index_med, end_index_med = 0, med_subwindow_span 
+        start_index_low, end_index_low = 0, low_subwindow_span
+        
+        for i in range(len(y_test[0])):
+    
+            scores_high = y_test[0][index_high]
+            scores_med = y_test[1][start_index_med:end_index_med + 1]
+            scores_low = y_test[2][start_index_low:end_index_low + 1]
+            
+            y_truth.append(self.abs_majority_vote(scores_high, scores_med, scores_low))
+
+            # Update indixes
+            index_high = index_high + self.stride
+            start_index_med, end_index_med = start_index_med + self.stride, end_index_med + self.stride
+            start_index_low, end_index_low = start_index_low + self.stride, end_index_low + self.stride
+
+        # Get the voting predictions
+        y_hat_high, y_hat_med, y_hat_low = model_high.predict(X_test[0]), model_med.predict(X_test[1]), model_low.predict(X_test[2])
+
+        y_hat = []
+        # Set up the indexes
+        index_high = 0
+        start_index_med, end_index_med = 0, med_subwindow_span 
+        start_index_low, end_index_low = 0, low_subwindow_span
+        for i in range(len(y_hat_high)):
+    
+            scores_high = y_hat_high[index_high]
+            scores_med = y_hat_med[start_index_med:end_index_med + 1]
+            scores_low = y_hat_low[start_index_low:end_index_low + 1]
+            
+            y_hat.append(self.abs_majority_vote(scores_high, scores_med, scores_low))
+
+            # Update indixes
+            index_high = index_high + self.stride
+            start_index_med, end_index_med = start_index_med + self.stride, end_index_med + self.stride
+            start_index_low, end_index_low = start_index_low + self.stride, end_index_low + self.stride
+        
+        # Get the confusion matrix
+        confusion_matrix = cm(y_truth, y_hat)
+        print(confusion_matrix)
+        ##################################################################
         
         # Get the number of rows labeled as anomalies in y_test
         prev_num_anomalies_med = num_anomalies_med
