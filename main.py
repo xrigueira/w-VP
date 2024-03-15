@@ -151,19 +151,29 @@ class imRF():
         for start, end in trimmed_anomalies_indexes:
             subset_rows = data.iloc[start:end + 1, 1:-2].values.flatten()  # Extract rows within the subset
             anomaly_data.append(subset_rows)
+        
+        # Separate 20% of the anomalies for testing (this is not used in the iterative learning process)
+        anomaly_data = anomaly_data[len(anomaly_data) // 5:]
+        anomaly_data_test = anomaly_data[:len(anomaly_data) // 5]
 
         # Group the data in windows before saving
         anomaly_data = self.windower(anomaly_data)
 
         anomaly_data = [anomaly_data] + [anomaly_lengths]
+
+        anomaly_data_test= self.windower(anomaly_data_test)
         
         # Save anomaly_data to disk as pickle object
         with open('pickels/anomaly_data_0.pkl', 'wb') as file:
             pickle.dump(anomaly_data, file)
 
         # Save anomaly_data to disk as pickle object
-        with open('pickels/anomaly_data_test.pkl', 'wb') as file:
+        with open('pickels/anomaly_data_pred.pkl', 'wb') as file:
             pickle.dump(anomaly_data, file)
+        
+        # Save anomaly_data to disk as pickle object
+        with open('pickels/anomaly_data_test.pkl', 'wb') as file:
+            pickle.dump(anomaly_data_test, file)
         
         return trimmed_anomalies_indexes
     
@@ -314,11 +324,11 @@ class imRF():
             
         return background_indexes
     
-    def test_background(self, anomalies_indexes, background_indexes):
+    def pred_background(self, anomalies_indexes, background_indexes):
         
         """Creates the background file for testing by extracting
-        'ratio' times more non anomalous data than the anomaly method and
-        . The data is saved to a pickle file. It makes sure that 
+        'ratio' times more non anomalous data than the anomaly method and.
+        The data is saved to a pickle file. It makes sure that 
         the new non anomalous data extracted has not been selected before.
         ----------
         Arguments:
@@ -329,7 +339,7 @@ class imRF():
         extracted background data.
         
         Saves:
-        background_data_test (pickle): file with 'ratio' times more 
+        background_data_pred (pickle): file with 'ratio' times more 
         nonanomalous data, compared to the total legth of the 
         anomalies in the dataset.
         
@@ -391,7 +401,7 @@ class imRF():
         background_data = [background_data] + [background_lengths]
         
         # Save background_data to disk as pickle object
-        with open(f'pickels/background_data_test.pkl', 'wb') as file:
+        with open(f'pickels/background_data_pred.pkl', 'wb') as file:
             pickle.dump(background_data, file)
             
         return background_indexes
@@ -465,10 +475,10 @@ class imRF():
         # Split the shuffled data into the training and testing set
         X_train, y_train, X_test, y_test = [], [], [], []
         for i in range(len(anomalies_windows)):
-            X_train.append(X[i][:int(len(X[i]) * 0.75)])
-            y_train.append(y[i][:int(len(X[i]) * 0.75)])
-            X_test.append(X[i][int(len(X[i]) * 0.75):])
-            y_test.append(y[i][int(len(X[i]) * 0.75):])
+            X_train.append(X[i][:int(len(X[i]) * 0.80)])
+            y_train.append(y[i][:int(len(X[i]) * 0.80)])
+            X_test.append(X[i][int(len(X[i]) * 0.80):])
+            y_test.append(y[i][int(len(X[i]) * 0.80):])
 
         # Fit the model to the training data
         model_high.fit(X_train[0], y_train[0]) # Long length data windows
@@ -477,19 +487,15 @@ class imRF():
 
         from sklearn.metrics import confusion_matrix as cm
         confusion_matrix_high = cm(y_test[0], model_high.predict(X_test[0]))
-        print(confusion_matrix_high)
+        print('Confusion matrix high\n', confusion_matrix_high)
         confusion_matrix_med = cm(y_test[1], model_med.predict(X_test[1]))
-        print(confusion_matrix_med)
+        print('Confusion matrix med\n', confusion_matrix_med)
         confusion_matrix_low = cm(y_test[2], model_low.predict(X_test[2]))
-        print(confusion_matrix_low)
+        print('Confusion matrix low\n', confusion_matrix_low)
         
         # Get the number of rows labeled as anomalies in y_test
-        num_anomalies_high = len([i for i in y_test[0] if i==1])
-        print('Number of anomalies in test set:', num_anomalies_high)
-        num_anomalies_med = len([i for i in y_test[1] if i==1])
-        print('Number of anomalies in test set:', num_anomalies_med)
-        num_anomalies_low = len([i for i in y_test[2] if i==1])
-        print('Number of anomalies in test set:', num_anomalies_low)
+        num_anomalies_high, num_anomalies_med, num_anomalies_low = len([i for i in y_test[0] if i==1]), len([i for i in y_test[1] if i==1]), len([i for i in y_test[2] if i==1])
+        print('Number of anomalies in iterative test set [high, med , low]:', num_anomalies_high, num_anomalies_med, num_anomalies_low)
         
         # Save the model to disk
         filename = 'models/rf_model_high_0.sav'
@@ -730,10 +736,10 @@ class imRF():
         # Split the shuffled data into the training and testing set
         X_train, y_train, X_test, y_test = [], [], [], []
         for i in range(len(anomalies_windows)):
-            X_train.append(X[i][:int(len(X[i]) * 0.75)])
-            y_train.append(y[i][:int(len(X[i]) * 0.75)])
-            X_test.append(X[i][int(len(X[i]) * 0.75):])
-            y_test.append(y[i][int(len(X[i]) * 0.75):])
+            X_train.append(X[i][:int(len(X[i]) * 0.80)])
+            y_train.append(y[i][:int(len(X[i]) * 0.80)])
+            X_test.append(X[i][int(len(X[i]) * 0.80):])
+            y_test.append(y[i][int(len(X[i]) * 0.80):])
 
         # Fit the model to the training data
         model_high.fit(X_train[0], y_train[0]) # Long length data windows
@@ -742,11 +748,11 @@ class imRF():
 
         from sklearn.metrics import confusion_matrix as cm
         confusion_matrix_high = cm(y_test[0], model_high.predict(X_test[0]))
-        print(confusion_matrix_high)
+        print('Confusion matrix high\n', confusion_matrix_high)
         confusion_matrix_med = cm(y_test[1], model_med.predict(X_test[1]))
-        print(confusion_matrix_med)
+        print('Confusion matrix med\n', confusion_matrix_med)
         confusion_matrix_low = cm(y_test[2], model_low.predict(X_test[2]))
-        print(confusion_matrix_low)
+        print('Confusion matrix low\n', confusion_matrix_low)
 
         ##################################################################
         # Get the voting ground truth
@@ -793,17 +799,13 @@ class imRF():
         
         # Get the confusion matrix
         confusion_matrix = cm(y_truth, y_hat)
-        print(confusion_matrix)
+        print('Confusion matrix vote\n', confusion_matrix)
         ##################################################################
         
         # Get the number of rows labeled as anomalies in y_test
         prev_num_anomalies_med = num_anomalies_med
-        num_anomalies_high = len([i for i in y_test[0] if i==1])
-        print('Number of anomalies in test set:', num_anomalies_high)
-        num_anomalies_med = len([i for i in y_test[1] if i==1])
-        print('Number of anomalies in test set:', num_anomalies_med)
-        num_anomalies_low = len([i for i in y_test[2] if i==1])
-        print('Number of anomalies in test set:', num_anomalies_low)
+        num_anomalies_high, num_anomalies_med, num_anomalies_low = len([i for i in y_test[0] if i==1]), len([i for i in y_test[1] if i==1]), len([i for i in y_test[2] if i==1])
+        print('Number of anomalies in iterative test set [high, med , low]:', num_anomalies_high, num_anomalies_med, num_anomalies_low)
         
         # Save the model to disk
         filename = f'models/rf_model_high_{self.iteration}.sav'
@@ -821,11 +823,93 @@ class imRF():
     @tictoc
     def test_RandomForest(self):
         
-        """Loads the last RF models trained and tests them.
+        """Loads the last RF models trained and tests them
+        the anomalies that have not been using in the interative
+        learing process.
+        It uses the first anomalies and background files as these do not
+        contain any new data and are certified to be actual anomalies
+        and background data.
         ----------
         Arguments:
         self.
-        iteration (int): the last iteration number.
+
+        Returns:
+        None.
+        """
+
+        # Read the testing windowed anomalous data
+        file_anomalies = open('pickels/anomaly_data_test.pkl', 'rb')
+        anomalies_windows = pickle.load(file_anomalies)
+        file_anomalies.close()
+
+        # Read the testing windowed background
+        file_background = open(f'pickels/background_data_0.pkl', 'rb')
+        background_windows = pickle.load(file_background)
+        file_background.close()
+
+        # Separate background windows and lengths, although legths will not be used in this method
+        background_windows, background_lengths = background_windows[0], background_windows[-1]
+
+        # Generate labels for each window
+        anomalies_labels = []
+        for i in range(len(anomalies_windows)):
+            anomalies_labels.append(np.array([1 for j in anomalies_windows[i]]))
+        
+        background_labels = []
+        for i in range(len(background_windows)):
+            background_labels.append(np.array([0 for j in background_windows[i]]))
+        
+        # Concatenate array
+        X = []
+        for i in range(len(anomalies_windows)):
+            X.append(np.concatenate((anomalies_windows[i], background_windows[i])))
+        
+        y = []
+        for i in range(len(anomalies_windows)):
+            y.append(np.concatenate((anomalies_labels[i], background_labels[i])))
+        
+        # Shuffle data
+        randomized = []
+        for i in range(len(anomalies_windows)):
+            combined = np.column_stack((X[i], y[i]))
+            np.random.seed(self.seed)
+            np.random.shuffle(combined)
+            randomized.append(combined)
+            
+        # Split the shuffled array back into data and labels
+        for i in range(len(anomalies_windows)):    
+            X[i], y[i] = randomized[i][:, :-1], randomized[i][:, -1]
+        
+        # Load the previous models
+        filename = f'models/rf_model_high_{self.iteration}.sav'
+        loaded_model_high = pickle.load(open(filename, 'rb'))
+        filename = f'models/rf_model_med_{self.iteration}.sav'
+        loaded_model_med = pickle.load(open(filename, 'rb'))
+        filename = f'models/rf_model_low_{self.iteration}.sav'
+        loaded_model_low = pickle.load(open(filename, 'rb'))
+
+        from sklearn.metrics import confusion_matrix as cm
+        confusion_matrix_high = cm(y[0], loaded_model_high.predict(X[0]))
+        print('Confusion matrix high\n', confusion_matrix_high)
+        confusion_matrix_med = cm(y[1], loaded_model_med.predict(X[1]))
+        print('Confusion matrix med\n', confusion_matrix_med)
+        confusion_matrix_low = cm(y[2], loaded_model_low.predict(X[2]))
+        print('Confusion matrix low\n', confusion_matrix_low)
+
+        # Get the number of rows labeled as anomalies in y_test
+        num_anomalies_high, num_anomalies_med, num_anomalies_low = len([i for i in y[0] if i==1]), len([i for i in y[1] if i==1]), len([i for i in y[2] if i==1])
+        print('Number of anomalies in test set [high, med , low]:', num_anomalies_high, num_anomalies_med, num_anomalies_low)
+
+    @tictoc
+    def pred_RandomForest(self):
+        
+        """Loads the last RF models trained and tests them 
+        on the original anomalous set to check if they still
+        detect the labeled anomalies. Aditionally, performs
+        prediction on a new background set.
+        ----------
+        Arguments:
+        self.
         
         Saves:
         y_hats (npy): the prediction results at each resolution.
@@ -834,12 +918,12 @@ class imRF():
         """
         
         # Read the testing windowed anomalous data
-        file_anomalies = open('pickels/anomaly_data_test.pkl', 'rb')
+        file_anomalies = open('pickels/anomaly_data_pred.pkl', 'rb')
         anomalies_windows = pickle.load(file_anomalies)
         file_anomalies.close()
 
         # Read the testing windowed background
-        file_background = open(f'pickels/background_data_test.pkl', 'rb')
+        file_background = open(f'pickels/background_data_pred.pkl', 'rb')
         background_windows = pickle.load(file_background)
         file_background.close()
 
@@ -866,19 +950,15 @@ class imRF():
         
         from sklearn.metrics import confusion_matrix as cm
         confusion_matrix_high = cm(y_test[0], loaded_model_high.predict(X_test[0]))
-        print(confusion_matrix_high)
+        print('Confusion matrix high\n', confusion_matrix_high)
         confusion_matrix_med = cm(y_test[1], loaded_model_med.predict(X_test[1]))
-        print(confusion_matrix_med)
+        print('Confusion matrix med\n', confusion_matrix_med)
         confusion_matrix_low = cm(y_test[2], loaded_model_low.predict(X_test[2]))
-        print(confusion_matrix_low)
+        print('Confusion matrix low\n', confusion_matrix_low)
 
         # Get the number of rows labeled as anomalies in y_test
-        num_anomalies_high = len([i for i in y_test[0] if i==1])
-        print('Number of anomalies in test set:', num_anomalies_high)
-        num_anomalies_med = len([i for i in y_test[1] if i==1])
-        print('Number of anomalies in test set:', num_anomalies_med)
-        num_anomalies_low = len([i for i in y_test[2] if i==1])
-        print('Number of anomalies in test set:', num_anomalies_low)
+        num_anomalies_high, num_anomalies_med, num_anomalies_low = len([i for i in y_test[0] if i==1]), len([i for i in y_test[1] if i==1]), len([i for i in y_test[2] if i==1])
+        print('Number of anomalies in test set [high, med , low]:', num_anomalies_high, num_anomalies_med, num_anomalies_low)
 
         # Predict on the new background
         y_hats_high = loaded_model_high.predict(background_windows[0])
@@ -890,15 +970,15 @@ class imRF():
         np.save('preds/y_hats_med.npy', y_hats_med, allow_pickle=False, fix_imports=False)
         np.save('preds/y_hats_low.npy', y_hats_low, allow_pickle=False, fix_imports=False)
 
-        num_anomalies_high = len([i for i in y_hats_high if i==1])
-        num_nonanomalies_high = len([i for i in y_hats_high if i==0])
-        print('Number of anomalies in background test set:', num_anomalies_high, '\nNumber of nonanomalies in background test set', num_nonanomalies_high)
-        num_anomalies_med = len([i for i in y_hats_med if i==1])
-        num_nonanomalies_med = len([i for i in y_hats_med if i==0])
-        print('Number of anomalies in background test set:', num_anomalies_med, '\nNumber of nonanomalies in background test set', num_nonanomalies_med)
-        num_anomalies_low = len([i for i in y_hats_low if i==1])
-        num_nonanomalies_low = len([i for i in y_hats_low if i==0])
-        print('Number of anomalies in background test set:', num_anomalies_low, '\nNumber of nonanomalies in background test set', num_nonanomalies_low)
+        # num_anomalies_high = len([i for i in y_hats_high if i==1])
+        # num_nonanomalies_high = len([i for i in y_hats_high if i==0])
+        # print('Number of anomalies in background test set:', num_anomalies_high, '\nNumber of nonanomalies in background test set', num_nonanomalies_high)
+        # num_anomalies_med = len([i for i in y_hats_med if i==1])
+        # num_nonanomalies_med = len([i for i in y_hats_med if i==0])
+        # print('Number of anomalies in background test set:', num_anomalies_med, '\nNumber of nonanomalies in background test set', num_nonanomalies_med)
+        # num_anomalies_low = len([i for i in y_hats_low if i==1])
+        # num_nonanomalies_low = len([i for i in y_hats_low if i==0])
+        # print('Number of anomalies in background test set:', num_anomalies_low, '\nNumber of nonanomalies in background test set', num_nonanomalies_low)
 
     @tictoc
     def shap_RandomForest(self):
@@ -916,7 +996,7 @@ class imRF():
         """
 
         # Read the testing windowed anomalous data
-        file_anomalies = open('pickels/anomaly_data_test.pkl', 'rb')
+        file_anomalies = open('pickels/anomaly_data_pred.pkl', 'rb')
         anomalies_windows = pickle.load(file_anomalies)
         file_anomalies.close()
 
@@ -1026,7 +1106,7 @@ if __name__ == '__main__':
     num_anomalies_med = 1 # Set to 1 to avoid division by zero
     
     # Implement iterative process
-    for i in range(0, 10):
+    for i in range(0, 10): # 10
         
         # Update iteration value
         imRF.iteration = i
@@ -1056,11 +1136,15 @@ if __name__ == '__main__':
     
     print(f'[INFO] Testing')
     # Extract new background data for testing
-    background_indexes = imRF.test_background(anomalies_indexes, background_indexes)
+    background_indexes = imRF.pred_background(anomalies_indexes, background_indexes)
 
     # Test the model
     imRF.test_RandomForest()
 
-    print(f'[INFO] SHAP plots')
-    # Get the SHAP plots
-    imRF.shap_RandomForest()
+    print(f'[INFO] Prediction')
+    # Get the results
+    imRF.pred_RandomForest()
+
+    # print(f'[INFO] SHAP plots')
+    # # Get the SHAP plots
+    # imRF.shap_RandomForest()
