@@ -28,7 +28,9 @@ data.columns = new_column_names
 # Plotting the boxplots
 plt.figure(figsize=(12, 8))
 sns.violinplot(data=data)
-plt.xticks(rotation=45)
+plt.xticks(rotation=45, fontsize=16)
+plt.yticks(fontsize=16)
+
 
 plt.savefig('plots/violinplot.png')
 
