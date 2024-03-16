@@ -31,10 +31,14 @@ for attribute, metric, color in zip(metrics.keys(), metrics.values(), colors):
     multiplier += 1
 
 # Add some text for labels, title and custom x-axis tick labels, etc.
-ax.set_ylabel('Score')
+ax.set_ylabel('Score', fontsize=16)
 ax.set_xticks(x + width * 1.5, stations)
 ax.legend(loc='upper center', bbox_to_anchor=(0.58, 1.1), ncol=4)
 ax.set_ylim(0, 1)
+
+# Change the fontsize of the ticks
+ax.tick_params(axis='x', labelsize=12)
+ax.tick_params(axis='y', labelsize=12)
 
 plt.savefig('plots/metrics_bars.png', bbox_inches='tight')
 
