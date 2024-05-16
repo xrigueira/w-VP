@@ -3,6 +3,7 @@
 
 import pandas as pd
 import seaborn as sns
+import matplotlib.cm as cm
 import matplotlib.pyplot as plt
 plt.style.use('ggplot')
 
@@ -44,8 +45,25 @@ data.columns = ['am-901', 'am-905', 'am-907']
 
 # Create the figure
 plt.figure(figsize=(12, 8))
-sns.violinplot(data=data)
+violin_parts = sns.violinplot(data=data)
 plt.xticks(rotation=45, fontsize=16)
 plt.yticks(fontsize=16)
+
+# Iterate over the violins
+for i, violin in enumerate(violin_parts.collections[::1]):
+    # Get the min and max value for this violin
+    min_val = min_[i]
+    max_val = max_[i]
+
+    # Get the position of the violin
+    violin_center = violin.get_paths()[0].vertices.mean(0)
+
+    # Add a small offset to the x-coordinate
+    offset = 0.05
+
+    # Add the min and max value as labels to the end of the violin
+    plt.text(violin_center[0] + offset, 0, f'Min: {min_val}', fontsize=12)
+    plt.text(violin_center[0] + offset, 1, f'Max: {max_val}', fontsize=12)
+
 
 plt.show()
