@@ -154,14 +154,19 @@ class imRF():
         
         # Separate 20% of the anomalies for testing (this is not used in the iterative learning process)
         anomaly_data = anomaly_data[len(anomaly_data) // 5:]
+        anomaly_lengths = anomaly_lengths[len(anomaly_lengths) // 5:]
+        
         anomaly_data_test = anomaly_data[:len(anomaly_data) // 5]
+        anomaly_lengths_test = anomaly_lengths[:len(anomaly_lengths) // 5]
 
         # Group the data in windows before saving
         anomaly_data = self.windower(anomaly_data)
 
         anomaly_data = [anomaly_data] + [anomaly_lengths]
-
+        
         anomaly_data_test= self.windower(anomaly_data_test)
+
+        anomaly_data_test = [anomaly_data_test] + [anomaly_lengths_test]
         
         # Save anomaly_data to disk as pickle object
         with open('pickels/anomaly_data_0.pkl', 'wb') as file:
@@ -826,8 +831,8 @@ class imRF():
         """Loads the last RF models trained and tests them
         the anomalies that have not been using in the interative
         learing process.
-        It uses the first anomalies and background files as these do not
-        contain any new data and are certified to be actual anomalies
+        It uses the test set of the first anomalies and background files 
+        as these do not contain any new data and are certified to be actual anomalies
         and background data.
         ----------
         Arguments:
@@ -847,7 +852,8 @@ class imRF():
         background_windows = pickle.load(file_background)
         file_background.close()
 
-        # Separate background windows and lengths, although legths will not be used in this method
+        # Separate anomalies and background windows and lengths, although legths will not be used in this method
+        anomalies_windows, anomalies_lengths = anomalies_windows[0], anomalies_windows[-1]
         background_windows, background_lengths = background_windows[0], background_windows[-1]
 
         # Generate labels for each window

@@ -35,7 +35,7 @@ def dater(station, window):
 def plotter(data, num_variables, station, legend, name):
     
     """This function plots the data passed as a 
-    numpy arrayoriginal data, for a given resolution 
+    numpy array original data, for a given resolution 
     level.
     ---------
     Arguments:
@@ -77,7 +77,162 @@ def plotter(data, num_variables, station, legend, name):
     # Close figure
     plt.close()
 
-def explainer(data, model, resolution, station, name):
+def explainer(starts_ends, X, models: list, event_number: int):
+    
+    """This function explains the decision of a Random Forest model
+    for a given event (several windows).
+    ---------
+    Arguments:
+    starts_ends: The start and end indices of each window at all resolutions (len=3).
+    X: The windows data at all resolutions (len=3).
+    models: The Random Forest models at all resolutions (len=3).
+    event_number: The event number to be explained.
+
+    Returns:
+    """
+
+    # Define the resolution names
+    resolutions = ['high', 'med', 'low']
+
+    # Define feature names for all resolution levels
+    feature_names_high = [
+                    'am-16', 'co-16', 'do-16', 'ph-16', 'tu-16', 'wt-16',
+                    'am-15', 'co-15', 'do-15', 'ph-15', 'tu-15', 'wt-15',
+                    'am-14', 'co-14', 'do-14', 'ph-14', 'tu-14', 'wt-14',
+                    'am-13', 'co-13', 'do-13', 'ph-13', 'tu-13', 'wt-13',
+                    'am-12', 'co-12', 'do-12', 'ph-12', 'tu-12', 'wt-12',
+                    'am-11', 'co-11', 'do-11', 'ph-11', 'tu-11', 'wt-11',
+                    'am-10', 'co-10', 'do-10', 'ph-10', 'tu-10', 'wt-10',
+                    'am-9', 'co-9', 'do-9', 'ph-9', 'tu-9', 'wt-9',
+                    'am-8', 'co-8', 'do-8', 'ph-8', 'tu-8', 'wt-8',
+                    'am-7', 'co-7', 'do-7', 'ph-7', 'tu-7', 'wt-7',
+                    'am-6', 'co-6', 'do-6', 'ph-6', 'tu-6', 'wt-6',
+                    'am-5', 'co-5', 'do-5', 'ph-5', 'tu-5', 'wt-5',
+                    'am-4', 'co-4', 'do-4', 'ph-4', 'tu-4', 'wt-4',
+                    'am-3', 'co-3', 'do-3', 'ph-3', 'tu-3', 'wt-3',
+                    'am-2', 'co-2', 'do-2', 'ph-2', 'tu-2', 'wt-2',
+                    'am-1', 'co-1', 'do-1', 'ph-1', 'tu-1', 'wt-1',
+                    'am+1', 'co+1', 'do+1', 'ph+1', 'tu+1', 'wt+1',
+                    'am+2', 'co+2', 'do+2', 'ph+2', 'tu+2', 'wt+2',
+                    'am+3', 'co+3', 'do+3', 'ph+3', 'tu+3', 'wt+3',
+                    'am+4', 'co+4', 'do+4', 'ph+4', 'tu+4', 'wt+4',
+                    'am+5', 'co+5', 'do+5', 'ph+5', 'tu+5', 'wt+5',
+                    'am+6', 'co+6', 'do+6', 'ph+6', 'tu+6', 'wt+6',
+                    'am+7', 'co+7', 'do+7', 'ph+7', 'tu+7', 'wt+7',
+                    'am+8', 'co+8', 'do+8', 'ph+8', 'tu+8', 'wt+8',
+                    'am+9', 'co+9', 'do+9', 'ph+9', 'tu+9', 'wt+9',
+                    'am+10', 'co+10', 'do+10', 'ph+10', 'tu+10', 'wt+10',
+                    'am+11', 'co+11', 'do+11', 'ph+11', 'tu+11', 'wt+11',
+                    'am+12', 'co+12', 'do+12', 'ph+12', 'tu+12', 'wt+12',
+                    'am+13', 'co+13', 'do+13', 'ph+13', 'tu+13', 'wt+13',
+                    'am+14', 'co+14', 'do+14', 'ph+14', 'tu+14', 'wt+14',
+                    'am+15', 'co+15', 'do+15', 'ph+15', 'tu+15', 'wt+15',
+                    'am+16', 'co+16', 'do+16', 'ph+16', 'tu+16', 'wt+16'
+                    ]
+
+    feature_names_med = [
+                    'am-8', 'co-8', 'do-8', 'ph-8', 'tu-8', 'wt-8',
+                    'am-7', 'co-7', 'do-7', 'ph-7', 'tu-7', 'wt-7',
+                    'am-6', 'co-6', 'do-6', 'ph-6', 'tu-6', 'wt-6',
+                    'am-5', 'co-5', 'do-5', 'ph-5', 'tu-5', 'wt-5',
+                    'am-4', 'co-4', 'do-4', 'ph-4', 'tu-4', 'wt-4',
+                    'am-3', 'co-3', 'do-3', 'ph-3', 'tu-3', 'wt-3',
+                    'am-2', 'co-2', 'do-2', 'ph-2', 'tu-2', 'wt-2',
+                    'am-1', 'co-1', 'do-1', 'ph-1', 'tu-1', 'wt-1',
+                    'am+1', 'co+1', 'do+1', 'ph+1', 'tu+1', 'wt+1',
+                    'am+2', 'co+2', 'do+2', 'ph+2', 'tu+2', 'wt+2',
+                    'am+3', 'co+3', 'do+3', 'ph+3', 'tu+3', 'wt+3',
+                    'am+4', 'co+4', 'do+4', 'ph+4', 'tu+4', 'wt+4',
+                    'am+5', 'co+5', 'do+5', 'ph+5', 'tu+5', 'wt+5',
+                    'am+6', 'co+6', 'do+6', 'ph+6', 'tu+6', 'wt+6',
+                    'am+7', 'co+7', 'do+7', 'ph+7', 'tu+7', 'wt+7',
+                    'am+8', 'co+8', 'do+8', 'ph+8', 'tu+8', 'wt+8',
+                    ]
+
+    feature_names_low = [
+                    'am-4', 'co-4', 'do-4', 'ph-4', 'tu-4', 'wt-4',
+                    'am-3', 'co-3', 'do-3', 'ph-3', 'tu-3', 'wt-3',
+                    'am-2', 'co-2', 'do-2', 'ph-2', 'tu-2', 'wt-2',
+                    'am-1', 'co-1', 'do-1', 'ph-1', 'tu-1', 'wt-1',
+                    'am+1', 'co+1', 'do+1', 'ph+1', 'tu+1', 'wt+1',
+                    'am+2', 'co+2', 'do+2', 'ph+2', 'tu+2', 'wt+2',
+                    'am+3', 'co+3', 'do+3', 'ph+3', 'tu+3', 'wt+3',
+                    'am+4', 'co+4', 'do+4', 'ph+4', 'tu+4', 'wt+4',
+                    ]
+
+    # Define the variables dictionary
+    variables_depth = {}
+
+    # Set the keys to the variable names in the feature names high
+    for feature_name in feature_names_high:
+        variables_depth[feature_name] = []
+
+    # Set the max depth to 0
+    max_depth = 0
+    for i, (model, resolution) in enumerate(zip(models, resolutions)):
+        
+        # Extract the start and end indices for the windows by resolution
+        windows = X[i][starts_ends[event_number][i][0]:starts_ends[event_number][i][1]]
+        # if resolution == 'high':
+        #     event_start = starts_ends[event_number][0][0]
+        #     event_end = starts_ends[event_number][0][1]
+        #     windows = X[0][event_start:event_end]
+        #     print(event_start, event_end)
+        # elif resolution == 'med':
+        #     event_start = starts_ends[event_number][1][0]
+        #     event_end = starts_ends[event_number][1][1]
+        #     windows = X[1][event_start:event_end]
+        #     print(event_start, event_end)
+        # elif resolution == 'low':
+        #     event_start = starts_ends[event_number][2][0]
+        #     event_end = starts_ends[event_number][2][1]
+        #     windows = X[2][event_start:event_end]
+        #     print(event_start, event_end)
+        
+        for window in windows:
+            
+            # Create an empty list to store all of the decision paths for each window
+            decision_paths = []
+
+            # Traverse each tree in the Random Forest to get the decision path across all trees for the given window (data)
+            for tree in model.estimators_:
+                tree_decision_paths = tree.decision_path(window[np.newaxis, :]).toarray()
+                decision_paths.append(tree_decision_paths)
+
+            # Get the indices where the window has passed through
+            passed_nodes_indices = [np.where(decision_path == 1)[1] for decision_path in decision_paths]
+
+            # Get the thresholds and feature values of the nodes in each decision tree in the Random Forest
+            tree_feature_thresholds = [model.estimators_[i].tree_.threshold[e] for i, e in enumerate(passed_nodes_indices)]
+            tree_feature_indices = [model.estimators_[i].tree_.feature[e] for i, e in enumerate(passed_nodes_indices)]
+
+            # Select the resolution of the feature names
+            feature_names = feature_names_high if resolution == 'high' else feature_names_med if resolution == 'med' else feature_names_low
+
+            # The wt+7 has to be removed at the end of each element because it corresponds to the -2 index of the leaves
+            subset_feature_names = []
+            for i in tree_feature_indices:
+                subset_feature_names.append([feature_names[j] for j in i[:-1].tolist()])
+
+            subset_feature_thresholds = []
+            for i in tree_feature_thresholds:
+                subset_feature_thresholds.append(i[:-1].tolist())
+
+            # Extract variable names and their positions
+            for sublist in subset_feature_names:
+                for i, var in enumerate(sublist):
+                    if var not in variables_depth:
+                        variables_depth[var] = []
+                    variables_depth[var].append(i)
+            
+            # Calculate the depth and update the value
+            depth = max([len(sublist) for sublist in subset_feature_names])
+            max_depth = max(max_depth, depth)
+
+    return variables_depth, max_depth
+
+# Decision paths plot
+def dp_plotter(data, model, resolution, station, name):
 
     """This function explains the decision of a Random Forest model
     for a given window.
@@ -183,7 +338,7 @@ def explainer(data, model, resolution, station, name):
     subset_feature_thresholds = []
     for i in tree_feature_thresholds:
         subset_feature_thresholds.append(i[:-1].tolist())
-    
+
     # Variable-position plot
     # Extract variable names and their positions
     variables = {}

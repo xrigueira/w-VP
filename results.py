@@ -5,6 +5,7 @@ import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
 plt.style.use('ggplot')
+from scipy.interpolate import griddata
 
 import warnings
 warnings.filterwarnings('ignore')
@@ -14,25 +15,8 @@ from sklearn import tree
 from utils import dater
 from utils import plotter
 from utils import explainer
-from utils import mean_plotter
 
-def plotter_all(event_number, station):
-
-    event_start_high = starts_ends[event_number][0][0]
-    event_end_high = starts_ends[event_number][0][1]
-
-    event_data = X[0][event_start_high]
-    for i in range(event_start_high + 1, event_end_high):
-        
-        # Get the last row of the anomaly
-        last_row = X[0][i][-6:]
-        
-        # Add the last row to anomaly_data
-        event_data = np.concatenate((event_data, last_row), axis=0)
-
-    plotter(data=event_data, num_variables=6, station=station, legend=True, name=f'event_{event_number}')
-
-def get_results(event_number, station):
+def plotter_all(starts_ends, X, event_number, station):
 
     event_start_high = starts_ends[event_number][0][0]
     event_end_high = starts_ends[event_number][0][1]
@@ -47,48 +31,6 @@ def get_results(event_number, station):
         event_data = np.concatenate((event_data, last_row), axis=0)
 
     plotter(data=event_data, num_variables=6, station=station, legend=True, name=f'event_{event_number}')
-
-    # Get multiresolution windows indixes of the event
-    event_starts_ends = starts_ends[event_number]
-    
-    # Plot, explan and get mean for high resolution windows
-    for window_num, window in enumerate(X[0][event_starts_ends[0][0]:event_starts_ends[0][1]]):
-
-        plotter(data=window, num_variables=6, station=station, legend=False, name=f'event_{event_number}_high_{window_num}')
-        explainer(data=window, model=model_high, resolution='high', station=station, name=f'event_{event_number}_high_{window_num}')
-        mean_plotter(data=window, resolution='high', num_variables=6, station=station, name=f'event_{event_number}_high_{window_num}')
-
-    # Plot, explan and get mean for medium resolution windows
-    for window_num, window in enumerate(X[1][event_starts_ends[1][0]:event_starts_ends[1][1]]):
-        
-        plotter(data=window, num_variables=6, station=station, legend=False, name=f'event_{event_number}_med_{window_num}')
-        explainer(data=window, model=model_med, resolution='med', station=station, name=f'event_{event_number}_med_{window_num}')
-    
-    # Plot, explan and get mean for low resolution windows
-    for window_num, window in enumerate(X[2][event_starts_ends[2][0]:event_starts_ends[2][1]]):
-        
-        plotter(data=window, num_variables=6, station=station, legend=False, name=f'event_{event_number}_low_{window_num}')
-        explainer(data=window, model=model_low, resolution='low', station=station, name=f'event_{event_number}_low_{window_num}')
-
-def majority_vote(high, med, low):
-    
-    vote_high = sum(high) / len(high)
-    vote_med = sum(med) / len(med)
-    vote_low = sum(low) / len(low)
-
-    if (1/3 * vote_high + 1/3 * vote_med + 1/3 * vote_low) >= 0.9:
-        return 1
-    elif (1/3 * vote_high + 1/3 * vote_med + 1/3 * vote_low) <= 0.1:
-        return 0
-
-    # vote_high = round(sum(high) / len(high))
-    # vote_med = round(sum(med) / len(med))
-    # vote_low = round(sum(low) / len(low))
-    
-    # if sum([vote_high, vote_med, vote_low]) >= 2:
-    #     return 1
-    # else:
-    #     return 0
 
 if __name__ == '__main__':
 
@@ -113,7 +55,7 @@ if __name__ == '__main__':
     if data_type == 'anomalies':
         
         # Load the anomalies data
-        file_anomalies = open(f'pickels/anomaly_data_test.pkl', 'rb')
+        file_anomalies = open(f'pickels/anomaly_data_pred.pkl', 'rb')
         anomalies_windows = pickle.load(file_anomalies)
         file_anomalies.close()
 
@@ -128,7 +70,7 @@ if __name__ == '__main__':
     elif data_type == 'background':
         
         # Load the background data
-        file_background = open(f'pickels/background_data_test.pkl', 'rb')
+        file_background = open(f'pickels/background_data_pred.pkl', 'rb')
         background_windows = pickle.load(file_background)
         file_background.close
 
@@ -155,41 +97,71 @@ if __name__ == '__main__':
 
         starts_ends.append([[event_start_high, event_end_high], [event_start_med, event_end_med], [event_start_low, event_end_low]])
     
-    plot_all = str(input('Plot all events? (y/n): '))
-    if plot_all == 'y':
-        for event_number in range(len(number_windows_high)):
-            plotter_all(event_number, station=station)
+    # plot_all = str(input('Plot all events? (y/n): '))
+    # if plot_all == 'y':
+    #     for event_number in range(len(number_windows_high)):
+    #         plotter_all(starts_ends, X, event_number, station=station)
+    
+    event_number = 0
 
-    if data_type == 'anomalies':
-        
-        event_number = int(input(f'Event number: '))
+    # Get a explainer plot
+    variables_depth, max_depth = explainer(starts_ends, X, models=[model_high, model_med, model_low], event_number=event_number)
 
-        get_results(event_number=event_number, station=station) # 901: anomalies 4 or 24
-                                            # 905: anomalies 18 or 33
-                                            # 906: anomalies 0
-                                            # 907: anomalies 25 or 34
+    # Get the number of times each variable appears at each depth
+    frequency_depth = np.zeros((len(variables_depth), max_depth))
+    for i, var in enumerate(variables_depth.keys()):
+        for pos in variables_depth[var]:
+            frequency_depth[i, pos] += 1
 
-    elif data_type == 'background':
-        
-        # Read background results
-        y_hats_high = np.load('preds/y_hats_high.npy', allow_pickle=False, fix_imports=False)
-        y_hats_med = np.load('preds/y_hats_med.npy', allow_pickle=False, fix_imports=False)
-        y_hats_low = np.load('preds/y_hats_low.npy', allow_pickle=False, fix_imports=False)
-        
-        # Get multiresolution votes for each event
-        votes = [majority_vote(y_hats_high[i[0][0]:i[0][1]], y_hats_med[i[1][0]:i[1][1]], y_hats_low[i[2][0]:i[2][1]]) for i in starts_ends]
+    # Convert data to int
+    frequency_depth = frequency_depth.astype(int) 
 
-        anomalies_events = np.where(np.array(votes) == 1)[0]
-        background_events = np.where(np.array(votes) == 0)[0]
+    # Assign the data to the dictionary with the same keys
+    attention = {}
+    for var in variables_depth.keys():
+        attention[var] = []
+    
+    for i, var in enumerate(variables_depth.keys()):
+        for j in range(max_depth):
+            attention[var].append(frequency_depth[i, j])
 
-        event_type = input('Choose event type (anomalies (1) or background (0)): ')
+    # Subset a specific variable
+    variable = 'am'
+    heatmap_am = {key: value for key, value in attention.items() if key.startswith(variable)}
 
-        if event_type == '1':
-            event_number = int(input(f'Choose an event number {anomalies_events}: '))
-        elif event_type == '0':
-            event_number = int(input(f'Choose an event number {background_events}: '))
+    # Plot the heatmap
+    sns.heatmap(pd.DataFrame(heatmap_am).T, cmap='coolwarm', cbar=True)
+    plt.xlabel('Depth')
+    plt.ylabel('Variable')
+    plt.title(f'Attention map for variable {variable}')
+    plt.tight_layout()
+    plt.show()
 
-        get_results(event_number=event_number, station=station) # 901: 0 for true background, 24 for idenfitied anomaly
-                                                # 905: 8 for true background, 21 or 37 for identified anomaly
-                                                # 906: 2 for true background
-                                                # 907: 25 for true background, 10 for identified anomaly
+    # # Subset a specific variable
+    # variable = 'co'
+    # subset_variables_frequency = {key: value for key, value in attention.items() if key.startswith(variable)}
+
+    # # Turn into a 2D numpy array
+    # heatmap_co = np.array(list(subset_variables_frequency.values()))
+
+    # # Plot the heatmap
+    # yticks = [var[2:] for var in subset_variables_frequency.keys()]
+    # sns.heatmap(heatmap_co, yticklabels=yticks, cmap='YlOrRd', cbar=True)
+    # plt.xlabel('Depth')
+    # plt.ylabel('Variable')
+    # plt.title(f'Attention map for variable {variable}')
+    # # plt.show()
+
+    # # Normalize the heatmaps to ensure they sum to 1
+    # heatmap_am = heatmap_am / np.sum(heatmap_am)
+    # heatmap_co = heatmap_co / np.sum(heatmap_co)
+
+    # # A small value epsilon is added
+    # epsilon = np.finfo(float).eps
+    # heatmap_am = heatmap_am + epsilon
+    # heatmap_co = heatmap_co + epsilon
+
+    # # Compute KL divergence
+    # kl_divergence = np.sum(heatmap_am * np.log(heatmap_am / heatmap_co))
+
+    # print(f"KL Divergence: {kl_divergence}")
