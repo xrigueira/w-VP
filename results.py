@@ -110,6 +110,8 @@ if __name__ == '__main__':
     # Ge the index of the true anomalies and background events which the background set
     background_anomalies_events = np.where(np.array(votes) == 1)[0]
     background_background_events = np.where(np.array(votes) == 0)[0]
+    print('Background anomalies:', background_anomalies_events)
+    print('True background:', background_background_events)
 
     # Get the number of actual anomalous events
     anomalies_events = range(len(number_windows_high_anomalies))
