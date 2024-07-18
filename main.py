@@ -2,6 +2,7 @@ import random
 import pickle
 import shap
 shap.initjs()
+import logging
 import numpy as np
 import pandas as pd
 import seaborn as sns
@@ -13,6 +14,9 @@ from sklearn.ensemble import RandomForestClassifier
 from tictoc import tictoc
 from utils import dater
 from utils import summarizer
+
+# Configure logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 """This file contains the main class imRF which implements
 iterative multiresolution Random Forest."""
@@ -1118,7 +1122,7 @@ if __name__ == '__main__':
         imRF.iteration = i
         
         if i == 0:
-            print(f'[INFO] Iteration {i}')
+            logging.info('Iteration %d', i)
             # Extract the anomalies and first batch of background
             anomalies_indexes = imRF.anomalies()
             
@@ -1128,7 +1132,7 @@ if __name__ == '__main__':
             imRF.init_RandomForest()
 
         else:
-            print(f'[INFO] Iteration {i}')
+            logging.info('Iteration %d', i)
             # Extract new background data
             background_indexes = imRF.background(anomalies_indexes, background_indexes)
             
@@ -1140,17 +1144,17 @@ if __name__ == '__main__':
             if difference <= 1.125:
                 break
     
-    print(f'[INFO] Testing')
+    logging.info('Testing')
     # Extract new background data for testing
     background_indexes = imRF.pred_background(anomalies_indexes, background_indexes)
 
     # Test the model
     imRF.test_RandomForest()
 
-    print(f'[INFO] Prediction')
+    logging.info('Prediction')
     # Get the results
     imRF.pred_RandomForest()
 
-    # print(f'[INFO] SHAP plots')
+    logging.info('SHAP plots')
     # # Get the SHAP plots
     # imRF.shap_RandomForest()

@@ -3,6 +3,9 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
+plt.style.use('ggplot')
+from matplotlib import rcParams
+rcParams['font.family'] = 'monospace'
 
 def dater(station, window):
 
@@ -32,14 +35,14 @@ def dater(station, window):
 
     return date_indices
 
-def plotter(data, num_variables, station, legend, name):
+def window_plotter(data, num_variables, legend, event_number, station, type):
     
-    """This function plots the data passed as a 
-    numpy array original data, for a given resolution 
-    level.
+    """This function plots the data window passed as a 
+    numpy array original data. Hence, the resolution is
+    given by the window data.
     ---------
     Arguments:
-    data: The data to be plotted.
+    data: The data window to be plotted.
     num_variables: The number of variables in the data.
     station: the station number.
     legend: Whether to show the legend or not.
@@ -53,34 +56,57 @@ def plotter(data, num_variables, station, legend, name):
     data_reshaped = data.reshape(-1, num_variables)
     
     # Plot each variable
+    fig, ax = plt.subplots(figsize=(12, 8))  # Set the size of the plot
     for i in range(num_variables):
         x = dater(station, data)
         # if len(x) != 32: x = range(32)
-        plt.plot(x, data_reshaped[:, i], label=f'{variables_names[i]}')
+        ax.plot(x, data_reshaped[:, i], label=f'{variables_names[i]}')
+    
+    # Set the y-axis limit to 1
+    ax.set_ylim(0, 1)
 
     # Change the fontsize of the ticks
     plt.xticks(rotation=30, fontsize=12)
     plt.yticks(fontsize=12)
 
     # Define axes limits, title and labels
-    plt.xlabel('Time/Index', fontsize=16)
-    plt.ylabel('Variable value', fontsize=16)
+    plt.xlabel('Time', fontsize=16)
+    plt.ylabel('Normalized values', fontsize=16)
     # plt.title(f'Event {name}', fontsize=18, loc='right')
     
-    if legend: plt.legend(fontsize=12)
+    if legend: plt.legend(fontsize=12, loc='upper center', ncol=6)
     plt.tight_layout()
     # plt.show()
 
     # Save figure
-    plt.savefig(f'images/{name}.png')
+    plt.savefig(f'results/event_{station}_{type}_{event_number}.pdf', format='pdf', dpi=300, bbox_inches='tight')
 
     # Close figure
     plt.close()
 
-def explainer(starts_ends, X, models: list, event_number: int):
+def event_plotter(starts_ends, X, event_number, station, type):
+
+    event_start_high = starts_ends[event_number][0][0]
+    event_end_high = starts_ends[event_number][0][1]
+
+    event_data = X[0][event_start_high]
+    for i in range(event_start_high + 1, event_end_high):
+        
+        # Get the last row of the anomaly
+        last_row = X[0][i][-6:]
+        
+        # Add the last row to anomaly_data
+        event_data = np.concatenate((event_data, last_row), axis=0)
+
+    window_plotter(data=event_data, num_variables=6, legend=True, event_number=event_number, station=station, type=type)
+
+# Depth function
+def depths(starts_ends, X, models: list, event_number: int):
     
-    """This function explains the decision of a Random Forest model
-    for a given event (several windows).
+    """This function extracts the depths at which each instance of the
+    feature vectors (window) that make up given eventa appears from the 
+    decision paths of a Random Forest model considering all trees across 
+    all resolutions.
     ---------
     Arguments:
     starts_ends: The start and end indices of each window at all resolutions (len=3).
@@ -89,6 +115,8 @@ def explainer(starts_ends, X, models: list, event_number: int):
     event_number: The event number to be explained.
 
     Returns:
+    variables_depth: The variables and their depth in each path across all trees.
+    max_depth: The maximum depth of the decision paths.
     """
 
     # Define the resolution names
@@ -173,22 +201,8 @@ def explainer(starts_ends, X, models: list, event_number: int):
         
         # Extract the start and end indices for the windows by resolution
         windows = X[i][starts_ends[event_number][i][0]:starts_ends[event_number][i][1]]
-        # if resolution == 'high':
-        #     event_start = starts_ends[event_number][0][0]
-        #     event_end = starts_ends[event_number][0][1]
-        #     windows = X[0][event_start:event_end]
-        #     print(event_start, event_end)
-        # elif resolution == 'med':
-        #     event_start = starts_ends[event_number][1][0]
-        #     event_end = starts_ends[event_number][1][1]
-        #     windows = X[1][event_start:event_end]
-        #     print(event_start, event_end)
-        # elif resolution == 'low':
-        #     event_start = starts_ends[event_number][2][0]
-        #     event_end = starts_ends[event_number][2][1]
-        #     windows = X[2][event_start:event_end]
-        #     print(event_start, event_end)
         
+        # Traverse each window to get the decision paths
         for window in windows:
             
             # Create an empty list to store all of the decision paths for each window
@@ -231,10 +245,179 @@ def explainer(starts_ends, X, models: list, event_number: int):
 
     return variables_depth, max_depth
 
+# Attention maps
+def attention(variables_depth, max_depth):
+
+    """This function calculates the attention maps for each variable
+    based on the depth at which they appear in the decision paths.
+    ---------
+    Arguments:
+    variables_depth: The variables and their depth in each path across all trees.
+    max_depth: The maximum depth of the decision paths.
+
+    Returns:
+    attention_am: The attention map for the am variable.
+    attention_co: The attention map for the co variable.
+    attention_do: The attention map for the do variable.
+    attention_ph: The attention map for the ph variable.
+    attention_tu: The attention map for the tu variable.
+    attention_wt: The attention map for the wt variable.
+    """
+
+    # Get the number of times each variable appears at each depth
+    frequency_depth = np.zeros((len(variables_depth), max_depth))
+    for i, var in enumerate(variables_depth.keys()):
+        for pos in variables_depth[var]:
+            frequency_depth[i, pos] += 1
+
+    # Convert data to int
+    frequency_depth = frequency_depth.astype(int) 
+
+    # Assign the data to the dictionary with the same keys
+    attention = {}
+    for var in variables_depth.keys():
+        attention[var] = []
+    
+    for i, var in enumerate(variables_depth.keys()):
+        for j in range(max_depth):
+            attention[var].append(frequency_depth[i, j])
+
+    # Subset the attention for each variable
+    attention_am = {key: value for key, value in attention.items() if key.startswith('am')}
+    attention_co = {key: value for key, value in attention.items() if key.startswith('co')}
+    attention_do = {key: value for key, value in attention.items() if key.startswith('do')}
+    attention_ph = {key: value for key, value in attention.items() if key.startswith('ph')}
+    attention_tu = {key: value for key, value in attention.items() if key.startswith('tu')}
+    attention_wt = {key: value for key, value in attention.items() if key.startswith('wt')}
+
+    return attention_am, attention_co, attention_do, attention_ph, attention_tu, attention_wt
+
+# Global attention map
+def global_attention(attention_am, attention_co, attention_do, attention_ph, attention_tu, attention_wt):
+
+    """This function calculates the global attention map for all variables
+    based on the attention maps of each variable.
+    ---------
+    Arguments:
+    attention_am: The attention map for the am variable.
+    attention_co: The attention map for the co variable.
+    attention_do: The attention map for the do variable.
+    attention_ph: The attention map for the ph variable.
+    attention_tu: The attention map for the tu variable.
+    attention_wt: The attention map for the wt variable.
+
+    Returns:
+    attention_total: The total attention map for all variables.
+    """
+
+    # Replace the keys to be the 2: items
+    attention_am = {key[2:]: value for key, value in attention_am.items()}
+    attention_co = {key[2:]: value for key, value in attention_co.items()}
+    attention_do = {key[2:]: value for key, value in attention_do.items()}
+    attention_ph = {key[2:]: value for key, value in attention_ph.items()}
+    attention_tu = {key[2:]: value for key, value in attention_tu.items()}
+    attention_wt = {key[2:]: value for key, value in attention_wt.items()}
+    
+    # Perform element-wise addition of the attention maps to obtain the total attention
+    attention_total = {key: [sum(x) for x in zip(attention_am[key], attention_co[key], attention_do[key], attention_ph[key], attention_tu[key], attention_wt[key])] for key in attention_am.keys()}
+
+    return attention_total
+
+# Kullback-Leibler divergence between two attention maps
+def kl_divergence(attention_1, attention_2):
+    
+    """This function calculates the Kulback-Leibler divergence between
+    two attention maps.
+    ---------
+    Arguments:
+    attention_1 (dict): The first attention map.
+    attention_2 (dict): The second attention map.
+
+    Returns:
+    kl_divergence (float): The Kulback-Leibler divergence between the two attention maps.
+    """
+    
+    # Convert the attention maps to numpy arrays
+    attention_1 = np.array(list(attention_1.values()))
+    attention_2 = np.array(list(attention_2.values()))
+
+    # Check if the attention maps have the same shape
+    if attention_1.shape != attention_2.shape:
+        
+        # Check which needs padding and add it
+        if attention_1.shape[1] > attention_2.shape[1]:
+            attention_2 = np.pad(attention_2, ((0, 0), (0, attention_1.shape[1] - attention_2.shape[1])), mode='constant')
+        else:
+            attention_1 = np.pad(attention_1, ((0, 0), (0, attention_2.shape[1] - attention_1.shape[1])), mode='constant')
+
+    # Normalize the attention maps (heatmaps) to ensure they sum to 1
+    attention_1 = attention_1 / np.sum(attention_1)
+    attention_2 = attention_2 / np.sum(attention_2)
+
+    # Add a small value epsilon to ensure no division by zero
+    epsilon = np.finfo(float).eps
+    attention_1 = attention_1 + epsilon
+    attention_2 = attention_2 + epsilon
+
+    # Compute Kullback-Leibler divergence
+    kl_divergence = np.sum(attention_1 * np.log(attention_1 / attention_2))
+
+    return kl_divergence
+
+def attention_plotter(attention_maps, event_number, station, type):
+
+    """This function plots the attention maps for each variable.
+    ---------
+    Arguments:
+    attention_maps: The attention maps for each variable.
+
+    Returns:
+    None."""
+
+    variables = ['Ammonium', 'Conductivity', 'Dissolved oxygen', 'pH', 'Turbidity', 'Water temperature']
+    
+    # Define the plot
+    fig, axs = plt.subplots(2, 3, figsize=(20, 10))
+    fig.suptitle('Attention by variable', fontfamily='serif', fontsize=20)
+
+    for attention_map, ax, var in zip(attention_maps, axs.flat, variables):
+        sns.heatmap(pd.DataFrame(attention_map).T, cmap='coolwarm', cbar=True, ax=ax)
+        ax.set_xlabel('Depth', fontsize=16)
+        ax.set_ylabel('Instance', fontsize=16)
+        ax.set_title(f'{var}', fontfamily='serif', fontsize=18)
+    
+    plt.tight_layout()
+    # plt.show()
+
+    # Save figure
+    plt.savefig(f'results/attention_maps_{station}_{type}_{event_number}.pdf', format='pdf', dpi=300, bbox_inches='tight')
+
+def global_attention_plotter(attention_total, event_number, station, type):
+
+    """This function plots the global attention map for all variables.
+    ---------
+    Arguments:
+    attention_total: The total attention map for all variables.
+
+    Returns:
+    None."""
+
+    # Define the plot
+    plt.figure(figsize=(10, 8))
+    sns.heatmap(pd.DataFrame(attention_total).T, cmap='coolwarm', cbar=True)
+    plt.xlabel('Depth', fontsize=16)
+    plt.ylabel('Instance', fontsize=16)
+    plt.title('Global attention', fontfamily='serif', fontsize=20)
+    # plt.show()
+
+    # Save figure
+    plt.savefig(f'results/global_attention_map_{station}_{type}_{event_number}.pdf', format='pdf', dpi=300, bbox_inches='tight')
+
 # Decision paths plot
 def dp_plotter(data, model, resolution, station, name):
 
-    """This function explains the decision of a Random Forest model
+    """NOT CURRENTLY USED.
+    This function explains the decision of a Random Forest model
     for a given window.
     ---------
     Arguments:
@@ -369,7 +552,7 @@ def dp_plotter(data, model, resolution, station, name):
     plt.ylabel('Variable', fontsize=16)
     # plt.show()
 
-    plt.savefig(f'images/{name}_var.png')
+    plt.savefig(f'results/{name}_var.png')
 
     # Close figure
     plt.close()
@@ -449,13 +632,28 @@ def dp_plotter(data, model, resolution, station, name):
     plt.ylabel('Variable', fontsize=16)
     # plt.show()
 
-    plt.savefig(f'images/{name}_thre.png')
+    plt.savefig(f'results/{name}_thre.png')
 
     # Close figure
     plt.close()
 
 # Mean-position plot
 def mean_plotter(data, resolution, num_variables, station, name):
+
+    """NOT CURRENTLY USED.
+    This function plots the distance between the mean of each variable
+    and the values of the variables in the data window.
+    ---------
+    Arguments:
+    data: The data to be explained.
+    resolution: The resolution of the model.
+    num_variables: The number of variables in the data.
+    station: The station number.
+    name: The title of the plot.
+
+    Returns:
+    None.
+    """
     
     # Read the data and get the mean for each variable
     df = pd.read_csv(f'data/labeled_{station}_smo.csv', sep=',', encoding='utf-8', parse_dates=['date'])
@@ -498,7 +696,7 @@ def mean_plotter(data, resolution, num_variables, station, name):
     plt.ylabel('Variable', fontsize=16)
     # plt.show()
 
-    plt.savefig(f'images/{name}_mean.png')
+    plt.savefig(f'results/{name}_mean.png')
 
     # Close figure
     plt.close()

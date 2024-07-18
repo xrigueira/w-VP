@@ -1,41 +1,58 @@
 
 import pickle
+import logging
 import numpy as np
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
 plt.style.use('ggplot')
-from scipy.interpolate import griddata
 
 import warnings
 warnings.filterwarnings('ignore')
 
 from sklearn import tree
 
-from utils import dater
-from utils import plotter
-from utils import explainer
+from utils import dater, event_plotter, depths, attention, global_attention, kl_divergence
+from utils import attention_plotter, global_attention_plotter
 
-def plotter_all(starts_ends, X, event_number, station):
+# Configure logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-    event_start_high = starts_ends[event_number][0][0]
-    event_end_high = starts_ends[event_number][0][1]
+def get_starts_ends(num_win_high, num_win_med, num_win_low):
 
-    event_data = X[0][event_start_high]
-    for i in range(event_start_high + 1, event_end_high):
-        
-        # Get the last row of the anomaly
-        last_row = X[0][i][-6:]
-        
-        # Add the last row to anomaly_data
-        event_data = np.concatenate((event_data, last_row), axis=0)
+    """Extacts the start and end window index for each resolution and save it in a 2D list"""
 
-    plotter(data=event_data, num_variables=6, station=station, legend=True, name=f'event_{event_number}')
+    starts_ends = []
+    for event_number in range(len(num_win_high)):
+
+        event_start_high = sum(num_win_high[:event_number]) + event_number
+        event_end_high = sum(num_win_high[:event_number + 1]) + 1 + event_number
+
+        event_start_med = sum(num_win_med[:event_number]) + event_number
+        event_end_med = sum(num_win_med[:event_number + 1]) + 1 + event_number
+
+        event_start_low = sum(num_win_low[:event_number]) + event_number
+        event_end_low = sum(num_win_low[:event_number + 1]) + 1 + event_number
+
+        starts_ends.append([[event_start_high, event_end_high], [event_start_med, event_end_med], [event_start_low, event_end_low]])
+
+    return starts_ends
+
+def majority_vote(high, med, low):
+    
+    vote_high = sum(high) / len(high)
+    vote_med = sum(med) / len(med)
+    vote_low = sum(low) / len(low)
+
+    if (1/3 * vote_high + 1/3 * vote_med + 1/3 * vote_low) >= 0.9:
+        return 1
+    elif (1/3 * vote_high + 1/3 * vote_med + 1/3 * vote_low) <= 0.1:
+        return 0
 
 if __name__ == '__main__':
 
     station = 901
-    data_type = 'anomalies' # 'anomalies' or 'background
+    data_type = 'anomalies' # 'anomalies' or 'background'. See also line 150
 
     window_size_high, window_size_med, window_size_low = 32, 16, 8
 
@@ -51,117 +68,152 @@ if __name__ == '__main__':
     filename = f'models/rf_model_low_{iteration}.sav'
     model_low = pickle.load(open(filename, 'rb'))
 
-    # Read the data: anomalies or background
-    if data_type == 'anomalies':
-        
-        # Load the anomalies data
-        file_anomalies = open(f'pickels/anomaly_data_pred.pkl', 'rb')
-        anomalies_windows = pickle.load(file_anomalies)
-        file_anomalies.close()
+    # Load the anomalies data
+    file_anomalies = open(f'pickels/anomaly_data_pred.pkl', 'rb')
+    anomalies_windows = pickle.load(file_anomalies)
+    file_anomalies.close()
+    
+    # Load the background data
+    file_background = open(f'pickels/background_data_pred.pkl', 'rb')
+    background_windows = pickle.load(file_background)
+    file_background.close()
 
-        # Get windowed data and rename it to X
-        X = anomalies_windows[0]
-        
-        lengths = anomalies_windows[-1]
-        number_windows_high = [i - window_size_high + 1 for i in lengths]
-        number_windows_med = [i - window_size_med + 1 for i in lengths]
-        number_windows_low = [i - window_size_low + 1 for i in lengths] 
+    # Get windowed data and rename it to X_anomalies and X_background
+    X_anomalies = anomalies_windows[0]
+    X_background = background_windows[0]
 
-    elif data_type == 'background':
-        
-        # Load the background data
-        file_background = open(f'pickels/background_data_pred.pkl', 'rb')
-        background_windows = pickle.load(file_background)
-        file_background.close
+    # Get the lengths of the windows
+    lengths_anomalies = anomalies_windows[-1]
+    lengths_background = background_windows[-1]
 
-        # Get windowed data and rename it to X
-        X = background_windows[0]
-        
-        lengths = background_windows[-1]
-        number_windows_high = [i - window_size_high + 1 for i in lengths]
-        number_windows_med = [i - window_size_med + 1 for i in lengths]
-        number_windows_low = [i - window_size_low + 1 for i in lengths] 
+    # Get the number of windows for each resolution, anomalies and background
+    number_windows_high_anomalies = [i - window_size_high + 1 for i in lengths_anomalies]
+    number_windows_med_anomalies = [i - window_size_med + 1 for i in lengths_anomalies]
+    number_windows_low_anomalies = [i - window_size_low + 1 for i in lengths_anomalies]
+
+    number_windows_high_background = [i - window_size_high + 1 for i in lengths_background]
+    number_windows_med_background = [i - window_size_med + 1 for i in lengths_background]
+    number_windows_low_background = [i - window_size_low + 1 for i in lengths_background]
 
     # Find the start and end window index for each resolution and save it in a 2D list
-    starts_ends = []
-    for event_number in range(len(number_windows_high)):
-
-        event_start_high = sum(number_windows_high[:event_number]) + event_number
-        event_end_high = sum(number_windows_high[:event_number + 1]) + 1 + event_number
-
-        event_start_med = sum(number_windows_med[:event_number]) + event_number
-        event_end_med = sum(number_windows_med[:event_number + 1]) + 1 + event_number
-
-        event_start_low = sum(number_windows_low[:event_number]) + event_number
-        event_end_low = sum(number_windows_low[:event_number + 1]) + 1 + event_number
-
-        starts_ends.append([[event_start_high, event_end_high], [event_start_med, event_end_med], [event_start_low, event_end_low]])
+    starts_ends_anomalies = get_starts_ends(number_windows_high_anomalies, number_windows_med_anomalies, number_windows_low_anomalies)
+    starts_ends_background = get_starts_ends(number_windows_high_background, number_windows_med_background, number_windows_low_background)
     
-    # plot_all = str(input('Plot all events? (y/n): '))
-    # if plot_all == 'y':
-    #     for event_number in range(len(number_windows_high)):
-    #         plotter_all(starts_ends, X, event_number, station=station)
+    # Read background results
+    y_hats_high = np.load('preds/y_hats_high.npy', allow_pickle=False, fix_imports=False)
+    y_hats_med = np.load('preds/y_hats_med.npy', allow_pickle=False, fix_imports=False)
+    y_hats_low = np.load('preds/y_hats_low.npy', allow_pickle=False, fix_imports=False)
+        
+    # Get multiresolution votes for each background event
+    votes = [majority_vote(y_hats_high[i[0][0]:i[0][1]], y_hats_med[i[1][0]:i[1][1]], y_hats_low[i[2][0]:i[2][1]]) for i in starts_ends_background]
+
+    # Ge the index of the true anomalies and background events which the background set
+    background_anomalies_events = np.where(np.array(votes) == 1)[0]
+    background_background_events = np.where(np.array(votes) == 0)[0]
+
+    # Get the number of actual anomalous events
+    anomalies_events = range(len(number_windows_high_anomalies))
     
-    event_number = 0
-
-    # Get a explainer plot
-    variables_depth, max_depth = explainer(starts_ends, X, models=[model_high, model_med, model_low], event_number=event_number)
-
-    # Get the number of times each variable appears at each depth
-    frequency_depth = np.zeros((len(variables_depth), max_depth))
-    for i, var in enumerate(variables_depth.keys()):
-        for pos in variables_depth[var]:
-            frequency_depth[i, pos] += 1
-
-    # Convert data to int
-    frequency_depth = frequency_depth.astype(int) 
-
-    # Assign the data to the dictionary with the same keys
-    attention = {}
-    for var in variables_depth.keys():
-        attention[var] = []
+    if data_type == 'anomalies':
+        starts_ends = starts_ends_anomalies
+        X = X_anomalies
     
-    for i, var in enumerate(variables_depth.keys()):
-        for j in range(max_depth):
-            attention[var].append(frequency_depth[i, j])
+    elif data_type == 'background':
+        starts_ends = starts_ends_background
+        X = X_background
+    
+    for event_number_main in anomalies_events[:1]:
+        logging.info('Processing event number %d', event_number_main)
 
-    # Subset a specific variable
-    variable = 'am'
-    heatmap_am = {key: value for key, value in attention.items() if key.startswith(variable)}
+        # Plot the event
+        event_plotter(starts_ends, X, event_number_main, station=station, type=data_type[:2])
+        logging.info('Finished event plot')
 
-    # Plot the heatmap
-    sns.heatmap(pd.DataFrame(heatmap_am).T, cmap='coolwarm', cbar=True)
-    plt.xlabel('Depth')
-    plt.ylabel('Variable')
-    plt.title(f'Attention map for variable {variable}')
-    plt.tight_layout()
-    plt.show()
+        # Get the depths of the variables
+        variables_depth, max_depth = depths(starts_ends, X, models=[model_high, model_med, model_low], event_number=event_number_main)
 
-    # # Subset a specific variable
-    # variable = 'co'
-    # subset_variables_frequency = {key: value for key, value in attention.items() if key.startswith(variable)}
+        # Get the attention maps
+        attention_am, attention_co, attention_do, attention_ph, attention_tu, attention_wt = attention(variables_depth, max_depth)
+        
+        # Get the global attention map
+        attention_global = global_attention(attention_am, attention_co, attention_do, attention_ph, attention_tu, attention_wt)
 
-    # # Turn into a 2D numpy array
-    # heatmap_co = np.array(list(subset_variables_frequency.values()))
+        # Plot the attention
+        attention_maps = [attention_am, attention_co, attention_do, attention_ph, attention_tu, attention_wt]
+        attention_plotter(attention_maps, event_number=event_number_main, station=station, type=data_type[:2])
 
-    # # Plot the heatmap
-    # yticks = [var[2:] for var in subset_variables_frequency.keys()]
-    # sns.heatmap(heatmap_co, yticklabels=yticks, cmap='YlOrRd', cbar=True)
-    # plt.xlabel('Depth')
-    # plt.ylabel('Variable')
-    # plt.title(f'Attention map for variable {variable}')
-    # # plt.show()
+        # Plot the global attention
+        global_attention_plotter(attention_global, event_number=event_number_main, station=station, type=data_type[:2])
+        logging.info('Finished attention maps')
 
-    # # Normalize the heatmaps to ensure they sum to 1
-    # heatmap_am = heatmap_am / np.sum(heatmap_am)
-    # heatmap_co = heatmap_co / np.sum(heatmap_co)
+        # Store the Kullback-Leibler divergence between the selected event and the anomalies
+        kl_distances = [[], [], []]
+        for event_number in anomalies_events: # This has to be changed when switching from anomalies to background
 
-    # # A small value epsilon is added
-    # epsilon = np.finfo(float).eps
-    # heatmap_am = heatmap_am + epsilon
-    # heatmap_co = heatmap_co + epsilon
+            # Update starts_ends and X
+            starts_ends = starts_ends_anomalies
+            X = X_anomalies
 
-    # # Compute KL divergence
-    # kl_divergence = np.sum(heatmap_am * np.log(heatmap_am / heatmap_co))
+            # Get a explainer plot
+            variables_depth, max_depth = depths(starts_ends, X, models=[model_high, model_med, model_low], event_number=event_number)
 
-    # print(f"KL Divergence: {kl_divergence}")
+            attention_am, attention_co, attention_do, attention_ph, attention_tu, attention_wt = attention(variables_depth, max_depth)
+
+            attention_global_compare = global_attention(attention_am, attention_co, attention_do, attention_ph, attention_tu, attention_wt)
+
+            kl_distance = kl_divergence(attention_global, attention_global_compare)
+
+            kl_distances[0].append(kl_distance)
+        logging.info('Finished kl distances with anomalies')
+
+        # Store the Kullback-Leibler divergence between the selected event and the anomalous background 
+        for event_number in background_anomalies_events:
+
+            # Update starts_ends and X
+            starts_ends = starts_ends_background
+            X = X_background
+
+            # Get a explainer plot
+            variables_depth, max_depth = depths(starts_ends, X, models=[model_high, model_med, model_low], event_number=event_number)
+
+            attention_am, attention_co, attention_do, attention_ph, attention_tu, attention_wt = attention(variables_depth, max_depth)
+
+            attention_global_compare = global_attention(attention_am, attention_co, attention_do, attention_ph, attention_tu, attention_wt)
+
+            kl_distance = kl_divergence(attention_global, attention_global_compare)
+
+            kl_distances[1].append(kl_distance)
+        logging.info('Finished kl distances with anomalous background')
+
+        # Store the Kullback-Leibler divergence between the selected event and the true background
+        for event_number in background_background_events:
+
+            # Update starts_ends and X
+            starts_ends = starts_ends_background
+            X = X_background
+
+            # Get a explainer plot
+            variables_depth, max_depth = depths(starts_ends, X, models=[model_high, model_med, model_low], event_number=event_number)
+
+            attention_am, attention_co, attention_do, attention_ph, attention_tu, attention_wt = attention(variables_depth, max_depth)
+
+            attention_global_compare = global_attention(attention_am, attention_co, attention_do, attention_ph, attention_tu, attention_wt)
+
+            kl_distance = kl_divergence(attention_global, attention_global_compare)
+
+            kl_distances[2].append(kl_distance)
+        logging.info('Finished kl distances with background')
+
+        # Plot the KL divergences
+        fig, ax = plt.subplots(figsize=(8, 6))
+        sns.kdeplot(kl_distances[0], color='lightcoral', label='True anomalies', linewidth=2, fill=True, ax=ax)
+        sns.kdeplot(kl_distances[1], color='limegreen', label='Anomalous background', linewidth=2, fill=True, ax=ax)
+        sns.kdeplot(kl_distances[2], color='cornflowerblue', label='True background', linewidth=2, fill=True, ax=ax)
+
+        ax.set_title('Kullback-Leibler divergence distributions', fontfamily='serif', fontsize=18)
+        ax.set_xlabel('Divergence', fontsize=16)
+        ax.set_ylabel('Density', fontsize=16)
+        ax.legend(loc='best', fontsize=12)
+        # plt.show()
+
+        plt.savefig(f'results/kl_divergence_{station}_{data_type[:2]}_{event_number}.pdf', format='pdf', dpi=300, bbox_inches='tight')
