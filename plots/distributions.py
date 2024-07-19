@@ -1,11 +1,10 @@
 import numpy as np
 import pandas as pd
+import seaborn as sns
 import matplotlib.pyplot as plt
 plt.style.use('ggplot')
 from matplotlib import rcParams
 rcParams['font.family'] = 'monospace'
-
-import seaborn as sns
 
 # Read the data
 station = 901
