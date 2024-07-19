@@ -210,7 +210,7 @@ stations = [901, 905, 907]
 for i, ax in enumerate(axes):
     ax[0].set_ylabel(stations[i], fontfamily='serif', fontsize=16)
 
-fig.suptitle('Empirical distributions before and after imputation', fontfamily='serif', fontsize=18)
+fig.suptitle('Empirical cumulative distributions before and after imputation', fontfamily='serif', fontsize=18)
 plt.tight_layout()
 # plt.show()
 
