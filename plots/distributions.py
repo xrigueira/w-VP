@@ -127,22 +127,22 @@ sns.kdeplot(tu_907_anomalies, bw_adjust=0.65, fill=True, color='goldenrod', ax=a
 sns.kdeplot(wt_907_background, bw_adjust=0.65, fill=True, color='limegreen', ax=axes[2, 5])
 sns.kdeplot(wt_907_anomalies, bw_adjust=0.65, fill=True, color='green', ax=axes[2, 5])
 
-# Clean defaul y label and reduce font size for all axes
+# Clean default y label and reduce font size for all axes
 for ax in axes.flat:
     ax.set_ylabel('')
-    ax.tick_params(axis='both', which='major', labelsize=6)
+    ax.tick_params(axis='both', which='major', labelsize=12)
 
 # Set the title for each variable
 var_names = ['Ammonium', 'Conductivity', 'Dissolved oxygen', 'pH', 'Turbidity', 'Water temperature']
 for i, ax in enumerate(axes[0]):
-    ax.set_title(var_names[i], fontfamily='serif', fontsize=16)
+    ax.set_title(var_names[i], fontfamily='serif', fontsize=18)
 
 # Set the y label for each variable
-stations = [901, 905, 907]
+stations = ['Station 901', 'Station 905', 'Station 907']
 for i, ax in enumerate(axes):
-    ax[0].set_ylabel(stations[i], fontfamily='serif', fontsize=16)
+    ax[0].set_ylabel(stations[i], fontfamily='serif', fontsize=18)
 
-fig.suptitle(f'Data distribution of anomalies and background', fontfamily='serif', fontsize=18)
+fig.suptitle(f'Statistical distributions of anomalies and background instances', fontfamily='serif', fontsize=20)
 plt.tight_layout()
 # plt.show()
 

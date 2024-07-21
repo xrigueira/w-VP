@@ -66,15 +66,15 @@ def window_plotter(data, num_variables, legend, event_number, station, type):
     ax.set_ylim(0, 1)
 
     # Change the fontsize of the ticks
-    plt.xticks(rotation=30, fontsize=12)
-    plt.yticks(fontsize=12)
+    ax.tick_params(axis='x', which='both', rotation=30, labelsize=22)
+    ax.tick_params(axis='y', which='both', labelsize=22)
 
     # Define axes limits, title and labels
-    plt.xlabel('Time', fontsize=16)
-    plt.ylabel('Normalized values', fontsize=16)
-    # plt.title(f'Event {name}', fontsize=18, loc='right')
+    ax.set_xlabel('Time', fontsize=26)
+    ax.set_ylabel('Normalized values', fontsize=26)
+    # ax.set_title(f'Event {event_number}', fontsize=20)
     
-    if legend: plt.legend(fontsize=12, loc='upper center', ncol=6)
+    if legend: ax.legend(fontsize=20, loc='upper center', ncol=6)
     plt.tight_layout()
     # plt.show()
 
@@ -292,10 +292,10 @@ def attention(variables_depth, max_depth):
 
     return attention_am, attention_co, attention_do, attention_ph, attention_tu, attention_wt
 
-# Global attention map
-def global_attention(attention_am, attention_co, attention_do, attention_ph, attention_tu, attention_wt):
+# Multivariate attention map
+def multivariate_attention(attention_am, attention_co, attention_do, attention_ph, attention_tu, attention_wt):
 
-    """This function calculates the global attention map for all variables
+    """This function calculates the multivariate attention map for all variables
     based on the attention maps of each variable.
     ---------
     Arguments:
@@ -378,13 +378,22 @@ def attention_plotter(attention_maps, event_number, station, type):
     
     # Define the plot
     fig, axs = plt.subplots(2, 3, figsize=(20, 10))
-    fig.suptitle('Attention by variable', fontfamily='serif', fontsize=20)
+    fig.suptitle('Attention by variable', fontfamily='serif', fontsize=22)
 
     for attention_map, ax, var in zip(attention_maps, axs.flat, variables):
         sns.heatmap(pd.DataFrame(attention_map).T, cmap='coolwarm', cbar=True, ax=ax)
-        ax.set_xlabel('Depth', fontsize=16)
-        ax.set_ylabel('Instance', fontsize=16)
+        ax.set_xlabel('Depth', fontsize=18)
+        ax.set_ylabel('Instance', fontsize=18)
+        ax.tick_params(axis='both', which='both', labelsize=16)
         ax.set_title(f'{var}', fontfamily='serif', fontsize=18)
+
+        # Adjust the x-axis ticks to avoid overlap depending on the maximum depth
+        if len(list(attention_map.values())[0]) >= 16:
+            tick_interval = 2
+            ax.set_xticks(np.arange(0.5, len(list(attention_map.values())[0]), tick_interval))
+        elif len(list(attention_map.values())[0]) >= 22:
+            tick_interval = 4
+            ax.set_xticks(np.arange(0.5, len(list(attention_map.values())[0]), tick_interval))
     
     plt.tight_layout()
     # plt.show()
@@ -392,9 +401,9 @@ def attention_plotter(attention_maps, event_number, station, type):
     # Save figure
     plt.savefig(f'results/attention_maps_{station}_{type}_{event_number}.pdf', format='pdf', dpi=300, bbox_inches='tight')
 
-def global_attention_plotter(attention_total, event_number, station, type):
+def multivariate_attention_plotter(attention_total, event_number, station, type):
 
-    """This function plots the global attention map for all variables.
+    """This function plots the multivariate attention map for all variables.
     ---------
     Arguments:
     attention_total: The total attention map for all variables.
@@ -405,13 +414,22 @@ def global_attention_plotter(attention_total, event_number, station, type):
     # Define the plot
     plt.figure(figsize=(10, 8))
     sns.heatmap(pd.DataFrame(attention_total).T, cmap='coolwarm', cbar=True)
-    plt.xlabel('Depth', fontsize=16)
-    plt.ylabel('Instance', fontsize=16)
-    plt.title('Global attention', fontfamily='serif', fontsize=20)
+    plt.xlabel('Depth', fontsize=18)
+    plt.ylabel('Instance', fontsize=18)
+    plt.tick_params(axis='both', which='both', labelsize=16)
+    plt.title('Multivariate attention', fontfamily='serif', fontsize=22)
     # plt.show()
 
+    # Adjust the x-axis ticks to avoid overlap depending on the maximum depth
+    if len(list(attention_total.values())[0]) >= 16:
+        tick_interval = 2
+        plt.xticks(np.arange(0.5, len(list(attention_total.values())[0]), tick_interval))
+    elif len(list(attention_total.values())[0]) >= 22:
+        tick_interval = 4
+        plt.xticks(np.arange(0.5, len(list(attention_total.values())[0]), tick_interval))
+    
     # Save figure
-    plt.savefig(f'results/global_attention_map_{station}_{type}_{event_number}.pdf', format='pdf', dpi=300, bbox_inches='tight')
+    plt.savefig(f'results/multivariate_attention_map_{station}_{type}_{event_number}.pdf', format='pdf', dpi=300, bbox_inches='tight')
 
 # Decision paths plot
 def dp_plotter(data, model, resolution, station, name):
