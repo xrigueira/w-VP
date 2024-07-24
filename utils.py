@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 plt.style.use('ggplot')
 from matplotlib import rcParams
 rcParams['font.family'] = 'monospace'
+from matplotlib.dates import DateFormatter
 
 def dater(station, window):
 
@@ -56,12 +57,16 @@ def window_plotter(data, num_variables, legend, event_number, station, type):
     data_reshaped = data.reshape(-1, num_variables)
     
     # Plot each variable
-    fig, ax = plt.subplots(figsize=(12, 8))  # Set the size of the plot
+    fig, ax = plt.subplots(figsize=(14, 10))  # Set the size of the plot
     for i in range(num_variables):
         x = dater(station, data)
         # if len(x) != 32: x = range(32)
-        ax.plot(x, data_reshaped[:, i], label=f'{variables_names[i]}')
+        ax.plot(x, data_reshaped[:, i], label=f'{variables_names[i]}', linewidth=4)
     
+    # Set the date format for the x-axis
+    date_format = DateFormatter('%Y-%m-%d %Hh')
+    ax.xaxis.set_major_formatter(date_format)
+
     # Set the y-axis limit to 1
     ax.set_ylim(0, 1)
 
@@ -70,11 +75,11 @@ def window_plotter(data, num_variables, legend, event_number, station, type):
     ax.tick_params(axis='y', which='both', labelsize=22)
 
     # Define axes limits, title and labels
-    ax.set_xlabel('Time', fontsize=26)
+    ax.set_xlabel('Date', fontsize=26)
     ax.set_ylabel('Normalized values', fontsize=26)
     # ax.set_title(f'Event {event_number}', fontsize=20)
     
-    if legend: ax.legend(fontsize=20, loc='upper center', ncol=6)
+    if legend: ax.legend(loc='upper center', bbox_to_anchor=(0.5, 1.15), shadow=False, ncol=6, fontsize=20)
     plt.tight_layout()
     # plt.show()
 
@@ -501,7 +506,7 @@ def attention_plotter(attention_maps, event_number, station, type):
     fig.suptitle('Attention by variable', fontname='Arial', fontsize=22)
 
     for attention_map, ax, var in zip(attention_maps, axs.flat, variables):
-        sns.heatmap(pd.DataFrame(attention_map).T, cmap='coolwarm', cbar=True, ax=ax)
+        sns.heatmap(pd.DataFrame(attention_map).T, cmap='Reds', cbar=True, ax=ax)
         ax.set_xlabel('Depth', fontsize=18)
         ax.set_ylabel('Instance', fontsize=18)
         ax.tick_params(axis='both', which='both', labelsize=16)
@@ -533,7 +538,7 @@ def multivariate_attention_plotter(attention_total, event_number, station, type)
 
     # Define the plot
     plt.figure(figsize=(10, 8))
-    sns.heatmap(pd.DataFrame(attention_total).T, cmap='coolwarm', cbar=True)
+    sns.heatmap(pd.DataFrame(attention_total).T, cmap='Reds', cbar=True)
     plt.xlabel('Depth', fontsize=18)
     plt.ylabel('Instance', fontsize=18)
     plt.tick_params(axis='both', which='both', labelsize=16)
@@ -568,7 +573,7 @@ def threshold_plotter(threshold_maps, event_number, station, type):
         fig.suptitle('Thresholds distributions by variable', fontname='Arial', fontsize=22)
 
         for threshold_map, ax, var in zip(threshold_maps, axs.flat, variables):
-            sns.heatmap(pd.DataFrame(threshold_map).T, cmap='viridis', cbar=True, ax=ax)
+            sns.heatmap(pd.DataFrame(threshold_map).T, cmap='Greens', cbar=True, ax=ax)
             ax.set_xlabel('Thresold', fontsize=18)
             ax.set_ylabel('Instance', fontsize=18)
             ax.tick_params(axis='both', which='both', labelsize=16)
@@ -592,42 +597,42 @@ def threshold_plotter(threshold_maps, event_number, station, type):
 
 def distance_plotter(distance_maps, event_number, station, type):
 
-        """This function plots the distances for each variable.
-        ---------
-        Arguments:
-        distance_maps: The distances for each variable.
-    
-        Returns:
-        None."""
-    
-        variables = ['Ammonium', 'Conductivity', 'Dissolved oxygen', 'pH', 'Turbidity', 'Water temperature']
+    """This function plots the distances for each variable.
+    ---------
+    Arguments:
+    distance_maps: The distances for each variable.
 
-        # Define the plot
-        fig, axs = plt.subplots(2, 3, figsize=(20, 10))
-        fig.suptitle('Distances by variable', fontname='Arial', fontsize=22)
+    Returns:
+    None."""
 
-        for threshold_map, ax, var in zip(distance_maps, axs.flat, variables):
-            sns.heatmap(pd.DataFrame(threshold_map).T, cmap='coolwarm', cbar=True, ax=ax)
-            ax.set_xlabel('Distance to threshold', fontsize=18)
-            ax.set_ylabel('Instance', fontsize=18)
-            ax.tick_params(axis='both', which='both', labelsize=16)
-            ax.set_title(f'{var}', fontname='Arial', fontsize=18)
+    variables = ['Ammonium', 'Conductivity', 'Dissolved oxygen', 'pH', 'Turbidity', 'Water temperature']
 
-            # Generate ticks from 0 to 1 with steps of 0.05
-            ticks = np.arange(-1, 1.1, 0.1)
-            
-            # Calculate the equivalent positions for the ticks
-            tick_positions = np.linspace(0, pd.DataFrame(threshold_map).T.shape[1], len(ticks))
-            
-            # Set the ticks and labels on the x-axis, showing every fourth tick
-            ax.set_xticks(tick_positions[::4])
-            ax.set_xticklabels(np.round(ticks[::4], 2))
-    
-        plt.tight_layout()
-        # plt.show()
-    
-        # Save figure
-        plt.savefig(f'results/distance_maps_{station}_{type}_{event_number}.pdf', format='pdf', dpi=300, bbox_inches='tight')
+    # Define the plot
+    fig, axs = plt.subplots(2, 3, figsize=(20, 10))
+    fig.suptitle('Distances by variable', fontname='Arial', fontsize=22)
+
+    for threshold_map, ax, var in zip(distance_maps, axs.flat, variables):
+        sns.heatmap(pd.DataFrame(threshold_map).T, cmap='Blues', cbar=True, ax=ax)
+        ax.set_xlabel('Distance to threshold', fontsize=18)
+        ax.set_ylabel('Instance', fontsize=18)
+        ax.tick_params(axis='both', which='both', labelsize=16)
+        ax.set_title(f'{var}', fontname='Arial', fontsize=18)
+
+        # Generate ticks from 0 to 1 with steps of 0.05
+        ticks = np.arange(-1, 1.1, 0.1)
+        
+        # Calculate the equivalent positions for the ticks
+        tick_positions = np.linspace(0, pd.DataFrame(threshold_map).T.shape[1], len(ticks))
+        
+        # Set the ticks and labels on the x-axis, showing every fourth tick
+        ax.set_xticks(tick_positions[::4])
+        ax.set_xticklabels(np.round(ticks[::4], 2))
+
+    plt.tight_layout()
+    # plt.show()
+
+    # Save figure
+    plt.savefig(f'results/distance_maps_{station}_{type}_{event_number}.pdf', format='pdf', dpi=300, bbox_inches='tight')
 
 # Decision paths plot
 def dp_plotter(data, model, resolution, station, name):

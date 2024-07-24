@@ -3,3 +3,6 @@ venv
 
 # Ignore pickels
 pickels
+
+# Ignore the cache
+__pycache__
