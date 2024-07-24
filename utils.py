@@ -189,11 +189,21 @@ def depths(starts_ends, X, models: list, event_number: int):
                     ]
 
     # Define the variables dictionary
-    variables_depth = {}
+    variables_depths = {}
+    variables_thresholds = {}
+    variables_distances = {}
 
-    # Set the keys to the variable names in the feature names high
+    # Set the keys for the variable depths to the variable names in the feature names high
     for feature_name in feature_names_high:
-        variables_depth[feature_name] = []
+        variables_depths[feature_name] = []
+    
+    # Set the keys for the variable thresholds to the variable names in the feature names high
+    for feature_name in feature_names_high:
+        variables_thresholds[feature_name] = []
+
+    # Set the keys for the variable distances to the variable names in the feature names high
+    for feature_name in feature_names_high:
+        variables_distances[feature_name] = []
 
     # Set the max depth to 0
     max_depth = 0
@@ -220,6 +230,9 @@ def depths(starts_ends, X, models: list, event_number: int):
             tree_feature_thresholds = [model.estimators_[i].tree_.threshold[e] for i, e in enumerate(passed_nodes_indices)]
             tree_feature_indices = [model.estimators_[i].tree_.feature[e] for i, e in enumerate(passed_nodes_indices)]
 
+            # Get the feature values of the nodes in each decision tree in the Random Forest
+            tree_feature_values = [window[i] for i in tree_feature_indices]
+
             # Select the resolution of the feature names
             feature_names = feature_names_high if resolution == 'high' else feature_names_med if resolution == 'med' else feature_names_low
 
@@ -232,18 +245,48 @@ def depths(starts_ends, X, models: list, event_number: int):
             for i in tree_feature_thresholds:
                 subset_feature_thresholds.append(i[:-1].tolist())
 
+            subset_feature_values = []
+            for i in tree_feature_values:
+                subset_feature_values.append(i[:-1].tolist())
+
+            # Determine if the node conditions (variable, threshold, value) are satisfied
+            conditions_satisfied = []
+            for i, (features, thresholds, values) in enumerate(zip(subset_feature_names, subset_feature_thresholds, subset_feature_values)):
+                conditions_satisfied.append([True if values[j] <= thresholds[j] else False for j in range(len(features))])
+            
+            # # Detailed verbal condition satisfaction printout. I levae it commented out to avoid massive printouts, when dealing with several trees, windows, and resolutions
+            # for i, (features, values, thresholds, satisfied) in enumerate(zip(subset_feature_names, subset_feature_values, subset_feature_thresholds, conditions_satisfied)):
+            #     print(f"Tree {i}")
+            #     for j, (feature, value, threshold, is_satisfied) in enumerate(zip(features, values, thresholds, satisfied)):
+            #         print(f"Node {i}-{j}: Feature '{feature}' with value {value} {'<= ' if is_satisfied else '> '}threshold {threshold}")
+
             # Extract variable names and their positions
-            for sublist in subset_feature_names:
-                for i, var in enumerate(sublist):
-                    if var not in variables_depth:
-                        variables_depth[var] = []
-                    variables_depth[var].append(i)
+            for features in subset_feature_names:
+                for i, feature in enumerate(features):
+                    if feature not in variables_depths:
+                        variables_depths[feature] = []
+                    variables_depths[feature].append(i)
+
+            # Extract the thresholds for each variable 
+            for features, thresholds in zip(subset_feature_names, subset_feature_thresholds):
+                for feature, threshold in zip(features, thresholds):
+                    if feature not in variables_thresholds:
+                        variables_thresholds[feature] = []
+                    variables_thresholds[feature].append(threshold)
+            
+            # Extract the distance between the threshold and the value for each variable
+            for features, thresholds, values in zip(subset_feature_names, subset_feature_thresholds, subset_feature_values):
+                for feature, threshold, value in zip(features, thresholds, values):
+                    if feature not in variables_distances:
+                        variables_distances[feature] = []
+                    distance = value - threshold
+                    variables_distances[feature].append(distance)
             
             # Calculate the depth and update the value
             depth = max([len(sublist) for sublist in subset_feature_names])
             max_depth = max(max_depth, depth)
 
-    return variables_depth, max_depth
+    return variables_depths, variables_thresholds, variables_distances, max_depth
 
 # Attention maps
 def attention(variables_depth, max_depth):
@@ -323,6 +366,83 @@ def multivariate_attention(attention_am, attention_co, attention_do, attention_p
 
     return attention_total
 
+# Thresholds
+def thresholds(variables_thresholds):
+
+    """This function calculates the number of times the thresholds are within
+    the inervals, for each variable.
+    ---------
+    Arguments:
+    variables_thresholds: The variables and their threshold in each path across all trees.
+
+    Returns:
+    thresholds_am: The thresholds for the am variable.
+    thresholds_co: The thresholds for the co variable.
+    thresholds_do: The thresholds for the do variable.
+    thresholds_ph: The thresholds for the ph variable.
+    thresholds_tu: The thresholds for the tu variable.
+    thresholds_wt: The thresholds for the wt variable.
+    """
+
+    # Define the intervals for the thresholds [0, 0.05), [0.05, 0.1), ..., [0.95, 1]
+    intervals_thresholds = [(i / 20, (i + 1) / 20) for i in range(20)]
+
+    variables_thresholds_bins = {key: [0] * len(intervals_thresholds) for key in variables_thresholds.keys()}
+    for i, (start, end) in enumerate(intervals_thresholds):
+        for var in variables_thresholds.keys():
+            for threshold in variables_thresholds[var]:
+                if start <= threshold < end:
+                    variables_thresholds_bins[var][i] += 1
+
+    # Subset the thresholds for each variable
+    thresholds_am = {key: value for key, value in variables_thresholds_bins.items() if key.startswith('am')}
+    thresholds_co = {key: value for key, value in variables_thresholds_bins.items() if key.startswith('co')}
+    thresholds_do = {key: value for key, value in variables_thresholds_bins.items() if key.startswith('do')}
+    thresholds_ph = {key: value for key, value in variables_thresholds_bins.items() if key.startswith('ph')}
+    thresholds_tu = {key: value for key, value in variables_thresholds_bins.items() if key.startswith('tu')}
+    thresholds_wt = {key: value for key, value in variables_thresholds_bins.items() if key.startswith('wt')}
+
+    return thresholds_am, thresholds_co, thresholds_do, thresholds_ph, thresholds_tu, thresholds_wt
+
+# Distances
+def distances(variables_distances):
+
+    """This function calculates the number of times the distances between threshold and value
+    are within the inervals, for each variable.
+    ---------
+    Arguments:
+    variables_distances: The variables and their distances in each path across all trees.
+
+    Returns:
+    distances_am: The distances for the am variable.
+    distances_co: The distances for the co variable.
+    distances_do: The distances for the do variable.
+    distances_ph: The distances for the ph variable.
+    distances_tu: The distances for the tu variable.
+    distances_wt: The distances for the wt variable.
+    """
+
+    # Define the intervals for the distances [-1, -0.9), [-0.9, -0.8), ..., [0.9, 1]
+    intervals_distances = [(i / 10, (i + 1) / 10) for i in range(-10, 10)]
+
+    variables_distances_bins = {key: [0] * len(intervals_distances) for key in variables_distances.keys()}
+
+    for i, (start, end) in enumerate(intervals_distances):
+        for var in variables_distances.keys():
+            for distance in variables_distances[var]:
+                if start <= distance < end:
+                    variables_distances_bins[var][i] += 1
+    
+    # Subset the distances for each variable
+    distances_am = {key: value for key, value in variables_distances_bins.items() if key.startswith('am')}
+    distances_co = {key: value for key, value in variables_distances_bins.items() if key.startswith('co')}
+    distances_do = {key: value for key, value in variables_distances_bins.items() if key.startswith('do')}
+    distances_ph = {key: value for key, value in variables_distances_bins.items() if key.startswith('ph')}
+    distances_tu = {key: value for key, value in variables_distances_bins.items() if key.startswith('tu')}
+    distances_wt = {key: value for key, value in variables_distances_bins.items() if key.startswith('wt')}
+
+    return distances_am, distances_co, distances_do, distances_ph, distances_tu, distances_wt
+
 # Kullback-Leibler divergence between two attention maps
 def kl_divergence(attention_1, attention_2):
     
@@ -378,21 +498,21 @@ def attention_plotter(attention_maps, event_number, station, type):
     
     # Define the plot
     fig, axs = plt.subplots(2, 3, figsize=(20, 10))
-    fig.suptitle('Attention by variable', fontfamily='serif', fontsize=22)
+    fig.suptitle('Attention by variable', fontname='Arial', fontsize=22)
 
     for attention_map, ax, var in zip(attention_maps, axs.flat, variables):
         sns.heatmap(pd.DataFrame(attention_map).T, cmap='coolwarm', cbar=True, ax=ax)
         ax.set_xlabel('Depth', fontsize=18)
         ax.set_ylabel('Instance', fontsize=18)
         ax.tick_params(axis='both', which='both', labelsize=16)
-        ax.set_title(f'{var}', fontfamily='serif', fontsize=18)
+        ax.set_title(f'{var}', fontname='Arial', fontsize=18)
 
         # Adjust the x-axis ticks to avoid overlap depending on the maximum depth
         if len(list(attention_map.values())[0]) >= 16:
-            tick_interval = 2
+            tick_interval = 4
             ax.set_xticks(np.arange(0.5, len(list(attention_map.values())[0]), tick_interval))
         elif len(list(attention_map.values())[0]) >= 22:
-            tick_interval = 4
+            tick_interval = 6
             ax.set_xticks(np.arange(0.5, len(list(attention_map.values())[0]), tick_interval))
     
     plt.tight_layout()
@@ -417,7 +537,7 @@ def multivariate_attention_plotter(attention_total, event_number, station, type)
     plt.xlabel('Depth', fontsize=18)
     plt.ylabel('Instance', fontsize=18)
     plt.tick_params(axis='both', which='both', labelsize=16)
-    plt.title('Multivariate attention', fontfamily='serif', fontsize=22)
+    plt.title('Multivariate attention', fontname='Arial', fontsize=22)
     # plt.show()
 
     # Adjust the x-axis ticks to avoid overlap depending on the maximum depth
@@ -430,6 +550,84 @@ def multivariate_attention_plotter(attention_total, event_number, station, type)
     
     # Save figure
     plt.savefig(f'results/multivariate_attention_map_{station}_{type}_{event_number}.pdf', format='pdf', dpi=300, bbox_inches='tight')
+
+def threshold_plotter(threshold_maps, event_number, station, type):
+    
+        """This function plots the thresholds for each variable.
+        ---------
+        Arguments:
+        threshold_maps: The thresholds for each variable.
+    
+        Returns:
+        None."""
+    
+        variables = ['Ammonium', 'Conductivity', 'Dissolved oxygen', 'pH', 'Turbidity', 'Water temperature']
+
+        # Define the plot
+        fig, axs = plt.subplots(2, 3, figsize=(20, 10))
+        fig.suptitle('Thresholds distributions by variable', fontname='Arial', fontsize=22)
+
+        for threshold_map, ax, var in zip(threshold_maps, axs.flat, variables):
+            sns.heatmap(pd.DataFrame(threshold_map).T, cmap='viridis', cbar=True, ax=ax)
+            ax.set_xlabel('Thresold', fontsize=18)
+            ax.set_ylabel('Instance', fontsize=18)
+            ax.tick_params(axis='both', which='both', labelsize=16)
+            ax.set_title(f'{var}', fontname='Arial', fontsize=18)
+
+            # Generate ticks from 0 to 1 with steps of 0.05
+            ticks = np.arange(0, 1.05, 0.05)
+            
+            # Calculate the equivalent positions for the ticks
+            tick_positions = np.linspace(0, pd.DataFrame(threshold_map).T.shape[1], len(ticks))
+            
+            # Set the ticks and labels on the x-axis, showing every fourth tick
+            ax.set_xticks(tick_positions[::4])
+            ax.set_xticklabels(np.round(ticks[::4], 2))
+    
+        plt.tight_layout()
+        # plt.show()
+    
+        # Save figure
+        plt.savefig(f'results/threshold_maps_{station}_{type}_{event_number}.pdf', format='pdf', dpi=300, bbox_inches='tight')
+
+def distance_plotter(distance_maps, event_number, station, type):
+
+        """This function plots the distances for each variable.
+        ---------
+        Arguments:
+        distance_maps: The distances for each variable.
+    
+        Returns:
+        None."""
+    
+        variables = ['Ammonium', 'Conductivity', 'Dissolved oxygen', 'pH', 'Turbidity', 'Water temperature']
+
+        # Define the plot
+        fig, axs = plt.subplots(2, 3, figsize=(20, 10))
+        fig.suptitle('Distances by variable', fontname='Arial', fontsize=22)
+
+        for threshold_map, ax, var in zip(distance_maps, axs.flat, variables):
+            sns.heatmap(pd.DataFrame(threshold_map).T, cmap='coolwarm', cbar=True, ax=ax)
+            ax.set_xlabel('Distance to threshold', fontsize=18)
+            ax.set_ylabel('Instance', fontsize=18)
+            ax.tick_params(axis='both', which='both', labelsize=16)
+            ax.set_title(f'{var}', fontname='Arial', fontsize=18)
+
+            # Generate ticks from 0 to 1 with steps of 0.05
+            ticks = np.arange(-1, 1.1, 0.1)
+            
+            # Calculate the equivalent positions for the ticks
+            tick_positions = np.linspace(0, pd.DataFrame(threshold_map).T.shape[1], len(ticks))
+            
+            # Set the ticks and labels on the x-axis, showing every fourth tick
+            ax.set_xticks(tick_positions[::4])
+            ax.set_xticklabels(np.round(ticks[::4], 2))
+    
+        plt.tight_layout()
+        # plt.show()
+    
+        # Save figure
+        plt.savefig(f'results/distance_maps_{station}_{type}_{event_number}.pdf', format='pdf', dpi=300, bbox_inches='tight')
 
 # Decision paths plot
 def dp_plotter(data, model, resolution, station, name):
@@ -811,7 +1009,7 @@ def tree_plotter(model, resolution):
                     precision=2,
                     filled=True)
 
-    # Convert to png using system command (requires Graphviz)
+    # Convert to png using system command (requires Graphviz, which has to be installed, added to PATH, and pip installed)
     from subprocess import call
     call(['dot', '-Tpng', 'tree.dot', '-o', 'tree_0.png', '-Gdpi=600'])
 

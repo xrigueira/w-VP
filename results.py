@@ -12,8 +12,8 @@ warnings.filterwarnings('ignore')
 
 from sklearn import tree
 
-from utils import dater, event_plotter, depths, attention, multivariate_attention, kl_divergence
-from utils import attention_plotter, multivariate_attention_plotter
+from utils import dater, event_plotter, depths, attention, multivariate_attention, thresholds, distances, kl_divergence
+from utils import attention_plotter, multivariate_attention_plotter, threshold_plotter, distance_plotter, tree_plotter
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -52,7 +52,7 @@ def majority_vote(high, med, low):
 if __name__ == '__main__':
 
     station = 901
-    data_type = 'anomalies' # 'anomalies' or 'background'. See also line 127
+    data_type = 'background' # 'anomalies' or 'background'. See also line 127
 
     window_size_high, window_size_med, window_size_low = 32, 16, 8
 
@@ -67,6 +67,9 @@ if __name__ == '__main__':
 
     filename = f'models/rf_model_low_{iteration}.sav'
     model_low = pickle.load(open(filename, 'rb'))
+
+    # # Plot a tree
+    # tree_plotter(model_high, 'high')
 
     # Load the anomalies data
     file_anomalies = open(f'pickels/anomaly_data_pred.pkl', 'rb')
@@ -116,7 +119,7 @@ if __name__ == '__main__':
     # Get the number of actual anomalous events
     anomalies_events = range(len(number_windows_high_anomalies))
     
-    for event_number_main in anomalies_events: # This has to be changed when switching from anomalies to background
+    for event_number_main in background_background_events[:1]: # This has to be changed when switching from anomalies to background
         logging.info('Processing event number %d', event_number_main)
 
         if data_type == 'anomalies':
@@ -132,13 +135,19 @@ if __name__ == '__main__':
         logging.info('Finished event plot')
 
         # Get the depths of the variables
-        variables_depth, max_depth = depths(starts_ends, X, models=[model_high, model_med, model_low], event_number=event_number_main)
+        variables_depths, variables_thresholds, variables_distances, max_depth = depths(starts_ends, X, models=[model_high, model_med, model_low], event_number=event_number_main)
 
         # Get the attention maps
-        attention_am, attention_co, attention_do, attention_ph, attention_tu, attention_wt = attention(variables_depth, max_depth)
+        attention_am, attention_co, attention_do, attention_ph, attention_tu, attention_wt = attention(variables_depths, max_depth)
         
         # Get the multivariate attention map
         attention_multivariate = multivariate_attention(attention_am, attention_co, attention_do, attention_ph, attention_tu, attention_wt)
+
+        # Get the threshold maps
+        threshold_am, threshold_co, threshold_do, threshold_ph, threshold_tu, threshold_wt = thresholds(variables_thresholds)
+
+        # Get the distance maps
+        distance_am, distance_co, distance_do, distance_ph, distance_tu, distance_wt = distances(variables_distances)
 
         # Plot the attention
         attention_maps = [attention_am, attention_co, attention_do, attention_ph, attention_tu, attention_wt]
@@ -148,73 +157,83 @@ if __name__ == '__main__':
         multivariate_attention_plotter(attention_multivariate, event_number=event_number_main, station=station, type=data_type[:2])
         logging.info('Finished attention maps')
 
-        # Store the Kullback-Leibler divergence between the selected event and the anomalies
-        kl_distances = [[], [], []]
+        # Plot the threshold
+        threshold_maps = [threshold_am, threshold_co, threshold_do, threshold_ph, threshold_tu, threshold_wt]
+        threshold_plotter(threshold_maps, event_number=event_number_main, station=station, type=data_type[:2])
+        logging.info('Finished threshold maps')
 
-        # Update starts_ends and X
-        starts_ends = starts_ends_anomalies
-        X = X_anomalies
-        for event_number in anomalies_events: # This has to be changed when switching from anomalies to background
+        # Plot the distance
+        distance_maps = [distance_am, distance_co, distance_do, distance_ph, distance_tu, distance_wt]
+        distance_plotter(distance_maps, event_number=event_number_main, station=station, type=data_type[:2])
+        logging.info('Finished distance maps')
 
-            # Get a explainer plot
-            variables_depth, max_depth = depths(starts_ends, X, models=[model_high, model_med, model_low], event_number=event_number)
+        # # Store the Kullback-Leibler divergence between the selected event and the anomalies
+        # kl_distances = [[], [], []]
 
-            attention_am, attention_co, attention_do, attention_ph, attention_tu, attention_wt = attention(variables_depth, max_depth)
+        # # Update starts_ends and X
+        # starts_ends = starts_ends_anomalies
+        # X = X_anomalies
+        # for event_number in anomalies_events:
 
-            attention_multivariate_compare = multivariate_attention(attention_am, attention_co, attention_do, attention_ph, attention_tu, attention_wt)
+        #     # Get a explainer plot
+        #     variables_depth, max_depth = depths(starts_ends, X, models=[model_high, model_med, model_low], event_number=event_number)
 
-            kl_distance = kl_divergence(attention_multivariate, attention_multivariate_compare)
+        #     attention_am, attention_co, attention_do, attention_ph, attention_tu, attention_wt = attention(variables_depth, max_depth)
 
-            kl_distances[0].append(kl_distance)
-        logging.info('Finished kl distances with anomalies')
+        #     attention_multivariate_compare = multivariate_attention(attention_am, attention_co, attention_do, attention_ph, attention_tu, attention_wt)
 
-        # Update starts_ends and X
-        starts_ends = starts_ends_background
-        X = X_background
-        # Store the Kullback-Leibler divergence between the selected event and the anomalous background 
-        for event_number in background_anomalies_events:
+        #     kl_distance = kl_divergence(attention_multivariate, attention_multivariate_compare)
 
-            # Get a explainer plot
-            variables_depth, max_depth = depths(starts_ends, X, models=[model_high, model_med, model_low], event_number=event_number)
+        #     kl_distances[0].append(kl_distance)
+        # logging.info('Finished kl distances with anomalies')
 
-            attention_am, attention_co, attention_do, attention_ph, attention_tu, attention_wt = attention(variables_depth, max_depth)
+        # # Update starts_ends and X
+        # starts_ends = starts_ends_background
+        # X = X_background
+        # # Store the Kullback-Leibler divergence between the selected event and the anomalous background 
+        # for event_number in background_anomalies_events:
 
-            attention_multivariate_compare = multivariate_attention(attention_am, attention_co, attention_do, attention_ph, attention_tu, attention_wt)
+        #     # Get a explainer plot
+        #     variables_depth, max_depth = depths(starts_ends, X, models=[model_high, model_med, model_low], event_number=event_number)
 
-            kl_distance = kl_divergence(attention_multivariate, attention_multivariate_compare)
+        #     attention_am, attention_co, attention_do, attention_ph, attention_tu, attention_wt = attention(variables_depth, max_depth)
 
-            kl_distances[1].append(kl_distance)
-        logging.info('Finished kl distances with anomalous background')
+        #     attention_multivariate_compare = multivariate_attention(attention_am, attention_co, attention_do, attention_ph, attention_tu, attention_wt)
 
-        # Update starts_ends and X
-        starts_ends = starts_ends_background
-        X = X_background
-        # Store the Kullback-Leibler divergence between the selected event and the true background
-        for event_number in background_background_events:
+        #     kl_distance = kl_divergence(attention_multivariate, attention_multivariate_compare)
 
-            # Get a explainer plot
-            variables_depth, max_depth = depths(starts_ends, X, models=[model_high, model_med, model_low], event_number=event_number)
+        #     kl_distances[1].append(kl_distance)
+        # logging.info('Finished kl distances with anomalous background')
 
-            attention_am, attention_co, attention_do, attention_ph, attention_tu, attention_wt = attention(variables_depth, max_depth)
+        # # Update starts_ends and X
+        # starts_ends = starts_ends_background
+        # X = X_background
+        # # Store the Kullback-Leibler divergence between the selected event and the true background
+        # for event_number in background_background_events:
 
-            attention_multivariate_compare = multivariate_attention(attention_am, attention_co, attention_do, attention_ph, attention_tu, attention_wt)
+        #     # Get a explainer plot
+        #     variables_depth, max_depth = depths(starts_ends, X, models=[model_high, model_med, model_low], event_number=event_number)
 
-            kl_distance = kl_divergence(attention_multivariate, attention_multivariate_compare)
+        #     attention_am, attention_co, attention_do, attention_ph, attention_tu, attention_wt = attention(variables_depth, max_depth)
 
-            kl_distances[2].append(kl_distance)
-        logging.info('Finished kl distances with background')
+        #     attention_multivariate_compare = multivariate_attention(attention_am, attention_co, attention_do, attention_ph, attention_tu, attention_wt)
 
-        # Plot the KL divergences
-        fig, ax = plt.subplots(figsize=(8, 6))
-        sns.kdeplot(kl_distances[0], color='lightcoral', label='True anomalies', linewidth=1, fill=True, ax=ax)
-        sns.kdeplot(kl_distances[1], color='limegreen', label='Anomalous background', linewidth=1, fill=True, ax=ax)
-        sns.kdeplot(kl_distances[2], color='cornflowerblue', label='True background', linewidth=1, fill=True, ax=ax)
+        #     kl_distance = kl_divergence(attention_multivariate, attention_multivariate_compare)
 
-        ax.set_title('Kullback-Leibler divergence distributions', fontfamily='serif', fontsize=20)
-        ax.set_xlabel('Divergence', fontsize=18)
-        ax.set_ylabel('Density', fontsize=18)
-        ax.tick_params(axis='both', which='major', labelsize=16)
-        ax.legend(loc='upper left', fontsize=16)
-        # plt.show()
+        #     kl_distances[2].append(kl_distance)
+        # logging.info('Finished kl distances with background')
 
-        plt.savefig(f'results/kl_divergence_{station}_{data_type[:2]}_{event_number_main}.pdf', format='pdf', dpi=300, bbox_inches='tight')
+        # # Plot the KL divergences
+        # fig, ax = plt.subplots(figsize=(8, 6))
+        # sns.kdeplot(kl_distances[0], color='lightcoral', label='True anomalies', linewidth=1, fill=True, ax=ax)
+        # sns.kdeplot(kl_distances[1], color='limegreen', label='Anomalous background', linewidth=1, fill=True, ax=ax)
+        # sns.kdeplot(kl_distances[2], color='cornflowerblue', label='True background', linewidth=1, fill=True, ax=ax)
+
+        # ax.set_title('Kullback-Leibler divergence distributions', fontfamily='serif', fontsize=20)
+        # ax.set_xlabel('Divergence', fontsize=18)
+        # ax.set_ylabel('Density', fontsize=18)
+        # ax.tick_params(axis='both', which='major', labelsize=16)
+        # ax.legend(loc='upper left', fontsize=16)
+        # # plt.show()
+
+        # plt.savefig(f'results/kl_divergence_{station}_{data_type[:2]}_{event_number_main}.pdf', format='pdf', dpi=300, bbox_inches='tight')
