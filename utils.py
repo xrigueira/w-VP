@@ -503,12 +503,12 @@ def attention_plotter(attention_maps, event_number, station, type):
     
     # Define the plot
     fig, axs = plt.subplots(2, 3, figsize=(20, 10))
-    fig.suptitle('Attention by variable', fontname='Arial', fontsize=22)
+    fig.suptitle('Univariate path attention', fontname='Arial', fontsize=22)
 
     for attention_map, ax, var in zip(attention_maps, axs.flat, variables):
         sns.heatmap(pd.DataFrame(attention_map).T, cmap='Reds', cbar=True, ax=ax)
-        ax.set_xlabel('Depth', fontsize=18)
-        ax.set_ylabel('Instance', fontsize=18)
+        ax.set_xlabel('Tree depth', fontsize=18)
+        ax.set_ylabel('Temporal observations', fontsize=18)
         ax.tick_params(axis='both', which='both', labelsize=16)
         ax.set_title(f'{var}', fontname='Arial', fontsize=18)
 
@@ -539,10 +539,10 @@ def multivariate_attention_plotter(attention_total, event_number, station, type)
     # Define the plot
     plt.figure(figsize=(10, 8))
     sns.heatmap(pd.DataFrame(attention_total).T, cmap='Reds', cbar=True)
-    plt.xlabel('Depth', fontsize=18)
-    plt.ylabel('Instance', fontsize=18)
+    plt.xlabel('Tree depth', fontsize=18)
+    plt.ylabel('Temporal observations', fontsize=18)
     plt.tick_params(axis='both', which='both', labelsize=16)
-    plt.title('Multivariate attention', fontname='Arial', fontsize=22)
+    plt.title('Multivariate path attention', fontname='Arial', fontsize=22)
     # plt.show()
 
     # Adjust the x-axis ticks to avoid overlap depending on the maximum depth
@@ -558,42 +558,42 @@ def multivariate_attention_plotter(attention_total, event_number, station, type)
 
 def threshold_plotter(threshold_maps, event_number, station, type):
     
-        """This function plots the thresholds for each variable.
-        ---------
-        Arguments:
-        threshold_maps: The thresholds for each variable.
-    
-        Returns:
-        None."""
-    
-        variables = ['Ammonium', 'Conductivity', 'Dissolved oxygen', 'pH', 'Turbidity', 'Water temperature']
+    """This function plots the thresholds for each variable.
+    ---------
+    Arguments:
+    threshold_maps: The thresholds for each variable.
 
-        # Define the plot
-        fig, axs = plt.subplots(2, 3, figsize=(20, 10))
-        fig.suptitle('Thresholds distributions by variable', fontname='Arial', fontsize=22)
+    Returns:
+    None."""
 
-        for threshold_map, ax, var in zip(threshold_maps, axs.flat, variables):
-            sns.heatmap(pd.DataFrame(threshold_map).T, cmap='Greens', cbar=True, ax=ax)
-            ax.set_xlabel('Thresold', fontsize=18)
-            ax.set_ylabel('Instance', fontsize=18)
-            ax.tick_params(axis='both', which='both', labelsize=16)
-            ax.set_title(f'{var}', fontname='Arial', fontsize=18)
+    variables = ['Ammonium', 'Conductivity', 'Dissolved oxygen', 'pH', 'Turbidity', 'Water temperature']
 
-            # Generate ticks from 0 to 1 with steps of 0.05
-            ticks = np.arange(0, 1.05, 0.05)
-            
-            # Calculate the equivalent positions for the ticks
-            tick_positions = np.linspace(0, pd.DataFrame(threshold_map).T.shape[1], len(ticks))
-            
-            # Set the ticks and labels on the x-axis, showing every fourth tick
-            ax.set_xticks(tick_positions[::4])
-            ax.set_xticklabels(np.round(ticks[::4], 2))
-    
-        plt.tight_layout()
-        # plt.show()
-    
-        # Save figure
-        plt.savefig(f'results/threshold_maps_{station}_{type}_{event_number}.pdf', format='pdf', dpi=300, bbox_inches='tight')
+    # Define the plot
+    fig, axs = plt.subplots(2, 3, figsize=(20, 10))
+    fig.suptitle('Univariate learned thresholds', fontname='Arial', fontsize=22)
+
+    for threshold_map, ax, var in zip(threshold_maps, axs.flat, variables):
+        sns.heatmap(pd.DataFrame(threshold_map).T, cmap='Greens', cbar=True, ax=ax)
+        ax.set_xlabel('Threshold value', fontsize=18)
+        ax.set_ylabel('Temporal observations', fontsize=18)
+        ax.tick_params(axis='both', which='both', labelsize=16)
+        ax.set_title(f'{var}', fontname='Arial', fontsize=18)
+
+        # Generate ticks from 0 to 1 with steps of 0.05
+        ticks = np.arange(0, 1.05, 0.05)
+        
+        # Calculate the equivalent positions for the ticks
+        tick_positions = np.linspace(0, pd.DataFrame(threshold_map).T.shape[1], len(ticks))
+        
+        # Set the ticks and labels on the x-axis, showing every fourth tick
+        ax.set_xticks(tick_positions[::4])
+        ax.set_xticklabels(np.round(ticks[::4], 2))
+
+    plt.tight_layout()
+    # plt.show()
+
+    # Save figure
+    plt.savefig(f'results/threshold_maps_{station}_{type}_{event_number}.pdf', format='pdf', dpi=300, bbox_inches='tight')
 
 def distance_plotter(distance_maps, event_number, station, type):
 
@@ -609,12 +609,12 @@ def distance_plotter(distance_maps, event_number, station, type):
 
     # Define the plot
     fig, axs = plt.subplots(2, 3, figsize=(20, 10))
-    fig.suptitle('Distances by variable', fontname='Arial', fontsize=22)
+    fig.suptitle('Univariate distance to threshold', fontname='Arial', fontsize=22)
 
     for threshold_map, ax, var in zip(distance_maps, axs.flat, variables):
         sns.heatmap(pd.DataFrame(threshold_map).T, cmap='Blues', cbar=True, ax=ax)
         ax.set_xlabel('Distance to threshold', fontsize=18)
-        ax.set_ylabel('Instance', fontsize=18)
+        ax.set_ylabel('Temporal observations', fontsize=18)
         ax.tick_params(axis='both', which='both', labelsize=16)
         ax.set_title(f'{var}', fontname='Arial', fontsize=18)
 
@@ -633,6 +633,34 @@ def distance_plotter(distance_maps, event_number, station, type):
 
     # Save figure
     plt.savefig(f'results/distance_maps_{station}_{type}_{event_number}.pdf', format='pdf', dpi=300, bbox_inches='tight')
+
+def kl_plotter(kl_distances, event_number, station, data_type):
+
+    """This function plots the Kullback-Leibler divergence distributions.
+    ---------
+    Arguments:
+    kl_distances: The Kullback-Leibler divergence distributions.
+    event_number: The event number.
+    station: The station name.
+    data_type: The data type.
+
+    Returns:
+    None."""
+
+    # Plot the KL divergences
+    fig, ax = plt.subplots(figsize=(8, 6))
+    sns.kdeplot(kl_distances[0], color='lightcoral', label='Labeled anomalies', linewidth=1, fill=True, ax=ax)
+    sns.kdeplot(kl_distances[1], color='limegreen', label='Detected anomalies', linewidth=1, fill=True, ax=ax)
+    sns.kdeplot(kl_distances[2], color='cornflowerblue', label='Background', linewidth=1, fill=True, ax=ax)
+
+    ax.set_title('Kullback-Leibler divergence distributions', fontfamily='serif', fontsize=20)
+    ax.set_xlabel('Divergence', fontsize=18)
+    ax.set_ylabel('Density', fontsize=18)
+    ax.tick_params(axis='both', which='major', labelsize=16)
+    ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.15), shadow=False, ncol=3, fontsize=16)
+    # plt.show()
+
+    plt.savefig(f'results/kl_divergence_{station}_{data_type[:2]}_{event_number}.pdf', format='pdf', dpi=300, bbox_inches='tight')    
 
 # Decision paths plot
 def dp_plotter(data, model, resolution, station, name):

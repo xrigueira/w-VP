@@ -13,7 +13,7 @@ warnings.filterwarnings('ignore')
 from sklearn import tree
 
 from utils import dater, event_plotter, depths, attention, multivariate_attention, thresholds, distances, kl_divergence
-from utils import attention_plotter, multivariate_attention_plotter, threshold_plotter, distance_plotter, tree_plotter
+from utils import attention_plotter, multivariate_attention_plotter, threshold_plotter, distance_plotter, kl_plotter, tree_plotter
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -303,19 +303,7 @@ if __name__ == '__main__':
             kl_distances[2].append(kl_distance)
 
         # Plot the KL divergences
-        fig, ax = plt.subplots(figsize=(8, 6))
-        sns.kdeplot(kl_distances[0], color='lightcoral', label='True anomalies', linewidth=1, fill=True, ax=ax)
-        sns.kdeplot(kl_distances[1], color='limegreen', label='Anomalous background', linewidth=1, fill=True, ax=ax)
-        sns.kdeplot(kl_distances[2], color='cornflowerblue', label='True background', linewidth=1, fill=True, ax=ax)
-
-        ax.set_title('Kullback-Leibler divergence distributions', fontfamily='serif', fontsize=20)
-        ax.set_xlabel('Divergence', fontsize=18)
-        ax.set_ylabel('Density', fontsize=18)
-        ax.tick_params(axis='both', which='major', labelsize=16)
-        ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.15), shadow=False, ncol=3, fontsize=16)
-        # plt.show()
-
-        plt.savefig(f'results/kl_divergence_{station}_{data_type[:2]}_{event_number}.pdf', format='pdf', dpi=300, bbox_inches='tight')
+        kl_plotter(kl_distances, event_number, station, data_type[:2])
 
         # Reset the list
         kl_distances = [[], [], []]
@@ -348,19 +336,7 @@ if __name__ == '__main__':
             kl_distances[2].append(kl_distance)
 
         # Plot the KL divergences
-        fig, ax = plt.subplots(figsize=(8, 6))
-        sns.kdeplot(kl_distances[0], color='lightcoral', label='True anomalies', linewidth=1, fill=True, ax=ax)
-        sns.kdeplot(kl_distances[1], color='limegreen', label='Anomalous background', linewidth=1, fill=True, ax=ax)
-        sns.kdeplot(kl_distances[2], color='cornflowerblue', label='True background', linewidth=1, fill=True, ax=ax)
-
-        ax.set_title('Kullback-Leibler divergence distributions', fontfamily='serif', fontsize=20)
-        ax.set_xlabel('Divergence', fontsize=18)
-        ax.set_ylabel('Density', fontsize=18)
-        ax.tick_params(axis='both', which='major', labelsize=16)
-        ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.15), shadow=False, ncol=3, fontsize=16)
-        # plt.show()
-
-        plt.savefig(f'results/kl_divergence_{station}_{data_type[:2]}_{event_number}.pdf', format='pdf', dpi=300, bbox_inches='tight')
+        kl_plotter(kl_distances, event_number, station, data_type[:2])
 
         # Reset the list
         kl_distances = [[], [], []]
@@ -393,19 +369,7 @@ if __name__ == '__main__':
             kl_distances[2].append(kl_distance)
 
         # Plot the KL divergences
-        fig, ax = plt.subplots(figsize=(8, 6))
-        sns.kdeplot(kl_distances[0], color='lightcoral', label='True anomalies', linewidth=1, fill=True, ax=ax)
-        sns.kdeplot(kl_distances[1], color='limegreen', label='Anomalous background', linewidth=1, fill=True, ax=ax)
-        sns.kdeplot(kl_distances[2], color='cornflowerblue', label='True background', linewidth=1, fill=True, ax=ax)
-
-        ax.set_title('Kullback-Leibler divergence distributions', fontfamily='serif', fontsize=20)
-        ax.set_xlabel('Divergence', fontsize=18)
-        ax.set_ylabel('Density', fontsize=18)
-        ax.tick_params(axis='both', which='major', labelsize=16)
-        ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.15), shadow=False, ncol=3, fontsize=16)
-        # plt.show()
-
-        plt.savefig(f'results/kl_divergence_{station}_{data_type[:2]}_{event_number}.pdf', format='pdf', dpi=300, bbox_inches='tight')
+        kl_plotter(kl_distances, event_number, station, data_type[:2])
 
         # Reset the list
         kl_distances = [[], [], []]
