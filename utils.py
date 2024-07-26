@@ -71,15 +71,15 @@ def window_plotter(data, num_variables, legend, event_number, station, type):
     ax.set_ylim(0, 1)
 
     # Change the fontsize of the ticks
-    ax.tick_params(axis='x', which='both', rotation=30, labelsize=22)
-    ax.tick_params(axis='y', which='both', labelsize=22)
+    ax.tick_params(axis='x', which='both', rotation=30, labelsize=23)
+    ax.tick_params(axis='y', which='both', labelsize=23)
 
     # Define axes limits, title and labels
-    ax.set_xlabel('Date', fontsize=26)
-    ax.set_ylabel('Normalized values', fontsize=26)
+    ax.set_xlabel('Date', fontsize=27)
+    ax.set_ylabel('Normalized values', fontsize=27)
     # ax.set_title(f'Event {event_number}', fontsize=20)
     
-    if legend: ax.legend(loc='upper center', bbox_to_anchor=(0.5, 1.15), shadow=False, ncol=6, fontsize=20)
+    if legend: ax.legend(loc='upper center', bbox_to_anchor=(0.5, 1.15), shadow=False, ncol=6, fontsize=23)
     plt.tight_layout()
     # plt.show()
 
@@ -503,21 +503,21 @@ def attention_plotter(attention_maps, event_number, station, type):
     
     # Define the plot
     fig, axs = plt.subplots(2, 3, figsize=(20, 10))
-    fig.suptitle('Univariate path attention', fontname='Arial', fontsize=22)
+    fig.suptitle('Univariate path attention', fontname='Arial', fontsize=25)
 
     for attention_map, ax, var in zip(attention_maps, axs.flat, variables):
         sns.heatmap(pd.DataFrame(attention_map).T, cmap='Reds', cbar=True, ax=ax)
-        ax.set_xlabel('Tree depth', fontsize=18)
-        ax.set_ylabel('Temporal observations', fontsize=18)
-        ax.tick_params(axis='both', which='both', labelsize=16)
-        ax.set_title(f'{var}', fontname='Arial', fontsize=18)
-
+        ax.set_xlabel('Tree depth', fontsize=21) # It could also be Contextual observations
+        ax.set_ylabel('Temporal observations', fontsize=21)
+        ax.tick_params(axis='both', which='both', rotation=0, labelsize=19)
+        ax.set_title(f'{var}', fontname='Arial', fontsize=21)
+        
         # Adjust the x-axis ticks to avoid overlap depending on the maximum depth
-        if len(list(attention_map.values())[0]) >= 16:
-            tick_interval = 4
+        if len(list(attention_map.values())[0]) >= 10:
+            tick_interval = 2
             ax.set_xticks(np.arange(0.5, len(list(attention_map.values())[0]), tick_interval))
-        elif len(list(attention_map.values())[0]) >= 22:
-            tick_interval = 6
+        if len(list(attention_map.values())[0]) >= 18:
+            tick_interval = 4
             ax.set_xticks(np.arange(0.5, len(list(attention_map.values())[0]), tick_interval))
     
     plt.tight_layout()
@@ -539,19 +539,23 @@ def multivariate_attention_plotter(attention_total, event_number, station, type)
     # Define the plot
     plt.figure(figsize=(10, 8))
     sns.heatmap(pd.DataFrame(attention_total).T, cmap='Reds', cbar=True)
-    plt.xlabel('Tree depth', fontsize=18)
-    plt.ylabel('Temporal observations', fontsize=18)
-    plt.tick_params(axis='both', which='both', labelsize=16)
-    plt.title('Multivariate path attention', fontname='Arial', fontsize=22)
+    plt.xlabel('Tree depth', fontsize=21)
+    plt.ylabel('Temporal observations', fontsize=21)
+    plt.tick_params(axis='both', which='both', labelsize=19)
+    plt.title('Multivariate path attention', fontname='Arial', fontsize=25)
     # plt.show()
 
     # Adjust the x-axis ticks to avoid overlap depending on the maximum depth
-    if len(list(attention_total.values())[0]) >= 16:
+    if len(list(attention_total.values())[0]) >= 10:
         tick_interval = 2
         plt.xticks(np.arange(0.5, len(list(attention_total.values())[0]), tick_interval))
-    elif len(list(attention_total.values())[0]) >= 22:
+    if len(list(attention_total.values())[0]) >= 18:
         tick_interval = 4
         plt.xticks(np.arange(0.5, len(list(attention_total.values())[0]), tick_interval))
+    
+    # Adjust the y-axis ticks to avoid overlap depending on the number of variables
+    tick_interval = 2
+    plt.yticks(np.arange(0.5, len(list(attention_total.keys())), tick_interval), list(attention_total.keys())[::tick_interval])
     
     # Save figure
     plt.savefig(f'results/multivariate_attention_map_{station}_{type}_{event_number}.pdf', format='pdf', dpi=300, bbox_inches='tight')
@@ -570,14 +574,14 @@ def threshold_plotter(threshold_maps, event_number, station, type):
 
     # Define the plot
     fig, axs = plt.subplots(2, 3, figsize=(20, 10))
-    fig.suptitle('Univariate learned thresholds', fontname='Arial', fontsize=22)
+    fig.suptitle('Univariate learned thresholds', fontname='Arial', fontsize=25)
 
     for threshold_map, ax, var in zip(threshold_maps, axs.flat, variables):
         sns.heatmap(pd.DataFrame(threshold_map).T, cmap='Greens', cbar=True, ax=ax)
-        ax.set_xlabel('Threshold value', fontsize=18)
-        ax.set_ylabel('Temporal observations', fontsize=18)
-        ax.tick_params(axis='both', which='both', labelsize=16)
-        ax.set_title(f'{var}', fontname='Arial', fontsize=18)
+        ax.set_xlabel('Threshold value', fontsize=21)
+        ax.set_ylabel('Temporal observations', fontsize=21)
+        ax.tick_params(axis='both', which='both', labelsize=19)
+        ax.set_title(f'{var}', fontname='Arial', fontsize=21)
 
         # Generate ticks from 0 to 1 with steps of 0.05
         ticks = np.arange(0, 1.05, 0.05)
@@ -609,14 +613,14 @@ def distance_plotter(distance_maps, event_number, station, type):
 
     # Define the plot
     fig, axs = plt.subplots(2, 3, figsize=(20, 10))
-    fig.suptitle('Univariate distance to threshold', fontname='Arial', fontsize=22)
+    fig.suptitle('Univariate distance to threshold', fontname='Arial', fontsize=25)
 
     for threshold_map, ax, var in zip(distance_maps, axs.flat, variables):
         sns.heatmap(pd.DataFrame(threshold_map).T, cmap='Blues', cbar=True, ax=ax)
-        ax.set_xlabel('Distance to threshold', fontsize=18)
-        ax.set_ylabel('Temporal observations', fontsize=18)
-        ax.tick_params(axis='both', which='both', labelsize=16)
-        ax.set_title(f'{var}', fontname='Arial', fontsize=18)
+        ax.set_xlabel('Distance to threshold', fontsize=21)
+        ax.set_ylabel('Temporal observations', fontsize=21)
+        ax.tick_params(axis='both', which='both', labelsize=19)
+        ax.set_title(f'{var}', fontname='Arial', fontsize=21)
 
         # Generate ticks from 0 to 1 with steps of 0.05
         ticks = np.arange(-1, 1.1, 0.1)
@@ -653,11 +657,11 @@ def kl_plotter(kl_distances, event_number, station, data_type):
     sns.kdeplot(kl_distances[1], color='limegreen', label='Detected anomalies', linewidth=1, fill=True, ax=ax)
     sns.kdeplot(kl_distances[2], color='cornflowerblue', label='Background', linewidth=1, fill=True, ax=ax)
 
-    ax.set_title('Kullback-Leibler divergence distributions', fontfamily='serif', fontsize=20)
-    ax.set_xlabel('Divergence', fontsize=18)
-    ax.set_ylabel('Density', fontsize=18)
-    ax.tick_params(axis='both', which='major', labelsize=16)
-    ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.15), shadow=False, ncol=3, fontsize=16)
+    ax.set_title('Kullback-Leibler divergence distributions', fontfamily='serif', fontsize=23)
+    ax.set_xlabel('Divergence', fontsize=21)
+    ax.set_ylabel('Density', fontsize=21)
+    ax.tick_params(axis='both', which='major', labelsize=19)
+    ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.15), shadow=False, ncol=3, fontsize=19)
     # plt.show()
 
     plt.savefig(f'results/kl_divergence_{station}_{data_type[:2]}_{event_number}.pdf', format='pdf', dpi=300, bbox_inches='tight')    

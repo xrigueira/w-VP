@@ -266,7 +266,7 @@ if __name__ == '__main__':
 
         # Store the multivariate attention map
         attention_multivariate_maps[2].append(attention_multivariate)
-    
+
     # # Save the attention maps. This wont work when dealing with all samples, because there are different number of anomalies, detected anomalies and true background events
     # np.save(f'results/attention_multivariate_maps_{station}.npy', attention_multivariate_maps)
 
