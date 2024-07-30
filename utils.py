@@ -215,6 +215,7 @@ def depths(starts_ends, X, models: list, event_number: int):
     for i, (model, resolution) in enumerate(zip(models, resolutions)):
         
         # Extract the start and end indices for the windows by resolution
+        # i = 2   # When working with a single resolution, i = 0 for high, i = 1 for med, and i = 2 for low
         windows = X[i][starts_ends[event_number][i][0]:starts_ends[event_number][i][1]]
         
         # Traverse each window to get the decision paths
@@ -293,8 +294,50 @@ def depths(starts_ends, X, models: list, event_number: int):
 
     return variables_depths, variables_thresholds, variables_distances, max_depth
 
+def normalizer(dictionary):
+
+    """This function normalizes the values of a dictionary.
+    The feature vector of all resolutions (high, med, low) share
+    the items between -4, and 4. Thefore, if not normalized, the
+    results will be biased.
+    Same with the items between -8 and -5 and 5 and 8, which are
+    present in both the high and medium resolutions.
+
+    Additionally, the values are normalized to be between 0 and 1.
+    ---------
+    Arguments:
+    dictionary: The dictionary to be normalized.
+
+    Returns:
+    dictionary: The normalized dictionary.
+    """
+
+    suffixes_low = ['-4', '-3', '-2', '-1', '1', '2', '3', '4']
+    for key in dictionary.keys():
+        if any(key.endswith(suffix) for suffix in suffixes_low):
+            dictionary[key] = [x / 9 for x in dictionary[key]]
+
+    suffixes_med = ['-8', '-7', '-6', '-5', '5', '6', '7', '8']
+    for key in dictionary.keys():
+        if any(key.endswith(suffix) for suffix in suffixes_med):
+            dictionary[key] = [x / 4 for x in dictionary[key]]
+    
+    # Flatten all values to find the global maximum and minimum
+    values = [item for sublist in dictionary.values() for item in sublist]
+    max_value, min_value = max(values), min(values)
+
+    # Handle division by zero
+    if max_value == min_value:
+        return dictionary
+
+    # Normalize the values
+    for key in dictionary.keys():
+        dictionary[key] = [(x - min_value) / (max_value - min_value) for x in dictionary[key]]
+    
+    return dictionary
+
 # Attention maps
-def attention(variables_depth, max_depth):
+def attention(variables_depth, max_depth, normalize):
 
     """This function calculates the attention maps for each variable
     based on the depth at which they appear in the decision paths.
@@ -302,6 +345,7 @@ def attention(variables_depth, max_depth):
     Arguments:
     variables_depth: The variables and their depth in each path across all trees.
     max_depth: The maximum depth of the decision paths.
+    normalize: Whether to normalize the attention maps or not.
 
     Returns:
     attention_am: The attention map for the am variable.
@@ -338,6 +382,15 @@ def attention(variables_depth, max_depth):
     attention_tu = {key: value for key, value in attention.items() if key.startswith('tu')}
     attention_wt = {key: value for key, value in attention.items() if key.startswith('wt')}
 
+    # Normalize the attention maps
+    if normalize:
+        attention_am = normalizer(attention_am)
+        attention_co = normalizer(attention_co)
+        attention_do = normalizer(attention_do)
+        attention_ph = normalizer(attention_ph)
+        attention_tu = normalizer(attention_tu)
+        attention_wt = normalizer(attention_wt)
+
     return attention_am, attention_co, attention_do, attention_ph, attention_tu, attention_wt
 
 # Multivariate attention map
@@ -372,13 +425,14 @@ def multivariate_attention(attention_am, attention_co, attention_do, attention_p
     return attention_total
 
 # Thresholds
-def thresholds(variables_thresholds):
+def thresholds(variables_thresholds, normalize):
 
     """This function calculates the number of times the thresholds are within
     the inervals, for each variable.
     ---------
     Arguments:
     variables_thresholds: The variables and their threshold in each path across all trees.
+    normalize: Whether to normalize the thresholds or not.
 
     Returns:
     thresholds_am: The thresholds for the am variable.
@@ -407,16 +461,25 @@ def thresholds(variables_thresholds):
     thresholds_tu = {key: value for key, value in variables_thresholds_bins.items() if key.startswith('tu')}
     thresholds_wt = {key: value for key, value in variables_thresholds_bins.items() if key.startswith('wt')}
 
+    if normalize:
+        thresholds_am = normalizer(thresholds_am)
+        thresholds_co = normalizer(thresholds_co)
+        thresholds_do = normalizer(thresholds_do)
+        thresholds_ph = normalizer(thresholds_ph)
+        thresholds_tu = normalizer(thresholds_tu)
+        thresholds_wt = normalizer(thresholds_wt)
+
     return thresholds_am, thresholds_co, thresholds_do, thresholds_ph, thresholds_tu, thresholds_wt
 
 # Distances
-def distances(variables_distances):
+def distances(variables_distances, normalize):
 
     """This function calculates the number of times the distances between threshold and value
     are within the inervals, for each variable.
     ---------
     Arguments:
     variables_distances: The variables and their distances in each path across all trees.
+    normalize: Whether to normalize the distances or not.
 
     Returns:
     distances_am: The distances for the am variable.
@@ -445,6 +508,14 @@ def distances(variables_distances):
     distances_ph = {key: value for key, value in variables_distances_bins.items() if key.startswith('ph')}
     distances_tu = {key: value for key, value in variables_distances_bins.items() if key.startswith('tu')}
     distances_wt = {key: value for key, value in variables_distances_bins.items() if key.startswith('wt')}
+
+    if normalize:
+        distances_am = normalizer(distances_am)
+        distances_co = normalizer(distances_co)
+        distances_do = normalizer(distances_do)
+        distances_ph = normalizer(distances_ph)
+        distances_tu = normalizer(distances_tu)
+        distances_wt = normalizer(distances_wt)
 
     return distances_am, distances_co, distances_do, distances_ph, distances_tu, distances_wt
 
@@ -508,7 +579,7 @@ def attention_plotter(attention_maps, event_number, station, type):
     for attention_map, ax, var in zip(attention_maps, axs.flat, variables):
         sns.heatmap(pd.DataFrame(attention_map).T, cmap='Reds', cbar=True, ax=ax)
         ax.set_xlabel('Tree depth', fontsize=21) # It could also be Contextual observations
-        ax.set_ylabel('Temporal observations', fontsize=21)
+        ax.set_ylabel('Time window index', fontsize=21)
         ax.tick_params(axis='both', which='both', rotation=0, labelsize=19)
         ax.set_title(f'{var}', fontname='Arial', fontsize=21)
         
@@ -540,7 +611,7 @@ def multivariate_attention_plotter(attention_total, event_number, station, type)
     plt.figure(figsize=(10, 8))
     sns.heatmap(pd.DataFrame(attention_total).T, cmap='Reds', cbar=True)
     plt.xlabel('Tree depth', fontsize=21)
-    plt.ylabel('Temporal observations', fontsize=21)
+    plt.ylabel('Time window index', fontsize=21)
     plt.tick_params(axis='both', which='both', labelsize=19)
     plt.title('Multivariate path attention', fontname='Arial', fontsize=25)
     # plt.show()
@@ -579,7 +650,7 @@ def threshold_plotter(threshold_maps, event_number, station, type):
     for threshold_map, ax, var in zip(threshold_maps, axs.flat, variables):
         sns.heatmap(pd.DataFrame(threshold_map).T, cmap='Greens', cbar=True, ax=ax)
         ax.set_xlabel('Threshold value', fontsize=21)
-        ax.set_ylabel('Temporal observations', fontsize=21)
+        ax.set_ylabel('Time window index', fontsize=21)
         ax.tick_params(axis='both', which='both', labelsize=19)
         ax.set_title(f'{var}', fontname='Arial', fontsize=21)
 
@@ -618,7 +689,7 @@ def distance_plotter(distance_maps, event_number, station, type):
     for threshold_map, ax, var in zip(distance_maps, axs.flat, variables):
         sns.heatmap(pd.DataFrame(threshold_map).T, cmap='Blues', cbar=True, ax=ax)
         ax.set_xlabel('Distance to threshold', fontsize=21)
-        ax.set_ylabel('Temporal observations', fontsize=21)
+        ax.set_ylabel('Time window index', fontsize=21)
         ax.tick_params(axis='both', which='both', labelsize=19)
         ax.set_title(f'{var}', fontname='Arial', fontsize=21)
 
@@ -954,13 +1025,14 @@ def mean_plotter(data, resolution, num_variables, station, name):
     # Close figure
     plt.close()
 
-def tree_plotter(model, resolution):
+def tree_plotter(model, resolution, tree_number):
 
     """This function plots a tree of a Random Forest model.
     ---------
     Arguments:
     model: The Random Forest model to plot.
     resolution: The resolution of the model.
+    tree_number: The number of the tree to plot.
 
     Returns:
     None.
@@ -1038,8 +1110,8 @@ def tree_plotter(model, resolution):
     # Select the resolution of the feature names
     feature_names = feature_names_high if resolution == 'high' else feature_names_med if resolution == 'med' else feature_names_low
 
-    # Plot the tree ([0] for the first tree in the RF)
-    export_graphviz(model.estimators_[0], out_file='tree.dot',
+    # Plot the tree using the export_graphviz function
+    export_graphviz(model.estimators_[tree_number], out_file='tree.dot',
                     feature_names=feature_names, # Number of data points in a window
                     rounded=True,
                     proportion=False,
@@ -1048,7 +1120,7 @@ def tree_plotter(model, resolution):
 
     # Convert to png using system command (requires Graphviz, which has to be installed, added to PATH, and pip installed)
     from subprocess import call
-    call(['dot', '-Tpng', 'tree.dot', '-o', 'tree_0.png', '-Gdpi=600'])
+    call(['dot', '-Tpng', 'tree.dot', '-o', f'tree_{resolution}_{tree_number}.png', '-Gdpi=600'])
 
 def summarizer(data, num_variables):
     

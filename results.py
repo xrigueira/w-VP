@@ -52,6 +52,7 @@ def majority_vote(high, med, low):
 if __name__ == '__main__':
 
     station = 901
+    normalize = False # Normalize the attention, threshold and distance maps
 
     window_size_high, window_size_med, window_size_low = 32, 16, 8
 
@@ -68,7 +69,7 @@ if __name__ == '__main__':
     model_low = pickle.load(open(filename, 'rb'))
 
     # # Plot a tree
-    # tree_plotter(model_high, 'high')
+    # tree_plotter(model_high, 'high', tree_number=0)
 
     # Load the anomalies data
     file_anomalies = open(f'pickels/anomaly_data_pred.pkl', 'rb')
@@ -121,7 +122,7 @@ if __name__ == '__main__':
     # Initialize the list to store the multivariate attention maps to get the Kullback-Leibler divergence among them
     attention_multivariate_maps = [[], [], []]
     #%% Get the results for the labeled anomalies
-    for event_number_main in anomalies_events:
+    for event_number_main in anomalies_events[:2]:
         logging.info('Processing anomaly event number %d', event_number_main)
 
         # Update data type, starts_ends and X
@@ -129,24 +130,24 @@ if __name__ == '__main__':
         starts_ends = starts_ends_anomalies
         X = X_anomalies
 
-        # Plot the event
-        event_plotter(starts_ends, X, event_number_main, station=station, type=data_type[:2])
-        logging.info('Finished event plot')
+        # # Plot the event
+        # event_plotter(starts_ends, X, event_number_main, station=station, type=data_type[:2])
+        # logging.info('Finished event plot')
 
         # Get the depths of the variables
         variables_depths, variables_thresholds, variables_distances, max_depth = depths(starts_ends, X, models=[model_high, model_med, model_low], event_number=event_number_main)
 
         # Get the attention maps
-        attention_am, attention_co, attention_do, attention_ph, attention_tu, attention_wt = attention(variables_depths, max_depth)
-        
+        attention_am, attention_co, attention_do, attention_ph, attention_tu, attention_wt = attention(variables_depths, max_depth, normalize=normalize)
+
         # Get the multivariate attention map
         attention_multivariate = multivariate_attention(attention_am, attention_co, attention_do, attention_ph, attention_tu, attention_wt)
 
         # Get the threshold maps
-        threshold_am, threshold_co, threshold_do, threshold_ph, threshold_tu, threshold_wt = thresholds(variables_thresholds)
+        threshold_am, threshold_co, threshold_do, threshold_ph, threshold_tu, threshold_wt = thresholds(variables_thresholds, normalize=normalize)
 
         # Get the distance maps
-        distance_am, distance_co, distance_do, distance_ph, distance_tu, distance_wt = distances(variables_distances)
+        distance_am, distance_co, distance_do, distance_ph, distance_tu, distance_wt = distances(variables_distances, normalize=normalize)
 
         # Plot the attention
         attention_maps = [attention_am, attention_co, attention_do, attention_ph, attention_tu, attention_wt]
@@ -170,7 +171,7 @@ if __name__ == '__main__':
         attention_multivariate_maps[0].append(attention_multivariate)
     
     #%% Get the results for the detected anomalies
-    for event_number_main in background_anomalies_events:
+    for event_number_main in background_anomalies_events[:2]:
         logging.info('Processing detected anomaly event number %d', event_number_main)
         
         # Update data type, starts_ends and X
@@ -186,16 +187,16 @@ if __name__ == '__main__':
         variables_depths, variables_thresholds, variables_distances, max_depth = depths(starts_ends, X, models=[model_high, model_med, model_low], event_number=event_number_main)
 
         # Get the attention maps
-        attention_am, attention_co, attention_do, attention_ph, attention_tu, attention_wt = attention(variables_depths, max_depth)
+        attention_am, attention_co, attention_do, attention_ph, attention_tu, attention_wt = attention(variables_depths, max_depth, normalize=normalize)
         
         # Get the multivariate attention map
         attention_multivariate = multivariate_attention(attention_am, attention_co, attention_do, attention_ph, attention_tu, attention_wt)
 
         # Get the threshold maps
-        threshold_am, threshold_co, threshold_do, threshold_ph, threshold_tu, threshold_wt = thresholds(variables_thresholds)
+        threshold_am, threshold_co, threshold_do, threshold_ph, threshold_tu, threshold_wt = thresholds(variables_thresholds, normalize=normalize)
 
         # Get the distance maps
-        distance_am, distance_co, distance_do, distance_ph, distance_tu, distance_wt = distances(variables_distances)
+        distance_am, distance_co, distance_do, distance_ph, distance_tu, distance_wt = distances(variables_distances, normalize=normalize)
 
         # Plot the attention
         attention_maps = [attention_am, attention_co, attention_do, attention_ph, attention_tu, attention_wt]
@@ -219,7 +220,7 @@ if __name__ == '__main__':
         attention_multivariate_maps[1].append(attention_multivariate)
 
     #%% Get the results for the true background events
-    for event_number_main in background_background_events:
+    for event_number_main in background_background_events[:2]:
         logging.info('Processing true background event number %d', event_number_main)
 
         # Update data type, starts_ends and X
@@ -235,16 +236,16 @@ if __name__ == '__main__':
         variables_depths, variables_thresholds, variables_distances, max_depth = depths(starts_ends, X, models=[model_high, model_med, model_low], event_number=event_number_main)
 
         # Get the attention maps
-        attention_am, attention_co, attention_do, attention_ph, attention_tu, attention_wt = attention(variables_depths, max_depth)
+        attention_am, attention_co, attention_do, attention_ph, attention_tu, attention_wt = attention(variables_depths, max_depth, normalize=normalize)
         
         # Get the multivariate attention map
         attention_multivariate = multivariate_attention(attention_am, attention_co, attention_do, attention_ph, attention_tu, attention_wt)
 
         # Get the threshold maps
-        threshold_am, threshold_co, threshold_do, threshold_ph, threshold_tu, threshold_wt = thresholds(variables_thresholds)
+        threshold_am, threshold_co, threshold_do, threshold_ph, threshold_tu, threshold_wt = thresholds(variables_thresholds, normalize=normalize)
 
         # Get the distance maps
-        distance_am, distance_co, distance_do, distance_ph, distance_tu, distance_wt = distances(variables_distances)
+        distance_am, distance_co, distance_do, distance_ph, distance_tu, distance_wt = distances(variables_distances, normalize=normalize)
 
         # Plot the attention
         attention_maps = [attention_am, attention_co, attention_do, attention_ph, attention_tu, attention_wt]
@@ -273,105 +274,105 @@ if __name__ == '__main__':
     # # Load the attention maps
     # # attention_multivariate_maps = np.load(f'results/attention_multivariate_maps_{station}.npy', allow_pickle=True, fix_imports=False).tolist()
 
-    #%% Get the Kullback-Leibler divergence between each anomaly, detected anomaly and true background with every other event
-    kl_distances = [[], [], []]
-    # TODO: the following code can be optimized
-    # Compare the labeled anomalies
-    for event_number, event_attention in zip(anomalies_events, attention_multivariate_maps[0]):
+    # #%% Get the Kullback-Leibler divergence between each anomaly, detected anomaly and true background with every other event
+    # kl_distances = [[], [], []]
+    # # TODO: the following code can be optimized
+    # # Compare the labeled anomalies
+    # for event_number, event_attention in zip(anomalies_events, attention_multivariate_maps[0]):
 
-        data_type = 'anomalies'
+    #     data_type = 'anomalies'
 
-        # Compare with the labeled anomalies
-        for compare_event_number, compare_event_attention in enumerate(attention_multivariate_maps[0]):
-            kl_distance = kl_divergence(event_attention, compare_event_attention)
+    #     # Compare with the labeled anomalies
+    #     for compare_event_number, compare_event_attention in enumerate(attention_multivariate_maps[0]):
+    #         kl_distance = kl_divergence(event_attention, compare_event_attention)
             
-            # Append to the corresponding list based on the group being compared to
-            kl_distances[0].append(kl_distance)
+    #         # Append to the corresponding list based on the group being compared to
+    #         kl_distances[0].append(kl_distance)
         
-        # Compare with the detected anomalies
-        for compare_event_number, compare_event_attention in enumerate(attention_multivariate_maps[1]):
-            kl_distance = kl_divergence(event_attention, compare_event_attention)
+    #     # Compare with the detected anomalies
+    #     for compare_event_number, compare_event_attention in enumerate(attention_multivariate_maps[1]):
+    #         kl_distance = kl_divergence(event_attention, compare_event_attention)
             
-            # Append to the corresponding list based on the group being compared to
-            kl_distances[1].append(kl_distance)
+    #         # Append to the corresponding list based on the group being compared to
+    #         kl_distances[1].append(kl_distance)
         
-        # Compare with the true background
-        for compare_event_number, compare_event_attention in enumerate(attention_multivariate_maps[2]):
-            kl_distance = kl_divergence(event_attention, compare_event_attention)
+    #     # Compare with the true background
+    #     for compare_event_number, compare_event_attention in enumerate(attention_multivariate_maps[2]):
+    #         kl_distance = kl_divergence(event_attention, compare_event_attention)
             
-            # Append to the corresponding list based on the group being compared to
-            kl_distances[2].append(kl_distance)
+    #         # Append to the corresponding list based on the group being compared to
+    #         kl_distances[2].append(kl_distance)
 
-        # Plot the KL divergences
-        kl_plotter(kl_distances, event_number, station, data_type[:2])
+    #     # Plot the KL divergences
+    #     kl_plotter(kl_distances, event_number, station, data_type[:2])
 
-        # Reset the list
-        kl_distances = [[], [], []]
-    logging.info('Finished kl distances with labeled anomalies')
+    #     # Reset the list
+    #     kl_distances = [[], [], []]
+    # logging.info('Finished kl distances with labeled anomalies')
     
-    # Compare the detected anomalies
-    for event_number, event_attention in zip(background_anomalies_events, attention_multivariate_maps[1]):
+    # # Compare the detected anomalies
+    # for event_number, event_attention in zip(background_anomalies_events, attention_multivariate_maps[1]):
         
-        data_type = 'background'
+    #     data_type = 'background'
 
-        # Compare with the labeled anomalies
-        for compare_event_number, compare_event_attention in enumerate(attention_multivariate_maps[0]):
-            kl_distance = kl_divergence(event_attention, compare_event_attention)
+    #     # Compare with the labeled anomalies
+    #     for compare_event_number, compare_event_attention in enumerate(attention_multivariate_maps[0]):
+    #         kl_distance = kl_divergence(event_attention, compare_event_attention)
             
-            # Append to the corresponding list based on the group being compared to
-            kl_distances[0].append(kl_distance)
+    #         # Append to the corresponding list based on the group being compared to
+    #         kl_distances[0].append(kl_distance)
         
-        # Compare with the detected anomalies
-        for compare_event_number, compare_event_attention in enumerate(attention_multivariate_maps[1]):
-            kl_distance = kl_divergence(event_attention, compare_event_attention)
+    #     # Compare with the detected anomalies
+    #     for compare_event_number, compare_event_attention in enumerate(attention_multivariate_maps[1]):
+    #         kl_distance = kl_divergence(event_attention, compare_event_attention)
             
-            # Append to the corresponding list based on the group being compared to
-            kl_distances[1].append(kl_distance)
+    #         # Append to the corresponding list based on the group being compared to
+    #         kl_distances[1].append(kl_distance)
         
-        # Compare with the true background
-        for compare_event_number, compare_event_attention in enumerate(attention_multivariate_maps[2]):
-            kl_distance = kl_divergence(event_attention, compare_event_attention)
+    #     # Compare with the true background
+    #     for compare_event_number, compare_event_attention in enumerate(attention_multivariate_maps[2]):
+    #         kl_distance = kl_divergence(event_attention, compare_event_attention)
             
-            # Append to the corresponding list based on the group being compared to
-            kl_distances[2].append(kl_distance)
+    #         # Append to the corresponding list based on the group being compared to
+    #         kl_distances[2].append(kl_distance)
 
-        # Plot the KL divergences
-        kl_plotter(kl_distances, event_number, station, data_type[:2])
+    #     # Plot the KL divergences
+    #     kl_plotter(kl_distances, event_number, station, data_type[:2])
 
-        # Reset the list
-        kl_distances = [[], [], []]
-    logging.info('Finished kl distances with detected anomalies')
+    #     # Reset the list
+    #     kl_distances = [[], [], []]
+    # logging.info('Finished kl distances with detected anomalies')
         
-    # Compare the true background
-    for event_number, event_attention in zip(background_background_events, attention_multivariate_maps[2]):
+    # # Compare the true background
+    # for event_number, event_attention in zip(background_background_events, attention_multivariate_maps[2]):
             
-        data_type = 'background'
+    #     data_type = 'background'
 
-        # Compare with the labeled anomalies
-        for compare_event_number, compare_event_attention in enumerate(attention_multivariate_maps[0]):
-            kl_distance = kl_divergence(event_attention, compare_event_attention)
+    #     # Compare with the labeled anomalies
+    #     for compare_event_number, compare_event_attention in enumerate(attention_multivariate_maps[0]):
+    #         kl_distance = kl_divergence(event_attention, compare_event_attention)
             
-            # Append to the corresponding list based on the group being compared to
-            kl_distances[0].append(kl_distance)
+    #         # Append to the corresponding list based on the group being compared to
+    #         kl_distances[0].append(kl_distance)
         
-        # Compare with the detected anomalies
-        for compare_event_number, compare_event_attention in enumerate(attention_multivariate_maps[1]):
-            kl_distance = kl_divergence(event_attention, compare_event_attention)
+    #     # Compare with the detected anomalies
+    #     for compare_event_number, compare_event_attention in enumerate(attention_multivariate_maps[1]):
+    #         kl_distance = kl_divergence(event_attention, compare_event_attention)
             
-            # Append to the corresponding list based on the group being compared to
-            kl_distances[1].append(kl_distance)
+    #         # Append to the corresponding list based on the group being compared to
+    #         kl_distances[1].append(kl_distance)
         
-        # Compare with the true background
-        for compare_event_number, compare_event_attention in enumerate(attention_multivariate_maps[2]):
-            kl_distance = kl_divergence(event_attention, compare_event_attention)
+    #     # Compare with the true background
+    #     for compare_event_number, compare_event_attention in enumerate(attention_multivariate_maps[2]):
+    #         kl_distance = kl_divergence(event_attention, compare_event_attention)
             
-            # Append to the corresponding list based on the group being compared to
-            kl_distances[2].append(kl_distance)
+    #         # Append to the corresponding list based on the group being compared to
+    #         kl_distances[2].append(kl_distance)
 
-        # Plot the KL divergences
-        kl_plotter(kl_distances, event_number, station, data_type[:2])
+    #     # Plot the KL divergences
+    #     kl_plotter(kl_distances, event_number, station, data_type[:2])
 
-        # Reset the list
-        kl_distances = [[], [], []]
+    #     # Reset the list
+    #     kl_distances = [[], [], []]
 
-    logging.info('Finished kl distances with background')
+    # logging.info('Finished kl distances with background')

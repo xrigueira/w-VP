@@ -195,7 +195,7 @@ sns.ecdfplot(data=tu_907_filled, color='goldenrod', ax=axes[2, 4])
 sns.ecdfplot(data=wt_907_gaps, color='limegreen', ax=axes[2, 5])
 sns.ecdfplot(data=wt_907_filled, color='green', ax=axes[2, 5])
 
-# Clean defaul y label and reduce font size for all axes
+# Clean default y label and reduce font size for all axes
 for ax in axes.flat:
     ax.set_ylabel('')
     ax.tick_params(axis='both', which='major', labelsize=12)
@@ -203,14 +203,14 @@ for ax in axes.flat:
 # Set the title for each variable
 var_names = ['Ammonium', 'Conductivity', 'Dissolved oxygen', 'pH', 'Turbidity', 'Water temperature']
 for i, ax in enumerate(axes[0]):
-    ax.set_title(var_names[i], fontfamily='serif', fontsize=16)
+    ax.set_title(var_names[i], fontname='Arial', fontsize=18)
 
 # Set the y label for each variable
 stations = ['Station 901', 'Station 905', 'Station 907']
 for i, ax in enumerate(axes):
-    ax[0].set_ylabel(stations[i], fontfamily='serif', fontsize=16)
+    ax[0].set_ylabel(stations[i], fontname='Arial', fontsize=18)
 
-fig.suptitle('Empirical cumulative distributions before and after imputation', fontfamily='serif', fontsize=20)
+fig.suptitle('Empirical cumulative distributions before and after imputation', fontname='Arial', fontsize=22)
 plt.tight_layout()
 # plt.show()
 

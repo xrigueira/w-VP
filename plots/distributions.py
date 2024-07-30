@@ -135,14 +135,14 @@ for ax in axes.flat:
 # Set the title for each variable
 var_names = ['Ammonium', 'Conductivity', 'Dissolved oxygen', 'pH', 'Turbidity', 'Water temperature']
 for i, ax in enumerate(axes[0]):
-    ax.set_title(var_names[i], fontfamily='serif', fontsize=18)
+    ax.set_title(var_names[i], fontfamily='Arial', fontsize=18)
 
 # Set the y label for each variable
 stations = ['Station 901', 'Station 905', 'Station 907']
 for i, ax in enumerate(axes):
-    ax[0].set_ylabel(stations[i], fontfamily='serif', fontsize=18)
+    ax[0].set_ylabel(stations[i], fontname='Arial', fontsize=18)
 
-fig.suptitle(f'Statistical distributions of anomalies and background instances', fontfamily='serif', fontsize=20)
+fig.suptitle(f'Statistical distributions of anomalies and background events', fontname='Arial', fontsize=22)
 plt.tight_layout()
 # plt.show()
 
