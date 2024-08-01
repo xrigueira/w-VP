@@ -106,9 +106,13 @@ def event_plotter(starts_ends, X, event_number, station, type):
     window_plotter(data=event_data, num_variables=6, legend=True, event_number=event_number, station=station, type=type)
 
 # Depth function
-def depths(starts_ends, X, models: list, event_number: int):
+def depths_mixed(starts_ends, X, models: list, event_number: int):
     
-    """This function extracts the depths at which each instance of the
+    """Same as depths but does not separate the results by resolutions, which
+    is technically inducing a lot of bias. This is because low resolutions only have 
+    from -4 to 4 to choose from compared to high, which has form -16 to 16, and low res
+    has even more nodes in its trees.
+    This function extracts the depths at which each instance of the
     feature vectors (window) that make up given eventa appears from the 
     decision paths of a Random Forest model considering all trees across 
     all resolutions.
@@ -198,15 +202,17 @@ def depths(starts_ends, X, models: list, event_number: int):
     variables_thresholds = {}
     variables_distances = {}
 
-    # Set the keys for the variable depths, thresholds, and distances to the variable names in the feature names high
-    for resolution in resolutions:
-        variables_depths[resolution] = {}
-        variables_thresholds[resolution] = {}
-        variables_distances[resolution] = {}
-        for feature_name in feature_names_high:
-            variables_depths[resolution][feature_name] = []
-            variables_thresholds[resolution][feature_name] = []
-            variables_distances[resolution][feature_name] = []
+    # Set the keys for the variable depths to the variable names in the feature names high
+    for feature_name in feature_names_high:
+        variables_depths[feature_name] = []
+    
+    # Set the keys for the variable thresholds to the variable names in the feature names high
+    for feature_name in feature_names_high:
+        variables_thresholds[feature_name] = []
+
+    # Set the keys for the variable distances to the variable names in the feature names high
+    for feature_name in feature_names_high:
+        variables_distances[feature_name] = []
 
     # Set the max depth to 0
     max_depth = 0
@@ -267,24 +273,24 @@ def depths(starts_ends, X, models: list, event_number: int):
             # Extract variable names and their positions
             for features in subset_feature_names:
                 for i, feature in enumerate(features):
-                    if feature not in variables_depths[resolution]:
-                        variables_depths[resolution][feature] = []
-                    variables_depths[resolution][feature].append(i)
+                    if feature not in variables_depths:
+                        variables_depths[feature] = []
+                    variables_depths[feature].append(i)
 
             # Extract the thresholds for each variable 
             for features, thresholds in zip(subset_feature_names, subset_feature_thresholds):
                 for feature, threshold in zip(features, thresholds):
-                    if feature not in variables_thresholds[resolution]:
-                        variables_thresholds[resolution][feature] = []
-                    variables_thresholds[resolution][feature].append(threshold)
+                    if feature not in variables_thresholds:
+                        variables_thresholds[feature] = []
+                    variables_thresholds[feature].append(threshold)
             
             # Extract the distance between the threshold and the value for each variable
             for features, thresholds, values in zip(subset_feature_names, subset_feature_thresholds, subset_feature_values):
                 for feature, threshold, value in zip(features, thresholds, values):
-                    if feature not in variables_distances[resolution]:
-                        variables_distances[resolution][feature] = []
+                    if feature not in variables_distances:
+                        variables_distances[feature] = []
                     distance = value - threshold
-                    variables_distances[resolution][feature].append(distance)
+                    variables_distances[feature].append(distance)
             
             # Calculate the depth and update the value
             depth = max([len(sublist) for sublist in subset_feature_names])
@@ -292,107 +298,11 @@ def depths(starts_ends, X, models: list, event_number: int):
 
     return variables_depths, variables_thresholds, variables_distances, max_depth
 
-def normalizer(dictionary):
-
-    """This function normalizes the values of a dictionary, so they
-    can be added together and weighted.
-    The feature vector of all resolutions (high, med, low) share
-    the items between -4, and 4. Thefore, if not normalized, the
-    results will be biased.
-    Same with the items between -8 and -5 and 5 and 8, which are
-    present in both the high and medium resolutions.
-    ---------
-    Arguments:
-    dictionary: The dictionary to be normalized.
-
-    Returns:
-    dictionary: The normalized dictionary.
-    """
-
-    # Define the resolutions
-    resolutions = ['high', 'med', 'low']
-    
-    # Normalize the values between 0 and 1 for each resolution separately
-    for resolution in resolutions:
-
-        # Initialize the list to store all values
-        am_values, co_values, do_values, ph_values, tu_values, wt_values = [], [], [], [], [], []
-
-        # Extract the values for each variable
-        for key in dictionary[resolution].keys():
-            if key.startswith('am'):
-                am_values.extend(dictionary[resolution][key])
-            elif key.startswith('co'):
-                co_values.extend(dictionary[resolution][key])
-            elif key.startswith('do'):
-                do_values.extend(dictionary[resolution][key])
-            elif key.startswith('ph'):
-                ph_values.extend(dictionary[resolution][key])
-            elif key.startswith('tu'):
-                tu_values.extend(dictionary[resolution][key])
-            elif key.startswith('wt'):
-                wt_values.extend(dictionary[resolution][key])
-        
-        # Find the maximum and minimum values for each variable
-        max_am, min_am = max(am_values), min(am_values)
-        max_co, min_co = max(co_values), min(co_values)
-        max_do, min_do = max(do_values), min(do_values)
-        max_ph, min_ph = max(ph_values), min(ph_values)
-        max_tu, min_tu = max(tu_values), min(tu_values)
-        max_wt, min_wt = max(wt_values), min(wt_values)
-
-        # Normalize the values for each variable
-        for key in dictionary[resolution].keys():
-            if key.startswith('am') and (max_am - min_am) != 0:
-                dictionary[resolution][key] = [(x - min_am) / (max_am - min_am) for x in dictionary[resolution][key]]
-            elif key.startswith('co') and (max_co - min_co) != 0:
-                dictionary[resolution][key] = [(x - min_co) / (max_co - min_co) for x in dictionary[resolution][key]]
-            elif key.startswith('do') and (max_do - min_do) != 0:
-                dictionary[resolution][key] = [(x - min_do) / (max_do - min_do) for x in dictionary[resolution][key]]
-            elif key.startswith('ph') and (max_ph - min_ph) != 0:
-                dictionary[resolution][key] = [(x - min_ph) / (max_ph - min_ph) for x in dictionary[resolution][key]]
-            elif key.startswith('tu') and (max_tu - min_tu) != 0:
-                dictionary[resolution][key] = [(x - min_tu) / (max_tu - min_tu) for x in dictionary[resolution][key]]
-            elif key.startswith('wt') and (max_wt - min_wt) != 0:
-                dictionary[resolution][key] = [(x - min_wt) / (max_wt - min_wt) for x in dictionary[resolution][key]]
-    
-    return dictionary
-
-def weighter(multiresolution_map):
-    
-    """This applies weights to the multiresolution attention map
-    in order to normalize the values across all three resolutions.
-    ---------
-    Arguments:
-    multiresolution_map: The multiresolution map.
-    
-    Returns:
-    multiresolution_map: The weighted multiresolution attention map."""
-
-    # Use weights to normalize the multiresolution map
-    suffixes_low = ['-4', '-3', '-2', '-1', '+1', '+2', '+3', '+4']
-    for key in multiresolution_map.keys():
-        if any(key.endswith(suffix) for suffix in suffixes_low):
-            multiresolution_map[key] = [x / 9 for x in multiresolution_map[key]]
-
-    suffixes_med = ['-8', '-7', '-6', '-5', '+5', '+6', '+7', '+8']
-    for key in multiresolution_map.keys():
-        if any(key.endswith(suffix) for suffix in suffixes_med):
-            multiresolution_map[key] = [x / 6 for x in multiresolution_map[key]]
-    
-    suffixes_high = ['-16', '-15', '-14', '-13', '-12', '-11', '-10', '-9', '+9', '+10', '+11', '+12', '+13', '+14', '+15', '+16']
-    for key in multiresolution_map.keys():
-        if any(key.endswith(suffix) for suffix in suffixes_high):
-            multiresolution_map[key] = [x / 3 for x in multiresolution_map[key]]
-    
-    return multiresolution_map
-
 # Attention maps
 def attention(variables_depth, max_depth):
 
     """This function calculates the attention maps for each variable
-    in each resolution based on the depth at which they appear in the 
-    decision paths.
+    based on the depth at which they appear in the decision paths.
     ---------
     Arguments:
     variables_depth: The variables and their depth in each path across all trees.
@@ -407,55 +317,32 @@ def attention(variables_depth, max_depth):
     attention_tu: The attention map for the tu variable.
     attention_wt: The attention map for the wt variable.
     """
-    
-    # Initialize the resolution names
-    resolutions = ['high', 'med', 'low']
-
-    # Initialize the attention maps
-    attention = {resolution: {} for resolution in resolutions}
 
     # Get the number of times each variable appears at each depth
-    for resolution in resolutions:
-        frequency_depth = np.zeros((len(variables_depth[resolution]), max_depth))
-        for i, var in enumerate(variables_depth[resolution].keys()):
-            for pos in variables_depth[resolution][var]:
-                frequency_depth[i, pos] += 1
+    frequency_depth = np.zeros((len(variables_depth), max_depth))
+    for i, var in enumerate(variables_depth.keys()):
+        for pos in variables_depth[var]:
+            frequency_depth[i, pos] += 1
 
-        # Convert data to int
-        frequency_depth = frequency_depth.astype(int) 
+    # Convert data to int
+    frequency_depth = frequency_depth.astype(int) 
 
-        # Assign the data to the dictionary with the same keys
-        for var in variables_depth[resolution].keys():
-            attention[resolution][var] = []
-        
-        for i, var in enumerate(variables_depth[resolution].keys()):
-            for j in range(max_depth):
-                attention[resolution][var].append(frequency_depth[i, j])
-
-    # Normalize the attention maps
-    attention = normalizer(attention)
-
-    # Initialize the multiresolution attention map
-    attention_multiresolution = {}
-    for key in attention['high'].keys():
-        attention_multiresolution[key] = [0] * max_depth
-
-    # Perform element-wise addition of the attention maps to obtain the total attention
-    for resolution in resolutions:
-        for key in attention[resolution]:
-            for i in range(max_depth):
-                attention_multiresolution[key][i] += attention[resolution][key][i]
-
-    # Use weights to normalize the multiresolution attention map
-    attention_multiresolution = weighter(attention_multiresolution)
+    # Assign the data to the dictionary with the same keys
+    attention = {}
+    for var in variables_depth.keys():
+        attention[var] = []
+    
+    for i, var in enumerate(variables_depth.keys()):
+        for j in range(max_depth):
+            attention[var].append(frequency_depth[i, j])
 
     # Subset the attention for each variable
-    attention_am = {key: value for key, value in attention_multiresolution.items() if key.startswith('am')}
-    attention_co = {key: value for key, value in attention_multiresolution.items() if key.startswith('co')}
-    attention_do = {key: value for key, value in attention_multiresolution.items() if key.startswith('do')}
-    attention_ph = {key: value for key, value in attention_multiresolution.items() if key.startswith('ph')}
-    attention_tu = {key: value for key, value in attention_multiresolution.items() if key.startswith('tu')}
-    attention_wt = {key: value for key, value in attention_multiresolution.items() if key.startswith('wt')}
+    attention_am = {key: value for key, value in attention.items() if key.startswith('am')}
+    attention_co = {key: value for key, value in attention.items() if key.startswith('co')}
+    attention_do = {key: value for key, value in attention.items() if key.startswith('do')}
+    attention_ph = {key: value for key, value in attention.items() if key.startswith('ph')}
+    attention_tu = {key: value for key, value in attention.items() if key.startswith('tu')}
+    attention_wt = {key: value for key, value in attention.items() if key.startswith('wt')}
 
     return attention_am, attention_co, attention_do, attention_ph, attention_tu, attention_wt
 
@@ -508,48 +395,24 @@ def thresholds(variables_thresholds):
     thresholds_tu: The thresholds for the tu variable.
     thresholds_wt: The thresholds for the wt variable.
     """
-    
-    # Initialize the resolution names
-    resolutions = ['high', 'med', 'low']
 
     # Define the intervals for the thresholds [0, 0.05), [0.05, 0.1), ..., [0.95, 1]
     intervals_thresholds = [(i / 20, (i + 1) / 20) for i in range(20)]
 
-    # Initialize the dictionary to store the thresholds for each variable
-    variables_thresholds_bins = {resolutions: {} for resolutions in resolutions}
-
-    for resolution in resolutions:
-        variables_thresholds_bins[resolution] = {key: [0] * len(intervals_thresholds) for key in variables_thresholds[resolution].keys()}
-        for i, (start, end) in enumerate(intervals_thresholds):
-            for var in variables_thresholds[resolution].keys():
-                for threshold in variables_thresholds[resolution][var]:
-                    if start <= threshold < end:
-                        variables_thresholds_bins[resolution][var][i] += 1
-    
-    # Normalize the thresholds
-    variables_thresholds_bins = normalizer(variables_thresholds_bins)
-
-    # Initialize the multiresolution threshold maps
-    thresholds_multiresolution = {}
-    for key in variables_thresholds_bins['high'].keys():
-        thresholds_multiresolution[key] = [0] * len(intervals_thresholds)
-
-    # Perform element-wise addition of the thresholds to obtain the total thresholds
-    for resolution in resolutions:
-        for key in variables_thresholds_bins[resolution]:
-            for i in range(len(intervals_thresholds)):
-                thresholds_multiresolution[key][i] += variables_thresholds_bins[resolution][key][i]
-    
-    # Use weights to normalize the multiresolution threshold map
-    thresholds_multiresolution = weighter(thresholds_multiresolution)
+    variables_thresholds_bins = {key: [0] * len(intervals_thresholds) for key in variables_thresholds.keys()}
+    for i, (start, end) in enumerate(intervals_thresholds):
+        for var in variables_thresholds.keys():
+            for threshold in variables_thresholds[var]:
+                if start <= threshold < end:
+                    variables_thresholds_bins[var][i] += 1
 
     # Subset the thresholds for each variable
-    thresholds_am = {key: value for key, value in thresholds_multiresolution.items() if key.startswith('am')}
-    thresholds_co = {key: value for key, value in thresholds_multiresolution.items() if key.startswith('co')}
-    thresholds_do = {key: value for key, value in thresholds_multiresolution.items() if key.startswith('do')}
-    thresholds_ph = {key: value for key, value in thresholds_multiresolution.items() if key.startswith('ph')}
-    thresholds_tu = {key: value for key, value in thresholds_multiresolution.items() if key.startswith('tu')}
-    thresholds_wt = {key: value for key, value in thresholds_multiresolution.items() if key.startswith('wt')}
+    thresholds_am = {key: value for key, value in variables_thresholds_bins.items() if key.startswith('am')}
+    thresholds_co = {key: value for key, value in variables_thresholds_bins.items() if key.startswith('co')}
+    thresholds_do = {key: value for key, value in variables_thresholds_bins.items() if key.startswith('do')}
+    thresholds_ph = {key: value for key, value in variables_thresholds_bins.items() if key.startswith('ph')}
+    thresholds_tu = {key: value for key, value in variables_thresholds_bins.items() if key.startswith('tu')}
+    thresholds_wt = {key: value for key, value in variables_thresholds_bins.items() if key.startswith('wt')}
 
     return thresholds_am, thresholds_co, thresholds_do, thresholds_ph, thresholds_tu, thresholds_wt
 
@@ -572,47 +435,24 @@ def distances(variables_distances):
     distances_wt: The distances for the wt variable.
     """
 
-    # Initialize the resolution names
-    resolutions = ['high', 'med', 'low']
-    
     # Define the intervals for the distances [-1, -0.9), [-0.9, -0.8), ..., [0.9, 1]
     intervals_distances = [(i / 10, (i + 1) / 10) for i in range(-10, 10)]
 
-    # Initialize the dictionary to store the distances for each variable
-    variables_distances_bins = {resolutions: {} for resolutions in resolutions}
+    variables_distances_bins = {key: [0] * len(intervals_distances) for key in variables_distances.keys()}
 
-    for resolution in resolutions:
-        variables_distances_bins[resolution] = {key: [0] * len(intervals_distances) for key in variables_distances[resolution].keys()}
-        for i, (start, end) in enumerate(intervals_distances):
-            for var in variables_distances[resolution].keys():
-                for distance in variables_distances[resolution][var]:
-                    if start <= distance < end:
-                        variables_distances_bins[resolution][var][i] += 1
-    
-    # Normalize the distances
-    variables_distances_bins = normalizer(variables_distances_bins)
-
-    # Initialize the multiresolution distance maps
-    distances_multiresolution = {}
-    for key in variables_distances_bins['high'].keys():
-        distances_multiresolution[key] = [0] * len(intervals_distances)
-    
-    # Perform element-wise addition of the distances to obtain the total distances
-    for resolution in resolutions:
-        for key in variables_distances_bins[resolution]:
-            for i in range(len(intervals_distances)):
-                distances_multiresolution[key][i] += variables_distances_bins[resolution][key][i]
-    
-    # Use weights to normalize the multiresolution distance map
-    distances_multiresolution = weighter(distances_multiresolution)
+    for i, (start, end) in enumerate(intervals_distances):
+        for var in variables_distances.keys():
+            for distance in variables_distances[var]:
+                if start <= distance < end:
+                    variables_distances_bins[var][i] += 1
     
     # Subset the distances for each variable
-    distances_am = {key: value for key, value in distances_multiresolution.items() if key.startswith('am')}
-    distances_co = {key: value for key, value in distances_multiresolution.items() if key.startswith('co')}
-    distances_do = {key: value for key, value in distances_multiresolution.items() if key.startswith('do')}
-    distances_ph = {key: value for key, value in distances_multiresolution.items() if key.startswith('ph')}
-    distances_tu = {key: value for key, value in distances_multiresolution.items() if key.startswith('tu')}
-    distances_wt = {key: value for key, value in distances_multiresolution.items() if key.startswith('wt')}
+    distances_am = {key: value for key, value in variables_distances_bins.items() if key.startswith('am')}
+    distances_co = {key: value for key, value in variables_distances_bins.items() if key.startswith('co')}
+    distances_do = {key: value for key, value in variables_distances_bins.items() if key.startswith('do')}
+    distances_ph = {key: value for key, value in variables_distances_bins.items() if key.startswith('ph')}
+    distances_tu = {key: value for key, value in variables_distances_bins.items() if key.startswith('tu')}
+    distances_wt = {key: value for key, value in variables_distances_bins.items() if key.startswith('wt')}
 
     return distances_am, distances_co, distances_do, distances_ph, distances_tu, distances_wt
 
