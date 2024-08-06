@@ -670,11 +670,11 @@ def attention_plotter(attention_maps, event_number, station, type):
     variables = ['Ammonium', 'Conductivity', 'Dissolved oxygen', 'pH', 'Turbidity', 'Water temperature']
     
     # Define the plot
-    fig, axs = plt.subplots(2, 3, figsize=(20, 10))
+    fig, axs = plt.subplots(2, 3, figsize=(16, 10))
     fig.suptitle('Univariate path attention', fontname='Arial', fontsize=25)
 
     for attention_map, ax, var in zip(attention_maps, axs.flat, variables):
-        sns.heatmap(pd.DataFrame(attention_map).T, cmap='Reds', cbar=True, ax=ax)
+        sns.heatmap(pd.DataFrame(attention_map).T, cmap='Reds', cbar=False, ax=ax)
         ax.set_xlabel('Tree depth', fontsize=21) # It could also be Contextual observations
         ax.set_ylabel('Time window index', fontsize=21)
         ax.tick_params(axis='both', which='both', rotation=0, labelsize=19)
@@ -705,8 +705,8 @@ def multivariate_attention_plotter(attention_total, event_number, station, type)
     None."""
 
     # Define the plot
-    plt.figure(figsize=(10, 8))
-    sns.heatmap(pd.DataFrame(attention_total).T, cmap='Reds', cbar=True)
+    plt.figure(figsize=(8, 8))
+    sns.heatmap(pd.DataFrame(attention_total).T, cmap='Reds', cbar=False)
     plt.xlabel('Tree depth', fontsize=21)
     plt.ylabel('Time window index', fontsize=21)
     plt.tick_params(axis='both', which='both', labelsize=19)
@@ -741,11 +741,11 @@ def threshold_plotter(threshold_maps, event_number, station, type):
     variables = ['Ammonium', 'Conductivity', 'Dissolved oxygen', 'pH', 'Turbidity', 'Water temperature']
 
     # Define the plot
-    fig, axs = plt.subplots(2, 3, figsize=(20, 10))
+    fig, axs = plt.subplots(2, 3, figsize=(16, 10))
     fig.suptitle('Univariate learned thresholds', fontname='Arial', fontsize=25)
 
     for threshold_map, ax, var in zip(threshold_maps, axs.flat, variables):
-        sns.heatmap(pd.DataFrame(threshold_map).T, cmap='Greens', cbar=True, ax=ax)
+        sns.heatmap(pd.DataFrame(threshold_map).T, cmap='Greens', cbar=False, ax=ax)
         ax.set_xlabel('Threshold value', fontsize=21)
         ax.set_ylabel('Time window index', fontsize=21)
         ax.tick_params(axis='both', which='both', labelsize=19)
@@ -780,11 +780,11 @@ def distance_plotter(distance_maps, event_number, station, type):
     variables = ['Ammonium', 'Conductivity', 'Dissolved oxygen', 'pH', 'Turbidity', 'Water temperature']
 
     # Define the plot
-    fig, axs = plt.subplots(2, 3, figsize=(20, 10))
+    fig, axs = plt.subplots(2, 3, figsize=(16, 10))
     fig.suptitle('Univariate distance to threshold', fontname='Arial', fontsize=25)
 
     for threshold_map, ax, var in zip(distance_maps, axs.flat, variables):
-        sns.heatmap(pd.DataFrame(threshold_map).T, cmap='Blues', cbar=True, ax=ax)
+        sns.heatmap(pd.DataFrame(threshold_map).T, cmap='Blues', cbar=False, ax=ax)
         ax.set_xlabel('Distance to threshold', fontsize=21)
         ax.set_ylabel('Time window index', fontsize=21)
         ax.tick_params(axis='both', which='both', labelsize=19)

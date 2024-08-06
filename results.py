@@ -120,152 +120,155 @@ if __name__ == '__main__':
 
     # Initialize the list to store the multivariate attention maps to get the Kullback-Leibler divergence among them
     attention_multivariate_maps = [[], [], []]
-    # #%% Get the results for the labeled anomalies
-    # for event_number_main in anomalies_events[:2]:
-    #     logging.info('Processing anomaly event number %d', event_number_main)
+    #%% Get the results for the labeled anomalies
+    for event_number_main in anomalies_events[1:2]:
+        if event_number_main == 1:
+            logging.info('Processing anomaly event number %d', event_number_main)
 
-    #     # Update data type, starts_ends and X
-    #     data_type = 'anomalies'
-    #     starts_ends = starts_ends_anomalies
-    #     X = X_anomalies
+            # Update data type, starts_ends and X
+            data_type = 'anomalies'
+            starts_ends = starts_ends_anomalies
+            X = X_anomalies
 
-    #     # Plot the event
-    #     event_plotter(starts_ends, X, event_number_main, station=station, type=data_type[:2])
-    #     logging.info('Finished event plot')
+            # Plot the event
+            event_plotter(starts_ends, X, event_number_main, station=station, type=data_type[:2])
+            logging.info('Finished event plot')
 
-    #     # Get the depths of the variables
-    #     variables_depths, variables_thresholds, variables_distances, max_depth = depths(starts_ends, X, models=[model_high, model_med, model_low], event_number=event_number_main)
+            # Get the depths of the variables
+            variables_depths, variables_thresholds, variables_distances, max_depth = depths(starts_ends, X, models=[model_high, model_med, model_low], event_number=event_number_main)
 
-    #     # Get the attention maps
-    #     attention_am, attention_co, attention_do, attention_ph, attention_tu, attention_wt = attention(variables_depths, max_depth)
+            # Get the attention maps
+            attention_am, attention_co, attention_do, attention_ph, attention_tu, attention_wt = attention(variables_depths, max_depth)
 
-    #     # Get the multivariate attention map
-    #     attention_multivariate = multivariate_attention(attention_am, attention_co, attention_do, attention_ph, attention_tu, attention_wt)
+            # Get the multivariate attention map
+            attention_multivariate = multivariate_attention(attention_am, attention_co, attention_do, attention_ph, attention_tu, attention_wt)
 
-    #     # Get the threshold maps
-    #     threshold_am, threshold_co, threshold_do, threshold_ph, threshold_tu, threshold_wt = thresholds(variables_thresholds)
+            # Get the threshold maps
+            threshold_am, threshold_co, threshold_do, threshold_ph, threshold_tu, threshold_wt = thresholds(variables_thresholds)
 
-    #     # Get the distance maps
-    #     distance_am, distance_co, distance_do, distance_ph, distance_tu, distance_wt = distances(variables_distances)
+            # Get the distance maps
+            distance_am, distance_co, distance_do, distance_ph, distance_tu, distance_wt = distances(variables_distances)
 
-    #     # Plot the attention
-    #     attention_maps = [attention_am, attention_co, attention_do, attention_ph, attention_tu, attention_wt]
-    #     attention_plotter(attention_maps, event_number=event_number_main, station=station, type=data_type[:2])
+            # Plot the attention
+            attention_maps = [attention_am, attention_co, attention_do, attention_ph, attention_tu, attention_wt]
+            attention_plotter(attention_maps, event_number=event_number_main, station=station, type=data_type[:2])
 
-    #     # Plot the multivariate attention
-    #     multivariate_attention_plotter(attention_multivariate, event_number=event_number_main, station=station, type=data_type[:2])
-    #     logging.info('Finished attention maps')
+            # Plot the multivariate attention
+            multivariate_attention_plotter(attention_multivariate, event_number=event_number_main, station=station, type=data_type[:2])
+            logging.info('Finished attention maps')
 
-    #     # Plot the threshold
-    #     threshold_maps = [threshold_am, threshold_co, threshold_do, threshold_ph, threshold_tu, threshold_wt]
-    #     threshold_plotter(threshold_maps, event_number=event_number_main, station=station, type=data_type[:2])
-    #     logging.info('Finished threshold maps')
+            # Plot the threshold
+            threshold_maps = [threshold_am, threshold_co, threshold_do, threshold_ph, threshold_tu, threshold_wt]
+            threshold_plotter(threshold_maps, event_number=event_number_main, station=station, type=data_type[:2])
+            logging.info('Finished threshold maps')
 
-    #     # Plot the distance
-    #     distance_maps = [distance_am, distance_co, distance_do, distance_ph, distance_tu, distance_wt]
-    #     distance_plotter(distance_maps, event_number=event_number_main, station=station, type=data_type[:2])
-    #     logging.info('Finished distance maps')
+            # Plot the distance
+            distance_maps = [distance_am, distance_co, distance_do, distance_ph, distance_tu, distance_wt]
+            distance_plotter(distance_maps, event_number=event_number_main, station=station, type=data_type[:2])
+            logging.info('Finished distance maps')
 
-    #     # Store the multivariate attention map
-    #     attention_multivariate_maps[0].append(attention_multivariate)
+            # Store the multivariate attention map
+            attention_multivariate_maps[0].append(attention_multivariate)
     
-    # #%% Get the results for the detected anomalies
-    # for event_number_main in background_anomalies_events[:2]:
-    #     logging.info('Processing detected anomaly event number %d', event_number_main)
-        
-    #     # Update data type, starts_ends and X
-    #     data_type = 'background'
-    #     starts_ends = starts_ends_background
-    #     X = X_background
+    #%% Get the results for the detected anomalies
+    for event_number_main in background_anomalies_events:
+        if event_number_main == 42:
+            logging.info('Processing detected anomaly event number %d', event_number_main)
+            
+            # Update data type, starts_ends and X
+            data_type = 'background'
+            starts_ends = starts_ends_background
+            X = X_background
 
-    #     # Plot the event
-    #     event_plotter(starts_ends, X, event_number_main, station=station, type=data_type[:2])
-    #     logging.info('Finished event plot')
+            # Plot the event
+            event_plotter(starts_ends, X, event_number_main, station=station, type=data_type[:2])
+            logging.info('Finished event plot')
 
-    #     # Get the depths of the variables
-    #     variables_depths, variables_thresholds, variables_distances, max_depth = depths(starts_ends, X, models=[model_high, model_med, model_low], event_number=event_number_main)
+            # Get the depths of the variables
+            variables_depths, variables_thresholds, variables_distances, max_depth = depths(starts_ends, X, models=[model_high, model_med, model_low], event_number=event_number_main)
 
-    #     # Get the attention maps
-    #     attention_am, attention_co, attention_do, attention_ph, attention_tu, attention_wt = attention(variables_depths, max_depth)
-        
-    #     # Get the multivariate attention map
-    #     attention_multivariate = multivariate_attention(attention_am, attention_co, attention_do, attention_ph, attention_tu, attention_wt)
+            # Get the attention maps
+            attention_am, attention_co, attention_do, attention_ph, attention_tu, attention_wt = attention(variables_depths, max_depth)
+            
+            # Get the multivariate attention map
+            attention_multivariate = multivariate_attention(attention_am, attention_co, attention_do, attention_ph, attention_tu, attention_wt)
 
-    #     # Get the threshold maps
-    #     threshold_am, threshold_co, threshold_do, threshold_ph, threshold_tu, threshold_wt = thresholds(variables_thresholds)
+            # Get the threshold maps
+            threshold_am, threshold_co, threshold_do, threshold_ph, threshold_tu, threshold_wt = thresholds(variables_thresholds)
 
-    #     # Get the distance maps
-    #     distance_am, distance_co, distance_do, distance_ph, distance_tu, distance_wt = distances(variables_distances)
+            # Get the distance maps
+            distance_am, distance_co, distance_do, distance_ph, distance_tu, distance_wt = distances(variables_distances)
 
-    #     # Plot the attention
-    #     attention_maps = [attention_am, attention_co, attention_do, attention_ph, attention_tu, attention_wt]
-    #     attention_plotter(attention_maps, event_number=event_number_main, station=station, type=data_type[:2])
+            # Plot the attention
+            attention_maps = [attention_am, attention_co, attention_do, attention_ph, attention_tu, attention_wt]
+            attention_plotter(attention_maps, event_number=event_number_main, station=station, type=data_type[:2])
 
-    #     # Plot the multivariate attention
-    #     multivariate_attention_plotter(attention_multivariate, event_number=event_number_main, station=station, type=data_type[:2])
-    #     logging.info('Finished attention maps')
+            # Plot the multivariate attention
+            multivariate_attention_plotter(attention_multivariate, event_number=event_number_main, station=station, type=data_type[:2])
+            logging.info('Finished attention maps')
 
-    #     # Plot the threshold
-    #     threshold_maps = [threshold_am, threshold_co, threshold_do, threshold_ph, threshold_tu, threshold_wt]
-    #     threshold_plotter(threshold_maps, event_number=event_number_main, station=station, type=data_type[:2])
-    #     logging.info('Finished threshold maps')
+            # Plot the threshold
+            threshold_maps = [threshold_am, threshold_co, threshold_do, threshold_ph, threshold_tu, threshold_wt]
+            threshold_plotter(threshold_maps, event_number=event_number_main, station=station, type=data_type[:2])
+            logging.info('Finished threshold maps')
 
-    #     # Plot the distance
-    #     distance_maps = [distance_am, distance_co, distance_do, distance_ph, distance_tu, distance_wt]
-    #     distance_plotter(distance_maps, event_number=event_number_main, station=station, type=data_type[:2])
-    #     logging.info('Finished distance maps')
+            # Plot the distance
+            distance_maps = [distance_am, distance_co, distance_do, distance_ph, distance_tu, distance_wt]
+            distance_plotter(distance_maps, event_number=event_number_main, station=station, type=data_type[:2])
+            logging.info('Finished distance maps')
 
-    #     # Store the multivariate attention map
-    #     attention_multivariate_maps[1].append(attention_multivariate)
+            # Store the multivariate attention map
+            attention_multivariate_maps[1].append(attention_multivariate)
 
     #%% Get the results for the true background events
-    for event_number_main in background_background_events[:2]:
-        logging.info('Processing true background event number %d', event_number_main)
+    for event_number_main in background_background_events:
+        if event_number_main == 25:
+            logging.info('Processing true background event number %d', event_number_main)
 
-        # Update data type, starts_ends and X
-        data_type = 'background'
-        starts_ends = starts_ends_background
-        X = X_background
+            # Update data type, starts_ends and X
+            data_type = 'background'
+            starts_ends = starts_ends_background
+            X = X_background
 
-        # Plot the event
-        event_plotter(starts_ends, X, event_number_main, station=station, type=data_type[:2])
-        logging.info('Finished event plot')
+            # Plot the event
+            event_plotter(starts_ends, X, event_number_main, station=station, type=data_type[:2])
+            logging.info('Finished event plot')
 
-        # Get the depths of the variables
-        variables_depths, variables_thresholds, variables_distances, max_depth = depths(starts_ends, X, models=[model_high, model_med, model_low], event_number=event_number_main)
+            # Get the depths of the variables
+            variables_depths, variables_thresholds, variables_distances, max_depth = depths(starts_ends, X, models=[model_high, model_med, model_low], event_number=event_number_main)
 
-        # Get the attention maps
-        attention_am, attention_co, attention_do, attention_ph, attention_tu, attention_wt = attention(variables_depths, max_depth)
-        
-        # Get the multivariate attention map
-        attention_multivariate = multivariate_attention(attention_am, attention_co, attention_do, attention_ph, attention_tu, attention_wt)
+            # Get the attention maps
+            attention_am, attention_co, attention_do, attention_ph, attention_tu, attention_wt = attention(variables_depths, max_depth)
+            
+            # Get the multivariate attention map
+            attention_multivariate = multivariate_attention(attention_am, attention_co, attention_do, attention_ph, attention_tu, attention_wt)
 
-        # Get the threshold maps
-        threshold_am, threshold_co, threshold_do, threshold_ph, threshold_tu, threshold_wt = thresholds(variables_thresholds)
+            # Get the threshold maps
+            threshold_am, threshold_co, threshold_do, threshold_ph, threshold_tu, threshold_wt = thresholds(variables_thresholds)
 
-        # Get the distance map, distance_co, distance_do, distance_ph, distance_tu, distance_wt = distances(variables_distances)
-        distance_am, distance_co, distance_do, distance_ph, distance_tu, distance_wt = distances(variables_distances)
+            # Get the distance map, distance_co, distance_do, distance_ph, distance_tu, distance_wt = distances(variables_distances)
+            distance_am, distance_co, distance_do, distance_ph, distance_tu, distance_wt = distances(variables_distances)
 
-        # Plot the attention
-        attention_maps = [attention_am, attention_co, attention_do, attention_ph, attention_tu, attention_wt]
-        attention_plotter(attention_maps, event_number=event_number_main, station=station, type=data_type[:2])
+            # Plot the attention
+            attention_maps = [attention_am, attention_co, attention_do, attention_ph, attention_tu, attention_wt]
+            attention_plotter(attention_maps, event_number=event_number_main, station=station, type=data_type[:2])
 
-        # Plot the multivariate attention
-        multivariate_attention_plotter(attention_multivariate, event_number=event_number_main, station=station, type=data_type[:2])
-        logging.info('Finished attention maps')
+            # Plot the multivariate attention
+            multivariate_attention_plotter(attention_multivariate, event_number=event_number_main, station=station, type=data_type[:2])
+            logging.info('Finished attention maps')
 
-        # Plot the threshold
-        threshold_maps = [threshold_am, threshold_co, threshold_do, threshold_ph, threshold_tu, threshold_wt]
-        threshold_plotter(threshold_maps, event_number=event_number_main, station=station, type=data_type[:2])
-        logging.info('Finished threshold maps')
+            # Plot the threshold
+            threshold_maps = [threshold_am, threshold_co, threshold_do, threshold_ph, threshold_tu, threshold_wt]
+            threshold_plotter(threshold_maps, event_number=event_number_main, station=station, type=data_type[:2])
+            logging.info('Finished threshold maps')
 
-        # Plot the distance
-        distance_maps = [distance_am, distance_co, distance_do, distance_ph, distance_tu, distance_wt]
-        distance_plotter(distance_maps, event_number=event_number_main, station=station, type=data_type[:2])
-        logging.info('Finished distance maps')
+            # Plot the distance
+            distance_maps = [distance_am, distance_co, distance_do, distance_ph, distance_tu, distance_wt]
+            distance_plotter(distance_maps, event_number=event_number_main, station=station, type=data_type[:2])
+            logging.info('Finished distance maps')
 
-        # Store the multivariate attention map
-        attention_multivariate_maps[2].append(attention_multivariate)
+            # Store the multivariate attention map
+            attention_multivariate_maps[2].append(attention_multivariate)
 
     # # Save the attention maps. This wont work when dealing with all samples, because there are different number of anomalies, detected anomalies and true background events
     # np.save(f'results/attention_multivariate_maps_{station}.npy', attention_multivariate_maps)
