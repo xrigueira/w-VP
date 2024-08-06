@@ -121,7 +121,7 @@ if __name__ == '__main__':
     # Initialize the list to store the multivariate attention maps to get the Kullback-Leibler divergence among them
     attention_multivariate_maps = [[], [], []]
     #%% Get the results for the labeled anomalies
-    for event_number_main in anomalies_events[1:2]:
+    for event_number_main in anomalies_events:
         if event_number_main == 1:
             logging.info('Processing anomaly event number %d', event_number_main)
 
