@@ -138,62 +138,26 @@ tu_907_filled = tu_907_filled[~np.isnan(tu_907_filled)]
 wt_907_filled = data_907_filled.water_temperature_907.to_numpy()
 wt_907_filled = wt_907_filled[~np.isnan(wt_907_filled)]
 
-#%% Plot the empirical cumulative distributions of each variable comparing the data with gaps and the filled version
-fig, axes = plt.subplots(nrows=3, ncols=6, figsize=(16, 8))
+#%% Plot the empirical cumulative distributions of each variable comparing the data with gaps and the filled version for each station
+fig, axes = plt.subplots(nrows=2, ncols=3, figsize=(16, 8))
 
-sns.ecdfplot(data=am_901_gaps, color='lightcoral', ax=axes[0, 0])
-sns.ecdfplot(data=am_901_filled, label='red', ax=axes[0, 0])
+sns.ecdfplot(data=am_901_gaps, linestyle='dotted', linewidth=5, color='lightcoral', ax=axes[0, 0])
+sns.ecdfplot(data=am_901_filled, color='red', ax=axes[0, 0])
 
-sns.ecdfplot(data=co_901_gaps, color='cornflowerblue', ax=axes[0, 1])
+sns.ecdfplot(data=co_901_gaps, linestyle='dotted', linewidth=5, color='cornflowerblue', ax=axes[0, 1])
 sns.ecdfplot(data=co_901_filled, color='blue', ax=axes[0, 1])
 
-sns.ecdfplot(data=do_901_gaps, color='mediumpurple', ax=axes[0, 2])
+sns.ecdfplot(data=do_901_gaps, linestyle='dotted', linewidth=5, color='mediumpurple', ax=axes[0, 2])
 sns.ecdfplot(data=do_901_filled, color='purple', ax=axes[0, 2])
 
-sns.ecdfplot(data=ph_901_gaps, color='dimgray', ax=axes[0, 3])
-sns.ecdfplot(data=ph_901_filled, color='darkgray', ax=axes[0, 3])
+sns.ecdfplot(data=ph_901_gaps, linestyle='dotted', linewidth=5, color='dimgray', ax=axes[1, 0])
+sns.ecdfplot(data=ph_901_filled, color='darkgray', ax=axes[1, 0])
 
-sns.ecdfplot(data=tu_901_gaps, color='gold', ax=axes[0, 4])
-sns.ecdfplot(data=tu_901_filled, color='goldenrod', ax=axes[0, 4])
+sns.ecdfplot(data=tu_901_gaps, linestyle='dotted', linewidth=5, color='gold', ax=axes[1, 1])
+sns.ecdfplot(data=tu_901_filled, color='goldenrod', ax=axes[1, 1])
 
-sns.ecdfplot(data=wt_901_gaps, color='limegreen', ax=axes[0, 5])
-sns.ecdfplot(data=wt_901_filled, color='green', ax=axes[0, 5])
-
-sns.ecdfplot(data=am_905_gaps, color='lightcoral', ax=axes[1, 0])
-sns.ecdfplot(data=am_905_filled, color='red', ax=axes[1, 0])
-
-sns.ecdfplot(data=co_905_gaps, color='cornflowerblue', ax=axes[1, 1])
-sns.ecdfplot(data=co_905_filled, color='blue', ax=axes[1, 1])
-
-sns.ecdfplot(data=do_905_gaps, color='mediumpurple', ax=axes[1, 2])
-sns.ecdfplot(data=do_905_filled, color='purple', ax=axes[1, 2])
-
-sns.ecdfplot(data=ph_905_gaps, color='dimgray', ax=axes[1, 3])
-sns.ecdfplot(data=ph_905_filled, color='darkgray', ax=axes[1, 3])
-
-sns.ecdfplot(data=tu_905_gaps, color='gold', ax=axes[1, 4])
-sns.ecdfplot(data=tu_905_filled, color='goldenrod', ax=axes[1, 4])
-
-sns.ecdfplot(data=wt_905_gaps, color='limegreen', ax=axes[1, 5])
-sns.ecdfplot(data=wt_905_filled, color='green', ax=axes[1, 5])
-
-sns.ecdfplot(data=am_907_gaps, color='lightcoral', ax=axes[2, 0])
-sns.ecdfplot(data=am_907_filled, color='red', ax=axes[2, 0])
-
-sns.ecdfplot(data=co_907_gaps, color='cornflowerblue', ax=axes[2, 1])
-sns.ecdfplot(data=co_907_filled, color='blue', ax=axes[2, 1])
-
-sns.ecdfplot(data=do_907_gaps, color='mediumpurple', ax=axes[2, 2])
-sns.ecdfplot(data=do_907_filled, color='purple', ax=axes[2, 2])
-
-sns.ecdfplot(data=ph_907_gaps, color='dimgray', ax=axes[2, 3])
-sns.ecdfplot(data=ph_907_filled, color='darkgray', ax=axes[2, 3])
-
-sns.ecdfplot(data=tu_907_gaps, color='gold', ax=axes[2, 4])
-sns.ecdfplot(data=tu_907_filled, color='goldenrod', ax=axes[2, 4])
-
-sns.ecdfplot(data=wt_907_gaps, color='limegreen', ax=axes[2, 5])
-sns.ecdfplot(data=wt_907_filled, color='green', ax=axes[2, 5])
+sns.ecdfplot(data=wt_901_gaps, linestyle='dotted', linewidth=5, color='limegreen', ax=axes[1, 2])
+sns.ecdfplot(data=wt_901_filled, color='green', ax=axes[1, 2])
 
 # Clean default y label and reduce font size for all axes
 for ax in axes.flat:
@@ -202,20 +166,113 @@ for ax in axes.flat:
 
 # Set the title for each variable
 var_names = ['Ammonium', 'Conductivity', 'Dissolved oxygen', 'pH', 'Turbidity', 'Water temperature']
-for i, ax in enumerate(axes[0]):
+for i, ax in enumerate(axes.flat):
     ax.set_title(var_names[i], fontname='Arial', fontsize=18)
 
-# Set the y label for each variable
-stations = ['Station 901', 'Station 905', 'Station 907']
-for i, ax in enumerate(axes):
-    ax[0].set_ylabel(stations[i], fontname='Arial', fontsize=18)
+# Set the x label for each variable
+for ax in axes[1, :]:
+    ax.set_xlabel('Value', fontname='Arial', fontsize=16)
 
-fig.suptitle('Empirical cumulative distributions before and after imputation', fontname='Arial', fontsize=22)
+# Set the y label for each variable
+for ax in axes[:, 0]:
+    ax.set_ylabel('Cumulative probability', fontname='Arial', fontsize=16)
+
+fig.suptitle('ECD before and after imputation for station 901', fontname='Arial', fontsize=22)
 plt.tight_layout()
 # plt.show()
 
 # Save the plot
-plt.savefig('plots/imputation.pdf', format='pdf', dpi=300, bbox_inches='tight')
+plt.savefig('plots/imputation_901.pdf', format='pdf', dpi=300, bbox_inches='tight')
+
+fig, axes = plt.subplots(nrows=2, ncols=3, figsize=(16, 8))
+
+sns.ecdfplot(data=am_905_gaps, linestyle='dotted', linewidth=5, color='lightcoral', ax=axes[0, 0])
+sns.ecdfplot(data=am_905_filled, color='red', ax=axes[0, 0])
+
+sns.ecdfplot(data=co_905_gaps, linestyle='dotted', linewidth=5, color='cornflowerblue', ax=axes[0, 1])
+sns.ecdfplot(data=co_905_filled, color='blue', ax=axes[0, 1])
+
+sns.ecdfplot(data=do_905_gaps, linestyle='dotted', linewidth=5, color='mediumpurple', ax=axes[0, 2])
+sns.ecdfplot(data=do_905_filled, color='purple', ax=axes[0, 2])
+
+sns.ecdfplot(data=ph_905_gaps, linestyle='dotted', linewidth=5, color='dimgray', ax=axes[1, 0])
+sns.ecdfplot(data=ph_905_filled, color='darkgray', ax=axes[1, 0])
+
+sns.ecdfplot(data=tu_905_gaps, linestyle='dotted', linewidth=5, color='gold', ax=axes[1, 1])
+sns.ecdfplot(data=tu_905_filled, color='goldenrod', ax=axes[1, 1])
+
+sns.ecdfplot(data=wt_905_gaps, linestyle='dotted', linewidth=5, color='limegreen', ax=axes[1, 2])
+sns.ecdfplot(data=wt_905_filled, color='green', ax=axes[1, 2])
+
+# Clean default y label and reduce font size for all axes
+for ax in axes.flat:
+    ax.set_ylabel('')
+    ax.tick_params(axis='both', which='major', labelsize=12)
+
+# Set the title for each variable
+var_names = ['Ammonium', 'Conductivity', 'Dissolved oxygen', 'pH', 'Turbidity', 'Water temperature']
+for i, ax in enumerate(axes.flat):
+    ax.set_title(var_names[i], fontname='Arial', fontsize=18)
+
+# Set the x label for each variable
+for ax in axes[1, :]:
+    ax.set_xlabel('Value', fontname='Arial', fontsize=16)
+
+# Set the y label for each variable
+for ax in axes[:, 0]:
+    ax.set_ylabel('Cumulative probability', fontname='Arial', fontsize=16)
+
+fig.suptitle('ECD before and after imputation for station 905', fontname='Arial', fontsize=22)
+plt.tight_layout()
+# plt.show()
+
+# Save the plot
+plt.savefig('plots/imputation_905.pdf', format='pdf', dpi=300, bbox_inches='tight')
+
+fig, axes = plt.subplots(nrows=2, ncols=3, figsize=(16, 8))
+
+sns.ecdfplot(data=am_907_gaps, linestyle='dotted', linewidth=5, color='lightcoral', ax=axes[0, 0])
+sns.ecdfplot(data=am_907_filled, color='red', ax=axes[0, 0])
+
+sns.ecdfplot(data=co_907_gaps, linestyle='dotted', linewidth=5, color='cornflowerblue', ax=axes[0, 1])
+sns.ecdfplot(data=co_907_filled, color='blue', ax=axes[0, 1])
+
+sns.ecdfplot(data=do_907_gaps, color='mediumpurple', ax=axes[0, 2])
+sns.ecdfplot(data=do_907_filled, color='purple', ax=axes[0, 2])
+
+sns.ecdfplot(data=ph_907_gaps, linestyle='dotted', linewidth=5, color='dimgray', ax=axes[1, 0])
+sns.ecdfplot(data=ph_907_filled, color='darkgray', ax=axes[1, 0])
+
+sns.ecdfplot(data=tu_907_gaps, linestyle='dotted', linewidth=5, color='gold', ax=axes[1, 1])
+sns.ecdfplot(data=tu_907_filled, color='goldenrod', ax=axes[1, 1])
+
+sns.ecdfplot(data=wt_907_gaps, linestyle='dotted', linewidth=5, color='limegreen', ax=axes[1, 2])
+sns.ecdfplot(data=wt_907_filled, color='green', ax=axes[1, 2])
+
+# Clean default y label and reduce font size for all axes
+for ax in axes.flat:
+    ax.set_ylabel('')
+    ax.tick_params(axis='both', which='major', labelsize=12)
+
+# Set the title for each variable
+var_names = ['Ammonium', 'Conductivity', 'Dissolved oxygen', 'pH', 'Turbidity', 'Water temperature']
+for i, ax in enumerate(axes.flat):
+    ax.set_title(var_names[i], fontname='Arial', fontsize=18)
+
+# Set the x label for each variable
+for ax in axes[1, :]:
+    ax.set_xlabel('Value', fontname='Arial', fontsize=16)
+
+# Set the y label for each variable
+for ax in axes[:, 0]:
+    ax.set_ylabel('Cumulative probability', fontname='Arial', fontsize=16)
+
+fig.suptitle('ECD before and after imputation for station 907', fontname='Arial', fontsize=22)
+plt.tight_layout()
+# plt.show()
+
+# Save the plot
+plt.savefig('plots/imputation_907.pdf', format='pdf', dpi=300, bbox_inches='tight')
 
 #%% Get the mean and standard deviation for each variable and station before and after filling
 mean_901_am_gaps, std_901_am_gaps, mean_901_am_filled, std_901_am_filled = np.mean(am_901_gaps), np.std(am_901_gaps), np.mean(am_901_filled), np.std(am_901_filled)
