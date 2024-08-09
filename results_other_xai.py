@@ -2,6 +2,9 @@ import pickle
 import logging
 import numpy as np
 import matplotlib.pyplot as plt
+plt.style.use('ggplot')
+from matplotlib import rcParams
+rcParams['font.family'] = 'monospace'
 
 import shap
 shap.initjs()
@@ -153,24 +156,35 @@ def shap_analysis(model, windows, event_number, station, data_type, summarized=T
 
     if summarized:
         
-        # Creat a figure
-        fig, axs = plt.subplots(1, 1, figsize=(5, 5))
+        # Create a figure
+        fig, axs = plt.subplots(1, 1, figsize=(8, 5))
 
         # Decision plot for the summarized version
         plt.sca(axs)
         shap.decision_plot(explainer.expected_value[1],
-                        summarizer(shap_values[1], num_variables=6), 
-                        feature_names=['am', 'co', 'do', 'ph', 'tu', 'wt'],
-                        plot_color='coolwarm',
-                        title='SHAP decision plot',
-                        show=False,
-                        auto_size_plot=False)
+                    summarizer(shap_values[1], num_variables=6), 
+                    feature_names=['am', 'co', 'do', 'ph', 'tu', 'wt'],
+                    plot_color='coolwarm',
+                    title='SHAP decision plot',
+                    show=False,
+                    auto_size_plot=False)
+
+        # Modify the size of the x and y axis ticks
+        plt.xticks(fontsize=19)
+        plt.yticks(fontsize=19)
+
+        # Change the labels of the x and y axis
+        plt.xlabel(xlabel='Model output value', fontsize=21)
+        plt.ylabel(ylabel='Variables', fontsize=21)
+
+        # Change the title of the plot
+        plt.title('Decision plot', fontname='Arial', fontsize=24)
         
         # Adjust layout and save the figure
         plt.savefig(f'results/decision_plot_{station}_{data_type[:2]}_{event_number}.pdf', dpi=300, bbox_inches='tight')
         
         # Creat a figure
-        fig, axs = plt.subplots(1, 1, figsize=(6, 4))
+        fig, axs = plt.subplots(1, 1, figsize=(8, 5))
 
         # Summary plot for the summarized version
         plt.sca(axs)
@@ -182,13 +196,29 @@ def shap_analysis(model, windows, event_number, station, data_type, summarized=T
                         show=False,
                         plot_size=None)
         
-        plt.title('SHAP beeswarm plot')
+        # Access the color bar to change the label size
+        ax_cbar = plt.gcf().axes[-1]  # Get the color bar axis
+        ax_cbar.yaxis.label.set_size(19)  # Change the color bar label size (adjust the value as needed)
+        ax_cbar.yaxis.set_tick_params(labelsize=17)  # Change the color bar tick label size (adjust the value as needed)
+        
+        # Modify the size of the x and y axis ticks
+        current_xticks = plt.gca().get_xticks() # Get current ticks
+        plt.xticks(current_xticks[::3], fontsize=18) # Adjust x-ticks to plot every 3 ticks
+        # plt.xticks(fontsize=18)
+        plt.yticks(fontsize=19)
+
+        # Change the labels of the x and y axis
+        plt.xlabel(xlabel='SHAP value (impact on output)', fontsize=21)
+        plt.ylabel(ylabel='Variables', fontsize=21)
+
+        # Change the title of the plot
+        plt.title('SHAP beeswarm plot', fontname='Arial', fontsize=24)
         
         # Adjust layout and save the figure
         plt.savefig(f'results/beeswarm_plot_{station}_{data_type[:2]}_{event_number}.pdf', dpi=300, bbox_inches='tight')
 
         # Creat a figure
-        fig, axs = plt.subplots(1, 1, figsize=(5, 5))
+        fig, axs = plt.subplots(1, 1, figsize=(8, 5))
         
         # Bar plot for the summarized version
         plt.sca(axs)
@@ -200,9 +230,18 @@ def shap_analysis(model, windows, event_number, station, data_type, summarized=T
                         show=False,
                         plot_size=None)
         
-        # Change the title of the x-axis
-        plt.xlabel('Mean(|SHAP value|)')
-        plt.title('SHAP bar plot')
+        # Modify the size of the x and y axis ticks
+        current_xticks = plt.gca().get_xticks() # Get current ticks
+        plt.xticks(current_xticks[::2], fontsize=19) # Adjust x-ticks to plot every 2 ticks
+        # plt.xticks(fontsize=19)
+        plt.yticks(fontsize=19)
+
+        # Change the labels of the x and y axis
+        plt.xlabel(xlabel='Mean(|SHAP value|)', fontsize=21)
+        plt.ylabel(ylabel='Variables', fontsize=21)
+
+        # Change the title of the plot
+        plt.title('Bar plot', fontname='Arial', fontsize=24)
         
         # Adjust layout and save the figure
         plt.savefig(f'results/bar_plot_{station}_{data_type[:2]}_{event_number}.pdf', dpi=300, bbox_inches='tight')
@@ -210,7 +249,7 @@ def shap_analysis(model, windows, event_number, station, data_type, summarized=T
     else:
 
         # Creat a figure
-        fig, axs = plt.subplots(1, 1, figsize=(5, 5))
+        fig, axs = plt.subplots(1, 1, figsize=(8, 5))
         
         # Decision plot for the selected sample
         plt.sca(axs)
@@ -219,12 +258,23 @@ def shap_analysis(model, windows, event_number, station, data_type, summarized=T
                         feature_names=feature_names_high,
                         plot_color='coolwarm',
                         title='Shape decision plot')
+        
+        # Modify the size of the x and y axis ticks
+        plt.xticks(fontsize=16)
+        plt.yticks(fontsize=16)
 
+        # Change the labels of the x and y axis
+        plt.xlabel(xlabel='Model output value', fontsize=18)
+        plt.ylabel(ylabel='Variables', fontsize=18)
+
+        # Change the title of the plot
+        plt.title('Decision plot', fontname='Arial', fontsize=21)
+        
         # Adjust layout and save the figure
         plt.savefig(f'results/decision_plot_{station}_{data_type[:2]}_{event_number}.pdf', dpi=300, bbox_inches='tight')
 
         # Creat a figure
-        fig, axs = plt.subplots(1, 1, figsize=(6, 4))
+        fig, axs = plt.subplots(1, 1, figsize=(8, 5))
         
         # Summary plot for the selected sample
         plt.sca(axs)
@@ -234,13 +284,27 @@ def shap_analysis(model, windows, event_number, station, data_type, summarized=T
                         title='Shape summary plot',
                         cmap='coolwarm')
         
-        plt.title('SHAP beeswarm plot')
+        # Access the color bar to change the label size
+        ax_cbar = plt.gcf().axes[-1]  # Get the color bar axis
+        ax_cbar.yaxis.label.set_size(16)  # Change the color bar label size (adjust the value as needed)
+        ax_cbar.yaxis.set_tick_params(labelsize=14)  # Change the color bar tick label size (adjust the value as needed)
+        
+        # Modify the size of the x and y axis ticks
+        plt.xticks(fontsize=16)
+        plt.yticks(fontsize=16)
+
+        # Change the labels of the x and y axis
+        plt.xlabel(xlabel='SHAP value (impact on output)', fontsize=18)
+        plt.ylabel(ylabel='Variables', fontsize=18)
+
+        # Change the title of the plot
+        plt.title('SHAP beeswarm plot', fontname='Arial', fontsize=21)
         
         # Adjust layout and save the figure
         plt.savefig(f'results/beeswarm_plot_{station}_{data_type[:2]}_{event_number}.pdf', dpi=300, bbox_inches='tight')
 
         # Creat a figure
-        fig, axs = plt.subplots(1, 1, figsize=(5, 5))
+        fig, axs = plt.subplots(1, 1, figsize=(8, 5))
         
         # Bar plot for the selected sample
         plt.sca(axs)
@@ -250,21 +314,28 @@ def shap_analysis(model, windows, event_number, station, data_type, summarized=T
                         title='Shape summary plot',
                         color='indianred')
         
-        # Change the title of the x-axis
-        plt.xlabel('Mean(|SHAP value|)')
-        plt.title('SHAP bar plot')
+        # Modify the size of the x and y axis ticks
+        plt.xticks(fontsize=16)
+        plt.yticks(fontsize=16)
+
+        # Change the labels of the x and y axis
+        plt.xlabel(xlabel='Mean(|SHAP value|)', fontsize=18)
+        plt.ylabel(ylabel='Variables', fontsize=18)
+
+        # Change the title of the plot
+        plt.title('Bar plot', fontname='Arial', fontsize=21)
         
         # Adjust layout and save the figure
         plt.savefig(f'results/bar_plot_{station}_{data_type[:2]}_{event_number}.pdf', dpi=300, bbox_inches='tight')
 
 if __name__ == '__main__':
 
-    station = 901
+    station = 907
 
     window_size_high, window_size_med, window_size_low = 32, 16, 8
 
     # Load models
-    iteration = 9
+    iteration = 5
 
     filename = f'models/rf_model_high_{iteration}.sav'
     model_high = pickle.load(open(filename, 'rb'))
@@ -323,43 +394,43 @@ if __name__ == '__main__':
     # Get the number of actual anomalous events
     anomalies_events = range(len(number_windows_high_anomalies))
     
-    #%% Get the results for the labeled anomalies
-    for event_number_main in anomalies_events:
-        if event_number_main == 1:
-            logging.info('Processing anomaly event number %d', event_number_main)
+    # #%% Get the results for the labeled anomalies
+    # for event_number_main in anomalies_events:
+    #     if event_number_main == 1:
+    #         logging.info('Processing anomaly event number %d', event_number_main)
 
-            # Update data type, starts_ends and X
-            data_type = 'anomalies'
-            starts_ends = starts_ends_anomalies
-            X = X_anomalies
+    #         # Update data type, starts_ends and X
+    #         data_type = 'anomalies'
+    #         starts_ends = starts_ends_anomalies
+    #         X = X_anomalies
 
-            resolution = 0 # High resolution = 0, medium resolution = 1, low resolution = 2
-            windows = X[resolution][starts_ends[event_number_main][resolution][0]:starts_ends[event_number_main][resolution][1]]
+    #         resolution = 0 # High resolution = 0, medium resolution = 1, low resolution = 2
+    #         windows = X[resolution][starts_ends[event_number_main][resolution][0]:starts_ends[event_number_main][resolution][1]]
 
-            # Explain the predictions of the model with the treeexplainer
-            treexplainer(model_high, windows, event_number=event_number_main, station=station, data_type=data_type[:2])
+    #         # Explain the predictions of the model with the treeexplainer
+    #         treexplainer(model_high, windows, event_number=event_number_main, station=station, data_type=data_type[:2])
 
-            # Explain the predictions of the model with the SHAP explainer
-            shap_analysis(model_high, windows, event_number=event_number_main, station=station, data_type=data_type[:2], summarized=True)
+    #         # Explain the predictions of the model with the SHAP explainer
+    #         shap_analysis(model_high, windows, event_number=event_number_main, station=station, data_type=data_type[:2], summarized=True)
     
-    #%% Get the results for the detected anomalies
-    for event_number_main in background_anomalies_events:
-        if event_number_main == 42:
-            logging.info('Processing detected anomaly event number %d', event_number_main)
+    # #%% Get the results for the detected anomalies
+    # for event_number_main in background_anomalies_events:
+    #     if event_number_main == 42:
+    #         logging.info('Processing detected anomaly event number %d', event_number_main)
             
-            # Update data type, starts_ends and X
-            data_type = 'background'
-            starts_ends = starts_ends_background
-            X = X_background
+    #         # Update data type, starts_ends and X
+    #         data_type = 'background'
+    #         starts_ends = starts_ends_background
+    #         X = X_background
 
-            resolution = 0 # High resolution = 0, medium resolution = 1, low resolution = 2
-            windows = X[resolution][starts_ends[event_number_main][resolution][0]:starts_ends[event_number_main][resolution][1]]
+    #         resolution = 0 # High resolution = 0, medium resolution = 1, low resolution = 2
+    #         windows = X[resolution][starts_ends[event_number_main][resolution][0]:starts_ends[event_number_main][resolution][1]]
 
-            # Explain the predictions of the model with the treeexplainer
-            treexplainer(model_high, windows, event_number=event_number_main, station=station, data_type=data_type[:2])
+    #         # Explain the predictions of the model with the treeexplainer
+    #         treexplainer(model_high, windows, event_number=event_number_main, station=station, data_type=data_type[:2])
 
-            # Explain the predictions of the model with the SHAP explainer
-            shap_analysis(model_high, windows, event_number=event_number_main, station=station, data_type=data_type[:2], summarized=True)
+    #         # Explain the predictions of the model with the SHAP explainer
+    #         shap_analysis(model_high, windows, event_number=event_number_main, station=station, data_type=data_type[:2], summarized=True)
 
     #%% Get the results for the true background events
     for event_number_main in background_background_events:
