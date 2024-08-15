@@ -165,7 +165,6 @@ def shap_analysis(model, windows, event_number, station, data_type, summarized=T
                     summarizer(shap_values[1], num_variables=6), 
                     feature_names=['am', 'co', 'do', 'ph', 'tu', 'wt'],
                     plot_color='coolwarm',
-                    title='SHAP decision plot',
                     show=False,
                     auto_size_plot=False)
 
@@ -212,7 +211,7 @@ def shap_analysis(model, windows, event_number, station, data_type, summarized=T
         plt.ylabel(ylabel='Variables', fontsize=21)
 
         # Change the title of the plot
-        plt.title('SHAP beeswarm plot', fontname='Arial', fontsize=24)
+        plt.title('Beeswarm plot', fontname='Arial', fontsize=24)
         
         # Adjust layout and save the figure
         plt.savefig(f'results/beeswarm_plot_{station}_{data_type[:2]}_{event_number}.pdf', dpi=300, bbox_inches='tight')
