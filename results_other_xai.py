@@ -393,43 +393,43 @@ if __name__ == '__main__':
     # Get the number of actual anomalous events
     anomalies_events = range(len(number_windows_high_anomalies))
     
-    # #%% Get the results for the labeled anomalies
-    # for event_number_main in anomalies_events:
-    #     if event_number_main == 1:
-    #         logging.info('Processing anomaly event number %d', event_number_main)
+    #%% Get the results for the labeled anomalies
+    for event_number_main in anomalies_events:
+        if event_number_main == 1:
+            logging.info('Processing anomaly event number %d', event_number_main)
 
-    #         # Update data type, starts_ends and X
-    #         data_type = 'anomalies'
-    #         starts_ends = starts_ends_anomalies
-    #         X = X_anomalies
+            # Update data type, starts_ends and X
+            data_type = 'anomalies'
+            starts_ends = starts_ends_anomalies
+            X = X_anomalies
 
-    #         resolution = 0 # High resolution = 0, medium resolution = 1, low resolution = 2
-    #         windows = X[resolution][starts_ends[event_number_main][resolution][0]:starts_ends[event_number_main][resolution][1]]
+            resolution = 0 # High resolution = 0, medium resolution = 1, low resolution = 2
+            windows = X[resolution][starts_ends[event_number_main][resolution][0]:starts_ends[event_number_main][resolution][1]]
 
-    #         # Explain the predictions of the model with the treeexplainer
-    #         treexplainer(model_high, windows, event_number=event_number_main, station=station, data_type=data_type[:2])
+            # Explain the predictions of the model with the treeexplainer
+            treexplainer(model_high, windows, event_number=event_number_main, station=station, data_type=data_type[:2])
 
-    #         # Explain the predictions of the model with the SHAP explainer
-    #         shap_analysis(model_high, windows, event_number=event_number_main, station=station, data_type=data_type[:2], summarized=True)
+            # Explain the predictions of the model with the SHAP explainer
+            shap_analysis(model_high, windows, event_number=event_number_main, station=station, data_type=data_type[:2], summarized=True)
     
-    # #%% Get the results for the detected anomalies
-    # for event_number_main in background_anomalies_events:
-    #     if event_number_main == 42:
-    #         logging.info('Processing detected anomaly event number %d', event_number_main)
+    #%% Get the results for the detected anomalies
+    for event_number_main in background_anomalies_events:
+        if event_number_main == 42:
+            logging.info('Processing detected anomaly event number %d', event_number_main)
             
-    #         # Update data type, starts_ends and X
-    #         data_type = 'background'
-    #         starts_ends = starts_ends_background
-    #         X = X_background
+            # Update data type, starts_ends and X
+            data_type = 'background'
+            starts_ends = starts_ends_background
+            X = X_background
 
-    #         resolution = 0 # High resolution = 0, medium resolution = 1, low resolution = 2
-    #         windows = X[resolution][starts_ends[event_number_main][resolution][0]:starts_ends[event_number_main][resolution][1]]
+            resolution = 0 # High resolution = 0, medium resolution = 1, low resolution = 2
+            windows = X[resolution][starts_ends[event_number_main][resolution][0]:starts_ends[event_number_main][resolution][1]]
 
-    #         # Explain the predictions of the model with the treeexplainer
-    #         treexplainer(model_high, windows, event_number=event_number_main, station=station, data_type=data_type[:2])
+            # Explain the predictions of the model with the treeexplainer
+            treexplainer(model_high, windows, event_number=event_number_main, station=station, data_type=data_type[:2])
 
-    #         # Explain the predictions of the model with the SHAP explainer
-    #         shap_analysis(model_high, windows, event_number=event_number_main, station=station, data_type=data_type[:2], summarized=True)
+            # Explain the predictions of the model with the SHAP explainer
+            shap_analysis(model_high, windows, event_number=event_number_main, station=station, data_type=data_type[:2], summarized=True)
 
     #%% Get the results for the true background events
     for event_number_main in background_background_events:
