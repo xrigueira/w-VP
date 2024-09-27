@@ -6,7 +6,7 @@ import pandas as pd
 results = pd.DataFrame(columns=['column', 'min', 'q1', 'median', 'q3', 'max', 'std', 'var'])
 
 # Define the stations
-stations = [901, 905, 907]
+stations = [900, 901, 905, 907]
 
 for station in stations:
 

@@ -6,3 +6,7 @@ pickels
 
 # Ignore the cache
 __pycache__
+
+# Ignore large data files
+data/labeled_900.csv
+data/labeled_900_pro.csv

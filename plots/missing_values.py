@@ -12,6 +12,10 @@ rcParams['font.family'] = 'monospace'
 from scipy.stats import ks_2samp
 
 # Read the data
+station = 900
+data_900_gaps = pd.read_csv(f'data/labeled_{station}.csv', sep=',', encoding='utf-8')
+data_900_filled = pd.read_csv(f'data/labeled_{station}_pro.csv', sep=',', encoding='utf-8')
+
 station = 901
 data_901_gaps = pd.read_csv(f'data/labeled_{station}.csv', sep=',', encoding='utf-8')
 data_901_filled = pd.read_csv(f'data/labeled_{station}_pro.csv', sep=',', encoding='utf-8')
@@ -24,7 +28,14 @@ station = 907
 data_907_gaps = pd.read_csv(f'data/labeled_{station}.csv', sep=',', encoding='utf-8')
 data_907_filled = pd.read_csv(f'data/labeled_{station}_pro.csv', sep=',', encoding='utf-8')
 
-#%% Get the percentage of missing values for each variable and station
+# #%% Get the percentage of missing values for each variable and station
+# missing_am_900 = data_900_gaps.ammonium_900.isna().sum() / data_900_gaps.shape[0]
+# missing_co_900 = data_900_gaps.conductivity_900.isna().sum() / data_900_gaps.shape[0]
+# missing_do_900 = data_900_gaps.dissolved_oxygen_900.isna().sum() / data_900_gaps.shape[0]
+# missing_ph_900 = data_900_gaps.pH_900.isna().sum() / data_900_gaps.shape[0]
+# missing_tu_900 = data_900_gaps.turbidity_900.isna().sum() / data_900_gaps.shape[0]
+# missing_wt_900 = data_900_gaps.water_temperature_900.isna().sum() / data_900_gaps.shape[0]
+
 # missing_am_901 = data_901_gaps.ammonium_901.isna().sum() / data_901_gaps.shape[0]
 # missing_co_901 = data_901_gaps.conductivity_901.isna().sum() / data_901_gaps.shape[0]
 # missing_do_901 = data_901_gaps.dissolved_oxygen_901.isna().sum() / data_901_gaps.shape[0]
@@ -48,11 +59,13 @@ data_907_filled = pd.read_csv(f'data/labeled_{station}_pro.csv', sep=',', encodi
 
 # # Store the results in a DataFrame
 # missing_values = pd.DataFrame({
-#     'station': [901, 901, 901, 901, 901, 901, 905, 905, 905, 905, 905, 905, 907, 907, 907, 907, 907, 907],
+#     'station': [900, 900, 900, 900, 900, 900, 901, 901, 901, 901, 901, 901, 905, 905, 905, 905, 905, 905, 907, 907, 907, 907, 907, 907],
 #     'variable': ['Ammonium', 'Conductivity', 'Dissolved oxygen', 'pH', 'Turbidity', 'Water temperature',
 #                 'Ammonium', 'Conductivity', 'Dissolved oxygen', 'pH', 'Turbidity', 'Water temperature',
+#                 'Ammonium', 'Conductivity', 'Dissolved oxygen', 'pH', 'Turbidity', 'Water temperature',
 #                 'Ammonium', 'Conductivity', 'Dissolved oxygen', 'pH', 'Turbidity', 'Water temperature'],
-#     'missing_values': [missing_am_901, missing_co_901, missing_do_901, missing_ph_901, missing_tu_901, missing_wt_901,
+#     'missing_values': [missing_am_900, missing_co_900, missing_do_900, missing_ph_900, missing_tu_900, missing_wt_900,
+#                     missing_am_901, missing_co_901, missing_do_901, missing_ph_901, missing_tu_901, missing_wt_901,
 #                     missing_am_905, missing_co_905, missing_do_905, missing_ph_905, missing_tu_905, missing_wt_905,
 #                     missing_am_907, missing_co_907, missing_do_907, missing_ph_907, missing_tu_907, missing_wt_907]
 #     })
@@ -60,6 +73,32 @@ data_907_filled = pd.read_csv(f'data/labeled_{station}_pro.csv', sep=',', encodi
 # print(missing_values)
 
 #%% Extract the data for each variable and station before and after filling. Remove the NaNs for the original data
+am_900_gaps = data_900_gaps.ammonium_900.to_numpy()
+am_900_gaps = am_900_gaps[~np.isnan(am_900_gaps)]
+co_900_gaps = data_900_gaps.conductivity_900.to_numpy()
+co_900_gaps = co_900_gaps[~np.isnan(co_900_gaps)]
+do_900_gaps = data_900_gaps.dissolved_oxygen_900.to_numpy()
+do_900_gaps = do_900_gaps[~np.isnan(do_900_gaps)]
+ph_900_gaps = data_900_gaps.pH_900.to_numpy()
+ph_900_gaps = ph_900_gaps[~np.isnan(ph_900_gaps)]
+tu_900_gaps = data_900_gaps.turbidity_900.to_numpy()
+tu_900_gaps = tu_900_gaps[~np.isnan(tu_900_gaps)]
+wt_900_gaps = data_900_gaps.water_temperature_900.to_numpy()
+wt_900_gaps = wt_900_gaps[~np.isnan(wt_900_gaps)]
+
+am_900_filled = data_900_filled.ammonium_900.to_numpy()
+am_900_filled = am_900_filled[~np.isnan(am_900_filled)]
+co_900_filled = data_900_filled.conductivity_900.to_numpy()
+co_900_filled = co_900_filled[~np.isnan(co_900_filled)]
+do_900_filled = data_900_filled.dissolved_oxygen_900.to_numpy()
+do_900_filled = do_900_filled[~np.isnan(do_900_filled)]
+ph_900_filled = data_900_filled.pH_900.to_numpy()
+ph_900_filled = ph_900_filled[~np.isnan(ph_900_filled)]
+tu_900_filled = data_900_filled.turbidity_900.to_numpy()
+tu_900_filled = tu_900_filled[~np.isnan(tu_900_filled)]
+wt_900_filled = data_900_filled.water_temperature_900.to_numpy()
+wt_900_filled = wt_900_filled[~np.isnan(wt_900_filled)]
+
 am_901_gaps = data_901_gaps.ammonium_901.to_numpy()
 am_901_gaps = am_901_gaps[~np.isnan(am_901_gaps)]
 co_901_gaps = data_901_gaps.conductivity_901.to_numpy()
@@ -139,6 +178,51 @@ wt_907_filled = data_907_filled.water_temperature_907.to_numpy()
 wt_907_filled = wt_907_filled[~np.isnan(wt_907_filled)]
 
 #%% Plot the empirical cumulative distributions of each variable comparing the data with gaps and the filled version for each station
+fig, axes = plt.subplots(nrows=2, ncols=3, figsize=(16, 8))
+
+sns.ecdfplot(data=am_900_gaps, linestyle='dotted', linewidth=5, color='lightcoral', ax=axes[0, 0])
+sns.ecdfplot(data=am_900_filled, color='red', ax=axes[0, 0])
+
+sns.ecdfplot(data=co_900_gaps, linestyle='dotted', linewidth=5, color='cornflowerblue', ax=axes[0, 1])
+sns.ecdfplot(data=co_900_filled, color='blue', ax=axes[0, 1])
+
+sns.ecdfplot(data=do_900_gaps, linestyle='dotted', linewidth=5, color='mediumpurple', ax=axes[0, 2])
+sns.ecdfplot(data=do_900_filled, color='purple', ax=axes[0, 2])
+
+sns.ecdfplot(data=ph_900_gaps, linestyle='dotted', linewidth=5, color='dimgray', ax=axes[1, 0])
+sns.ecdfplot(data=ph_900_filled, color='darkgray', ax=axes[1, 0])
+
+sns.ecdfplot(data=tu_900_gaps, linestyle='dotted', linewidth=5, color='gold', ax=axes[1, 1])
+sns.ecdfplot(data=tu_900_filled, color='goldenrod', ax=axes[1, 1])
+
+sns.ecdfplot(data=wt_900_gaps, linestyle='dotted', linewidth=5, color='limegreen', ax=axes[1, 2])
+sns.ecdfplot(data=wt_900_filled, color='green', ax=axes[1, 2])
+
+# Clean default y label and reduce font size for all axes
+for ax in axes.flat:
+    ax.set_ylabel('')
+    ax.tick_params(axis='both', which='major', labelsize=12)
+
+# Set the title for each variable
+var_names = ['Ammonium', 'Conductivity', 'Dissolved oxygen', 'pH', 'Turbidity', 'Water temperature']
+for i, ax in enumerate(axes.flat):
+    ax.set_title(var_names[i], fontname='Arial', fontsize=18)
+
+# Set the x label for each variable
+for ax in axes[1, :]:
+    ax.set_xlabel('Value', fontname='Arial', fontsize=16)
+
+# Set the y label for each variable
+for ax in axes[:, 0]:
+    ax.set_ylabel('Cumulative probability', fontname='Arial', fontsize=16)
+
+fig.suptitle('ECD before and after imputation', fontname='Arial', fontsize=22)
+plt.tight_layout()
+# plt.show()
+
+# Save the plot
+plt.savefig('plots/imputation.pdf', format='pdf', dpi=300, bbox_inches='tight')
+
 fig, axes = plt.subplots(nrows=2, ncols=3, figsize=(16, 8))
 
 sns.ecdfplot(data=am_901_gaps, linestyle='dotted', linewidth=5, color='lightcoral', ax=axes[0, 0])
@@ -275,6 +359,13 @@ plt.tight_layout()
 plt.savefig('plots/imputation_907.pdf', format='pdf', dpi=300, bbox_inches='tight')
 
 #%% Get the mean and standard deviation for each variable and station before and after filling
+mean_900_am_gaps, std_900_am_gaps, mean_900_am_filled, std_900_am_filled = np.mean(am_900_gaps), np.std(am_900_gaps), np.mean(am_900_filled), np.std(am_900_filled)
+mean_900_co_gaps, std_900_co_gaps, mean_900_co_filled, std_900_co_filled = np.mean(co_900_gaps), np.std(co_900_gaps), np.mean(co_900_filled), np.std(co_900_filled)
+mean_900_do_gaps, std_900_do_gaps, mean_900_do_filled, std_900_do_filled = np.mean(do_900_gaps), np.std(do_900_gaps), np.mean(do_900_filled), np.std(do_900_filled)
+mean_900_ph_gaps, std_900_ph_gaps, mean_900_ph_filled, std_900_ph_filled = np.mean(ph_900_gaps), np.std(ph_900_gaps), np.mean(ph_900_filled), np.std(ph_900_filled)
+mean_900_tu_gaps, std_900_tu_gaps, mean_900_tu_filled, std_900_tu_filled = np.mean(tu_900_gaps), np.std(tu_900_gaps), np.mean(tu_900_filled), np.std(tu_900_filled)
+mean_900_wt_gaps, std_900_wt_gaps, mean_900_wt_filled, std_900_wt_filled = np.mean(wt_900_gaps), np.std(wt_900_gaps), np.mean(wt_900_filled), np.std(wt_900_filled)
+
 mean_901_am_gaps, std_901_am_gaps, mean_901_am_filled, std_901_am_filled = np.mean(am_901_gaps), np.std(am_901_gaps), np.mean(am_901_filled), np.std(am_901_filled)
 mean_901_co_gaps, std_901_co_gaps, mean_901_co_filled, std_901_co_filled = np.mean(co_901_gaps), np.std(co_901_gaps), np.mean(co_901_filled), np.std(co_901_filled)
 mean_901_do_gaps, std_901_do_gaps, mean_901_do_filled, std_901_do_filled = np.mean(do_901_gaps), np.std(do_901_gaps), np.mean(do_901_filled), np.std(do_901_filled)
@@ -298,20 +389,25 @@ mean_907_wt_gaps, std_907_wt_gaps, mean_907_wt_filled, std_907_wt_filled = np.me
 
 # Store the results in a DataFrame
 results = pd.DataFrame({
-    'station': [901, 901, 901, 901, 901, 901, 905, 905, 905, 905, 905, 905, 907, 907, 907, 907, 907, 907],
+    'station': [900, 900, 900, 900, 900, 900, 901, 901, 901, 901, 901, 901, 905, 905, 905, 905, 905, 905, 907, 907, 907, 907, 907, 907],
     'variable': ['Ammonium', 'Conductivity', 'Dissolved oxygen', 'pH', 'Turbidity', 'Water temperature',
                 'Ammonium', 'Conductivity', 'Dissolved oxygen', 'pH', 'Turbidity', 'Water temperature',
+                'Ammonium', 'Conductivity', 'Dissolved oxygen', 'pH', 'Turbidity', 'Water temperature',
                 'Ammonium', 'Conductivity', 'Dissolved oxygen', 'pH', 'Turbidity', 'Water temperature'],
-    'mean_gaps': [mean_901_am_gaps, mean_901_co_gaps, mean_901_do_gaps, mean_901_ph_gaps, mean_901_tu_gaps, mean_901_wt_gaps,
+    'mean_gaps': [mean_900_am_gaps, mean_900_co_gaps, mean_900_do_gaps, mean_900_ph_gaps, mean_900_tu_gaps, mean_900_wt_gaps,
+                mean_901_am_gaps, mean_901_co_gaps, mean_901_do_gaps, mean_901_ph_gaps, mean_901_tu_gaps, mean_901_wt_gaps,
                 mean_905_am_gaps, mean_905_co_gaps, mean_905_do_gaps, mean_905_ph_gaps, mean_905_tu_gaps, mean_905_wt_gaps,
                 mean_907_am_gaps, mean_907_co_gaps, mean_907_do_gaps, mean_907_ph_gaps, mean_907_tu_gaps, mean_907_wt_gaps],
-    'std_gaps': [std_901_am_gaps, std_901_co_gaps, std_901_do_gaps, std_901_ph_gaps, std_901_tu_gaps, std_901_wt_gaps,
+    'std_gaps': [std_900_am_gaps, std_900_co_gaps, std_900_do_gaps, std_900_ph_gaps, std_900_tu_gaps, std_900_wt_gaps,
+                std_901_am_gaps, std_901_co_gaps, std_901_do_gaps, std_901_ph_gaps, std_901_tu_gaps, std_901_wt_gaps,
                 std_905_am_gaps, std_905_co_gaps, std_905_do_gaps, std_905_ph_gaps, std_905_tu_gaps, std_905_wt_gaps,
                 std_907_am_gaps, std_907_co_gaps, std_907_do_gaps, std_907_ph_gaps, std_907_tu_gaps, std_907_wt_gaps],
-    'mean_filled': [mean_901_am_filled, mean_901_co_filled, mean_901_do_filled, mean_901_ph_filled, mean_901_tu_filled, mean_901_wt_filled,
+    'mean_filled': [mean_900_am_filled, mean_900_co_filled, mean_900_do_filled, mean_900_ph_filled, mean_900_tu_filled, mean_900_wt_filled,
+                mean_901_am_filled, mean_901_co_filled, mean_901_do_filled, mean_901_ph_filled, mean_901_tu_filled, mean_901_wt_filled,
                 mean_905_am_filled, mean_905_co_filled, mean_905_do_filled, mean_905_ph_filled, mean_905_tu_filled, mean_905_wt_filled,
                 mean_907_am_filled, mean_907_co_filled, mean_907_do_filled, mean_907_ph_filled, mean_907_tu_filled, mean_907_wt_filled],
-    'std_filled': [std_901_am_filled, std_901_co_filled, std_901_do_filled, std_901_ph_filled, std_901_tu_filled, std_901_wt_filled,
+    'std_filled': [std_900_am_filled, std_900_co_filled, std_900_do_filled, std_900_ph_filled, std_900_tu_filled, std_900_wt_filled,
+                std_901_am_filled, std_901_co_filled, std_901_do_filled, std_901_ph_filled, std_901_tu_filled, std_901_wt_filled,
                 std_905_am_filled, std_905_co_filled, std_905_do_filled, std_905_ph_filled, std_905_tu_filled, std_905_wt_filled,
                 std_907_am_filled, std_907_co_filled, std_907_do_filled, std_907_ph_filled, std_907_tu_filled, std_907_wt_filled]
     })
@@ -319,6 +415,13 @@ results = pd.DataFrame({
 print(results)
 
 #%% Get the percent difference between the mean and standard deviation of the original and filled data
+# percent_diff_mean_900_am = (mean_900_am_filled - mean_900_am_gaps) / mean_900_am_gaps * 100
+# percent_diff_mean_900_co = (mean_900_co_filled - mean_900_co_gaps) / mean_900_co_gaps * 100
+# percent_diff_mean_900_do = (mean_900_do_filled - mean_900_do_gaps) / mean_900_do_gaps * 100
+# percent_diff_mean_900_ph = (mean_900_ph_filled - mean_900_ph_gaps) / mean_900_ph_gaps * 100
+# percent_diff_mean_900_tu = (mean_900_tu_filled - mean_900_tu_gaps) / mean_900_tu_gaps * 100
+# percent_diff_mean_900_wt = (mean_900_wt_filled - mean_900_wt_gaps) / mean_900_wt_gaps * 100
+
 # percent_diff_mean_901_am = (mean_901_am_filled - mean_901_am_gaps) / mean_901_am_gaps * 100
 # percent_diff_mean_901_co = (mean_901_co_filled - mean_901_co_gaps) / mean_901_co_gaps * 100
 # percent_diff_mean_901_do = (mean_901_do_filled - mean_901_do_gaps) / mean_901_do_gaps * 100
@@ -342,11 +445,13 @@ print(results)
 
 # # Store the results in a DataFrame
 # percent_diff_mean = pd.DataFrame({
-#     'station': [901, 901, 901, 901, 901, 901, 905, 905, 905, 905, 905, 905, 907, 907, 907, 907, 907, 907],
-#     'variable': ['Ammonium', 'Conductivity', 'Dissolved oxygen', 'pH', 'Turbidity', 'Water temperature',
-#                 'Ammonium', 'Conductivity', 'Dissolved oxygen', 'pH', 'Turbidity', 'Water temperature',
-#                 'Ammonium', 'Conductivity', 'Dissolved oxygen', 'pH', 'Turbidity', 'Water temperature'],
-#     'percent_diff_mean': [percent_diff_mean_901_am, percent_diff_mean_901_co, percent_diff_mean_901_do, percent_diff_mean_901_ph, percent_diff_mean_901_tu, percent_diff_mean_901_wt,
+#     'station': [900, 900, 900, 900, 900, 900, 901, 901, 901, 901, 901, 901, 905, 905, 905, 905, 905, 905, 907, 907, 907, 907, 907, 907],
+    # 'variable': ['Ammonium', 'Conductivity', 'Dissolved oxygen', 'pH', 'Turbidity', 'Water temperature',
+    #             'Ammonium', 'Conductivity', 'Dissolved oxygen', 'pH', 'Turbidity', 'Water temperature',
+    #             'Ammonium', 'Conductivity', 'Dissolved oxygen', 'pH', 'Turbidity', 'Water temperature',
+    #             'Ammonium', 'Conductivity', 'Dissolved oxygen', 'pH', 'Turbidity', 'Water temperature'],
+#     'percent_diff_mean': [percent_diff_mean_900_am, percent_diff_mean_900_co, percent_diff_mean_900_do, percent_diff_mean_900_ph, percent_diff_mean_900_tu, percent_diff_mean_900_wt,
+#                         percent_diff_mean_901_am, percent_diff_mean_901_co, percent_diff_mean_901_do, percent_diff_mean_901_ph, percent_diff_mean_901_tu, percent_diff_mean_901_wt,
 #                         percent_diff_mean_905_am, percent_diff_mean_905_co, percent_diff_mean_905_do, percent_diff_mean_905_ph, percent_diff_mean_905_tu, percent_diff_mean_905_wt,
 #                         percent_diff_mean_907_am, percent_diff_mean_907_co, percent_diff_mean_907_do, percent_diff_mean_907_ph, percent_diff_mean_907_tu, percent_diff_mean_907_wt]
 #     })
@@ -354,6 +459,13 @@ print(results)
 # print(percent_diff_mean)
 
 #%% Test if the original and filled data come from the same distribution using the Kolmogorov-Smirnov test
+# stat_900_am, p_900_am = ks_2samp(am_900_gaps[:500], am_900_filled[:500])
+# stat_900_co, p_900_co = ks_2samp(co_900_gaps, co_900_filled)
+# stat_900_do, p_900_do = ks_2samp(do_900_gaps, do_900_filled)
+# stat_900_ph, p_900_ph = ks_2samp(ph_900_gaps, ph_900_filled)
+# stat_900_tu, p_900_tu = ks_2samp(tu_900_gaps, tu_900_filled)
+# stat_900_wt, p_900_wt = ks_2samp(wt_900_gaps, wt_900_filled)
+
 # stat_901_am, p_901_am = ks_2samp(am_901_gaps[:500], am_901_filled[:500])
 # stat_901_co, p_901_co = ks_2samp(co_901_gaps, co_901_filled)
 # stat_901_do, p_901_do = ks_2samp(do_901_gaps, do_901_filled)
@@ -377,14 +489,17 @@ print(results)
 
 # # Store the results in a DataFrame
 # results = pd.DataFrame({
-#     'station': [901, 901, 901, 901, 901, 901, 905, 905, 905, 905, 905, 905, 907, 907, 907, 907, 907, 907],
-#     'variable': ['Ammonium', 'Conductivity', 'Dissolved oxygen', 'pH', 'Turbidity', 'Water temperature',
-#                 'Ammonium', 'Conductivity', 'Dissolved oxygen', 'pH', 'Turbidity', 'Water temperature',
-#                 'Ammonium', 'Conductivity', 'Dissolved oxygen', 'pH', 'Turbidity', 'Water temperature'],
-#     'statistic': [stat_901_am, stat_901_co, stat_901_do, stat_901_ph, stat_901_tu, stat_901_wt,
+#     'station': [900, 900, 900, 900, 900, 900, 901, 901, 901, 901, 901, 901, 905, 905, 905, 905, 905, 905, 907, 907, 907, 907, 907, 907],
+    # 'variable': ['Ammonium', 'Conductivity', 'Dissolved oxygen', 'pH', 'Turbidity', 'Water temperature',
+    #             'Ammonium', 'Conductivity', 'Dissolved oxygen', 'pH', 'Turbidity', 'Water temperature',
+    #             'Ammonium', 'Conductivity', 'Dissolved oxygen', 'pH', 'Turbidity', 'Water temperature',
+    #             'Ammonium', 'Conductivity', 'Dissolved oxygen', 'pH', 'Turbidity', 'Water temperature'],
+#     'statistic': [stat_900_am, stat_900_co, stat_900_do, stat_900_ph, stat_900_tu, stat_900_wt,
+#                 stat_901_am, stat_901_co, stat_901_do, stat_901_ph, stat_901_tu, stat_901_wt,
 #                 stat_905_am, stat_905_co, stat_905_do, stat_905_ph, stat_905_tu, stat_905_wt,
 #                 stat_907_am, stat_907_co, stat_907_do, stat_907_ph, stat_907_tu, stat_907_wt],
-#     'p-value': [p_901_am, p_901_co, p_901_do, p_901_ph, p_901_tu, p_901_wt,
+#     'p-value': [p_900_am, p_900_co, p_900_do, p_900_ph, p_900_tu, p_900_wt,
+#                 p_901_am, p_901_co, p_901_do, p_901_ph, p_901_tu, p_901_wt,
 #                 p_905_am, p_905_co, p_905_do, p_905_ph, p_905_tu, p_905_wt,
 #                 p_907_am, p_907_co, p_907_do, p_907_ph, p_907_tu, p_907_wt]
 # })
