@@ -99,104 +99,110 @@ tu_900_filled = tu_900_filled[~np.isnan(tu_900_filled)]
 wt_900_filled = data_900_filled.water_temperature_900.to_numpy()
 wt_900_filled = wt_900_filled[~np.isnan(wt_900_filled)]
 
-am_901_gaps = data_901_gaps.ammonium_901.to_numpy()
-am_901_gaps = am_901_gaps[~np.isnan(am_901_gaps)]
-co_901_gaps = data_901_gaps.conductivity_901.to_numpy()
-co_901_gaps = co_901_gaps[~np.isnan(co_901_gaps)]
-do_901_gaps = data_901_gaps.dissolved_oxygen_901.to_numpy()
-do_901_gaps = do_901_gaps[~np.isnan(do_901_gaps)]
-ph_901_gaps = data_901_gaps.pH_901.to_numpy()
-ph_901_gaps = ph_901_gaps[~np.isnan(ph_901_gaps)]
-tu_901_gaps = data_901_gaps.turbidity_901.to_numpy()
-tu_901_gaps = tu_901_gaps[~np.isnan(tu_901_gaps)]
-wt_901_gaps = data_901_gaps.water_temperature_901.to_numpy()
-wt_901_gaps = wt_901_gaps[~np.isnan(wt_901_gaps)]
+# am_901_gaps = data_901_gaps.ammonium_901.to_numpy()
+# am_901_gaps = am_901_gaps[~np.isnan(am_901_gaps)]
+# co_901_gaps = data_901_gaps.conductivity_901.to_numpy()
+# co_901_gaps = co_901_gaps[~np.isnan(co_901_gaps)]
+# do_901_gaps = data_901_gaps.dissolved_oxygen_901.to_numpy()
+# do_901_gaps = do_901_gaps[~np.isnan(do_901_gaps)]
+# ph_901_gaps = data_901_gaps.pH_901.to_numpy()
+# ph_901_gaps = ph_901_gaps[~np.isnan(ph_901_gaps)]
+# tu_901_gaps = data_901_gaps.turbidity_901.to_numpy()
+# tu_901_gaps = tu_901_gaps[~np.isnan(tu_901_gaps)]
+# wt_901_gaps = data_901_gaps.water_temperature_901.to_numpy()
+# wt_901_gaps = wt_901_gaps[~np.isnan(wt_901_gaps)]
 
-am_901_filled = data_901_filled.ammonium_901.to_numpy()
-am_901_filled = am_901_filled[~np.isnan(am_901_filled)]
-co_901_filled = data_901_filled.conductivity_901.to_numpy()
-co_901_filled = co_901_filled[~np.isnan(co_901_filled)]
-do_901_filled = data_901_filled.dissolved_oxygen_901.to_numpy()
-do_901_filled = do_901_filled[~np.isnan(do_901_filled)]
-ph_901_filled = data_901_filled.pH_901.to_numpy()
-ph_901_filled = ph_901_filled[~np.isnan(ph_901_filled)]
-tu_901_filled = data_901_filled.turbidity_901.to_numpy()
-tu_901_filled = tu_901_filled[~np.isnan(tu_901_filled)]
-wt_901_filled = data_901_filled.water_temperature_901.to_numpy()
-wt_901_filled = wt_901_filled[~np.isnan(wt_901_filled)]
+# am_901_filled = data_901_filled.ammonium_901.to_numpy()
+# am_901_filled = am_901_filled[~np.isnan(am_901_filled)]
+# co_901_filled = data_901_filled.conductivity_901.to_numpy()
+# co_901_filled = co_901_filled[~np.isnan(co_901_filled)]
+# do_901_filled = data_901_filled.dissolved_oxygen_901.to_numpy()
+# do_901_filled = do_901_filled[~np.isnan(do_901_filled)]
+# ph_901_filled = data_901_filled.pH_901.to_numpy()
+# ph_901_filled = ph_901_filled[~np.isnan(ph_901_filled)]
+# tu_901_filled = data_901_filled.turbidity_901.to_numpy()
+# tu_901_filled = tu_901_filled[~np.isnan(tu_901_filled)]
+# wt_901_filled = data_901_filled.water_temperature_901.to_numpy()
+# wt_901_filled = wt_901_filled[~np.isnan(wt_901_filled)]
 
-am_905_gaps = data_905_gaps.ammonium_905.to_numpy()
-am_905_gaps = am_905_gaps[~np.isnan(am_905_gaps)]
-co_905_gaps = data_905_gaps.conductivity_905.to_numpy()
-co_905_gaps = co_905_gaps[~np.isnan(co_905_gaps)]
-do_905_gaps = data_905_gaps.dissolved_oxygen_905.to_numpy()
-do_905_gaps = do_905_gaps[~np.isnan(do_905_gaps)]
-ph_905_gaps = data_905_gaps.pH_905.to_numpy()
-ph_905_gaps = ph_905_gaps[~np.isnan(ph_905_gaps)]
-tu_905_gaps = data_905_gaps.turbidity_905.to_numpy()
-tu_905_gaps = tu_905_gaps[~np.isnan(tu_905_gaps)]
-wt_905_gaps = data_905_gaps.water_temperature_905.to_numpy()
-wt_905_gaps = wt_905_gaps[~np.isnan(wt_905_gaps)]
+# am_905_gaps = data_905_gaps.ammonium_905.to_numpy()
+# am_905_gaps = am_905_gaps[~np.isnan(am_905_gaps)]
+# co_905_gaps = data_905_gaps.conductivity_905.to_numpy()
+# co_905_gaps = co_905_gaps[~np.isnan(co_905_gaps)]
+# do_905_gaps = data_905_gaps.dissolved_oxygen_905.to_numpy()
+# do_905_gaps = do_905_gaps[~np.isnan(do_905_gaps)]
+# ph_905_gaps = data_905_gaps.pH_905.to_numpy()
+# ph_905_gaps = ph_905_gaps[~np.isnan(ph_905_gaps)]
+# tu_905_gaps = data_905_gaps.turbidity_905.to_numpy()
+# tu_905_gaps = tu_905_gaps[~np.isnan(tu_905_gaps)]
+# wt_905_gaps = data_905_gaps.water_temperature_905.to_numpy()
+# wt_905_gaps = wt_905_gaps[~np.isnan(wt_905_gaps)]
 
-am_905_filled = data_905_filled.ammonium_905.to_numpy()
-am_905_filled = am_905_filled[~np.isnan(am_905_filled)]
-co_905_filled = data_905_filled.conductivity_905.to_numpy()
-co_905_filled = co_905_filled[~np.isnan(co_905_filled)]
-do_905_filled = data_905_filled.dissolved_oxygen_905.to_numpy()
-do_905_filled = do_905_filled[~np.isnan(do_905_filled)]
-ph_905_filled = data_905_filled.pH_905.to_numpy()
-ph_905_filled = ph_905_filled[~np.isnan(ph_905_filled)]
-tu_905_filled = data_905_filled.turbidity_905.to_numpy()
-tu_905_filled = tu_905_filled[~np.isnan(tu_905_filled)]
-wt_905_filled = data_905_filled.water_temperature_905.to_numpy()
-wt_905_filled = wt_905_filled[~np.isnan(wt_905_filled)]
+# am_905_filled = data_905_filled.ammonium_905.to_numpy()
+# am_905_filled = am_905_filled[~np.isnan(am_905_filled)]
+# co_905_filled = data_905_filled.conductivity_905.to_numpy()
+# co_905_filled = co_905_filled[~np.isnan(co_905_filled)]
+# do_905_filled = data_905_filled.dissolved_oxygen_905.to_numpy()
+# do_905_filled = do_905_filled[~np.isnan(do_905_filled)]
+# ph_905_filled = data_905_filled.pH_905.to_numpy()
+# ph_905_filled = ph_905_filled[~np.isnan(ph_905_filled)]
+# tu_905_filled = data_905_filled.turbidity_905.to_numpy()
+# tu_905_filled = tu_905_filled[~np.isnan(tu_905_filled)]
+# wt_905_filled = data_905_filled.water_temperature_905.to_numpy()
+# wt_905_filled = wt_905_filled[~np.isnan(wt_905_filled)]
 
-am_907_gaps = data_907_gaps.ammonium_907.to_numpy()
-am_907_gaps = am_907_gaps[~np.isnan(am_907_gaps)]
-co_907_gaps = data_907_gaps.conductivity_907.to_numpy()
-co_907_gaps = co_907_gaps[~np.isnan(co_907_gaps)]
-do_907_gaps = data_907_gaps.dissolved_oxygen_907.to_numpy()
-do_907_gaps = do_907_gaps[~np.isnan(do_907_gaps)]
-ph_907_gaps = data_907_gaps.pH_907.to_numpy()
-ph_907_gaps = ph_907_gaps[~np.isnan(ph_907_gaps)]
-tu_907_gaps = data_907_gaps.turbidity_907.to_numpy()
-tu_907_gaps = tu_907_gaps[~np.isnan(tu_907_gaps)]
-wt_907_gaps = data_907_gaps.water_temperature_907.to_numpy()
-wt_907_gaps = wt_907_gaps[~np.isnan(wt_907_gaps)]
+# am_907_gaps = data_907_gaps.ammonium_907.to_numpy()
+# am_907_gaps = am_907_gaps[~np.isnan(am_907_gaps)]
+# co_907_gaps = data_907_gaps.conductivity_907.to_numpy()
+# co_907_gaps = co_907_gaps[~np.isnan(co_907_gaps)]
+# do_907_gaps = data_907_gaps.dissolved_oxygen_907.to_numpy()
+# do_907_gaps = do_907_gaps[~np.isnan(do_907_gaps)]
+# ph_907_gaps = data_907_gaps.pH_907.to_numpy()
+# ph_907_gaps = ph_907_gaps[~np.isnan(ph_907_gaps)]
+# tu_907_gaps = data_907_gaps.turbidity_907.to_numpy()
+# tu_907_gaps = tu_907_gaps[~np.isnan(tu_907_gaps)]
+# wt_907_gaps = data_907_gaps.water_temperature_907.to_numpy()
+# wt_907_gaps = wt_907_gaps[~np.isnan(wt_907_gaps)]
 
-am_907_filled = data_907_filled.ammonium_907.to_numpy()
-am_907_filled = am_907_filled[~np.isnan(am_907_filled)]
-co_907_filled = data_907_filled.conductivity_907.to_numpy()
-co_907_filled = co_907_filled[~np.isnan(co_907_filled)]
-do_907_filled = data_907_filled.dissolved_oxygen_907.to_numpy()
-do_907_filled = do_907_filled[~np.isnan(do_907_filled)]
-ph_907_filled = data_907_filled.pH_907.to_numpy()
-ph_907_filled = ph_907_filled[~np.isnan(ph_907_filled)]
-tu_907_filled = data_907_filled.turbidity_907.to_numpy()
-tu_907_filled = tu_907_filled[~np.isnan(tu_907_filled)]
-wt_907_filled = data_907_filled.water_temperature_907.to_numpy()
-wt_907_filled = wt_907_filled[~np.isnan(wt_907_filled)]
+# am_907_filled = data_907_filled.ammonium_907.to_numpy()
+# am_907_filled = am_907_filled[~np.isnan(am_907_filled)]
+# co_907_filled = data_907_filled.conductivity_907.to_numpy()
+# co_907_filled = co_907_filled[~np.isnan(co_907_filled)]
+# do_907_filled = data_907_filled.dissolved_oxygen_907.to_numpy()
+# do_907_filled = do_907_filled[~np.isnan(do_907_filled)]
+# ph_907_filled = data_907_filled.pH_907.to_numpy()
+# ph_907_filled = ph_907_filled[~np.isnan(ph_907_filled)]
+# tu_907_filled = data_907_filled.turbidity_907.to_numpy()
+# tu_907_filled = tu_907_filled[~np.isnan(tu_907_filled)]
+# wt_907_filled = data_907_filled.water_temperature_907.to_numpy()
+# wt_907_filled = wt_907_filled[~np.isnan(wt_907_filled)]
 
 #%% Plot the empirical cumulative distributions of each variable comparing the data with gaps and the filled version for each station
 fig, axes = plt.subplots(nrows=2, ncols=3, figsize=(16, 8))
 
-sns.ecdfplot(data=am_900_gaps, linestyle='dotted', linewidth=5, color='lightcoral', ax=axes[0, 0])
-sns.ecdfplot(data=am_900_filled, color='red', ax=axes[0, 0])
+sns.ecdfplot(data=am_900_gaps, linestyle='dotted', linewidth=5, color='lightcoral', ax=axes[0, 0], label='Original')
+sns.ecdfplot(data=am_900_filled, color='red', ax=axes[0, 0], label='Imputed')
+axes[0, 0].legend(loc='lower right', fontsize=12)
 
-sns.ecdfplot(data=co_900_gaps, linestyle='dotted', linewidth=5, color='cornflowerblue', ax=axes[0, 1])
-sns.ecdfplot(data=co_900_filled, color='blue', ax=axes[0, 1])
+sns.ecdfplot(data=co_900_gaps, linestyle='dotted', linewidth=5, color='cornflowerblue', ax=axes[0, 1], label='Original')
+sns.ecdfplot(data=co_900_filled, color='blue', ax=axes[0, 1], label='Imputed')
+axes[0, 1].legend(loc='lower right', fontsize=12)
 
-sns.ecdfplot(data=do_900_gaps, linestyle='dotted', linewidth=5, color='mediumpurple', ax=axes[0, 2])
-sns.ecdfplot(data=do_900_filled, color='purple', ax=axes[0, 2])
+sns.ecdfplot(data=do_900_gaps, linestyle='dotted', linewidth=5, color='mediumpurple', ax=axes[0, 2], label='Original')
+sns.ecdfplot(data=do_900_filled, color='purple', ax=axes[0, 2], label='Imputed')
+axes[0, 2].legend(loc='lower right', fontsize=12)
 
-sns.ecdfplot(data=ph_900_gaps, linestyle='dotted', linewidth=5, color='dimgray', ax=axes[1, 0])
-sns.ecdfplot(data=ph_900_filled, color='darkgray', ax=axes[1, 0])
+sns.ecdfplot(data=ph_900_gaps, linestyle='dotted', linewidth=5, color='dimgray', ax=axes[1, 0], label='Original')
+sns.ecdfplot(data=ph_900_filled, color='darkgray', ax=axes[1, 0], label='Imputed')
+axes[1, 0].legend(loc='lower left', fontsize=12)
 
-sns.ecdfplot(data=tu_900_gaps, linestyle='dotted', linewidth=5, color='gold', ax=axes[1, 1])
-sns.ecdfplot(data=tu_900_filled, color='goldenrod', ax=axes[1, 1])
+sns.ecdfplot(data=tu_900_gaps, linestyle='dotted', linewidth=5, color='gold', ax=axes[1, 1], label='Original')
+sns.ecdfplot(data=tu_900_filled, color='goldenrod', ax=axes[1, 1], label='Imputed')
+axes[1, 1].legend(loc='lower right', fontsize=12)
 
-sns.ecdfplot(data=wt_900_gaps, linestyle='dotted', linewidth=5, color='limegreen', ax=axes[1, 2])
-sns.ecdfplot(data=wt_900_filled, color='green', ax=axes[1, 2])
+sns.ecdfplot(data=wt_900_gaps, linestyle='dotted', linewidth=5, color='limegreen', ax=axes[1, 2], label='Original')
+sns.ecdfplot(data=wt_900_filled, color='green', ax=axes[1, 2], label='Imputed')
+axes[1, 2].legend(loc='lower right', fontsize=12)
 
 # Clean default y label and reduce font size for all axes
 for ax in axes.flat:
@@ -223,196 +229,196 @@ plt.tight_layout()
 # Save the plot
 plt.savefig('plots/imputation.pdf', format='pdf', dpi=300, bbox_inches='tight')
 
-fig, axes = plt.subplots(nrows=2, ncols=3, figsize=(16, 8))
+# fig, axes = plt.subplots(nrows=2, ncols=3, figsize=(16, 8))
 
-sns.ecdfplot(data=am_901_gaps, linestyle='dotted', linewidth=5, color='lightcoral', ax=axes[0, 0])
-sns.ecdfplot(data=am_901_filled, color='red', ax=axes[0, 0])
+# sns.ecdfplot(data=am_901_gaps, linestyle='dotted', linewidth=5, color='lightcoral', ax=axes[0, 0])
+# sns.ecdfplot(data=am_901_filled, color='red', ax=axes[0, 0])
 
-sns.ecdfplot(data=co_901_gaps, linestyle='dotted', linewidth=5, color='cornflowerblue', ax=axes[0, 1])
-sns.ecdfplot(data=co_901_filled, color='blue', ax=axes[0, 1])
+# sns.ecdfplot(data=co_901_gaps, linestyle='dotted', linewidth=5, color='cornflowerblue', ax=axes[0, 1])
+# sns.ecdfplot(data=co_901_filled, color='blue', ax=axes[0, 1])
 
-sns.ecdfplot(data=do_901_gaps, linestyle='dotted', linewidth=5, color='mediumpurple', ax=axes[0, 2])
-sns.ecdfplot(data=do_901_filled, color='purple', ax=axes[0, 2])
+# sns.ecdfplot(data=do_901_gaps, linestyle='dotted', linewidth=5, color='mediumpurple', ax=axes[0, 2])
+# sns.ecdfplot(data=do_901_filled, color='purple', ax=axes[0, 2])
 
-sns.ecdfplot(data=ph_901_gaps, linestyle='dotted', linewidth=5, color='dimgray', ax=axes[1, 0])
-sns.ecdfplot(data=ph_901_filled, color='darkgray', ax=axes[1, 0])
+# sns.ecdfplot(data=ph_901_gaps, linestyle='dotted', linewidth=5, color='dimgray', ax=axes[1, 0])
+# sns.ecdfplot(data=ph_901_filled, color='darkgray', ax=axes[1, 0])
 
-sns.ecdfplot(data=tu_901_gaps, linestyle='dotted', linewidth=5, color='gold', ax=axes[1, 1])
-sns.ecdfplot(data=tu_901_filled, color='goldenrod', ax=axes[1, 1])
+# sns.ecdfplot(data=tu_901_gaps, linestyle='dotted', linewidth=5, color='gold', ax=axes[1, 1])
+# sns.ecdfplot(data=tu_901_filled, color='goldenrod', ax=axes[1, 1])
 
-sns.ecdfplot(data=wt_901_gaps, linestyle='dotted', linewidth=5, color='limegreen', ax=axes[1, 2])
-sns.ecdfplot(data=wt_901_filled, color='green', ax=axes[1, 2])
+# sns.ecdfplot(data=wt_901_gaps, linestyle='dotted', linewidth=5, color='limegreen', ax=axes[1, 2])
+# sns.ecdfplot(data=wt_901_filled, color='green', ax=axes[1, 2])
 
-# Clean default y label and reduce font size for all axes
-for ax in axes.flat:
-    ax.set_ylabel('')
-    ax.tick_params(axis='both', which='major', labelsize=12)
+# # Clean default y label and reduce font size for all axes
+# for ax in axes.flat:
+#     ax.set_ylabel('')
+#     ax.tick_params(axis='both', which='major', labelsize=12)
 
-# Set the title for each variable
-var_names = ['Ammonium', 'Conductivity', 'Dissolved oxygen', 'pH', 'Turbidity', 'Water temperature']
-for i, ax in enumerate(axes.flat):
-    ax.set_title(var_names[i], fontname='Arial', fontsize=18)
+# # Set the title for each variable
+# var_names = ['Ammonium', 'Conductivity', 'Dissolved oxygen', 'pH', 'Turbidity', 'Water temperature']
+# for i, ax in enumerate(axes.flat):
+#     ax.set_title(var_names[i], fontname='Arial', fontsize=18)
 
-# Set the x label for each variable
-for ax in axes[1, :]:
-    ax.set_xlabel('Value', fontname='Arial', fontsize=16)
+# # Set the x label for each variable
+# for ax in axes[1, :]:
+#     ax.set_xlabel('Value', fontname='Arial', fontsize=16)
 
-# Set the y label for each variable
-for ax in axes[:, 0]:
-    ax.set_ylabel('Cumulative probability', fontname='Arial', fontsize=16)
+# # Set the y label for each variable
+# for ax in axes[:, 0]:
+#     ax.set_ylabel('Cumulative probability', fontname='Arial', fontsize=16)
 
-fig.suptitle('ECD before and after imputation for station 901', fontname='Arial', fontsize=22)
-plt.tight_layout()
-# plt.show()
+# fig.suptitle('ECD before and after imputation for station 901', fontname='Arial', fontsize=22)
+# plt.tight_layout()
+# # plt.show()
 
-# Save the plot
-plt.savefig('plots/imputation_901.pdf', format='pdf', dpi=300, bbox_inches='tight')
+# # Save the plot
+# plt.savefig('plots/imputation_901.pdf', format='pdf', dpi=300, bbox_inches='tight')
 
-fig, axes = plt.subplots(nrows=2, ncols=3, figsize=(16, 8))
+# fig, axes = plt.subplots(nrows=2, ncols=3, figsize=(16, 8))
 
-sns.ecdfplot(data=am_905_gaps, linestyle='dotted', linewidth=5, color='lightcoral', ax=axes[0, 0])
-sns.ecdfplot(data=am_905_filled, color='red', ax=axes[0, 0])
+# sns.ecdfplot(data=am_905_gaps, linestyle='dotted', linewidth=5, color='lightcoral', ax=axes[0, 0])
+# sns.ecdfplot(data=am_905_filled, color='red', ax=axes[0, 0])
 
-sns.ecdfplot(data=co_905_gaps, linestyle='dotted', linewidth=5, color='cornflowerblue', ax=axes[0, 1])
-sns.ecdfplot(data=co_905_filled, color='blue', ax=axes[0, 1])
+# sns.ecdfplot(data=co_905_gaps, linestyle='dotted', linewidth=5, color='cornflowerblue', ax=axes[0, 1])
+# sns.ecdfplot(data=co_905_filled, color='blue', ax=axes[0, 1])
 
-sns.ecdfplot(data=do_905_gaps, linestyle='dotted', linewidth=5, color='mediumpurple', ax=axes[0, 2])
-sns.ecdfplot(data=do_905_filled, color='purple', ax=axes[0, 2])
+# sns.ecdfplot(data=do_905_gaps, linestyle='dotted', linewidth=5, color='mediumpurple', ax=axes[0, 2])
+# sns.ecdfplot(data=do_905_filled, color='purple', ax=axes[0, 2])
 
-sns.ecdfplot(data=ph_905_gaps, linestyle='dotted', linewidth=5, color='dimgray', ax=axes[1, 0])
-sns.ecdfplot(data=ph_905_filled, color='darkgray', ax=axes[1, 0])
+# sns.ecdfplot(data=ph_905_gaps, linestyle='dotted', linewidth=5, color='dimgray', ax=axes[1, 0])
+# sns.ecdfplot(data=ph_905_filled, color='darkgray', ax=axes[1, 0])
 
-sns.ecdfplot(data=tu_905_gaps, linestyle='dotted', linewidth=5, color='gold', ax=axes[1, 1])
-sns.ecdfplot(data=tu_905_filled, color='goldenrod', ax=axes[1, 1])
+# sns.ecdfplot(data=tu_905_gaps, linestyle='dotted', linewidth=5, color='gold', ax=axes[1, 1])
+# sns.ecdfplot(data=tu_905_filled, color='goldenrod', ax=axes[1, 1])
 
-sns.ecdfplot(data=wt_905_gaps, linestyle='dotted', linewidth=5, color='limegreen', ax=axes[1, 2])
-sns.ecdfplot(data=wt_905_filled, color='green', ax=axes[1, 2])
+# sns.ecdfplot(data=wt_905_gaps, linestyle='dotted', linewidth=5, color='limegreen', ax=axes[1, 2])
+# sns.ecdfplot(data=wt_905_filled, color='green', ax=axes[1, 2])
 
-# Clean default y label and reduce font size for all axes
-for ax in axes.flat:
-    ax.set_ylabel('')
-    ax.tick_params(axis='both', which='major', labelsize=12)
+# # Clean default y label and reduce font size for all axes
+# for ax in axes.flat:
+#     ax.set_ylabel('')
+#     ax.tick_params(axis='both', which='major', labelsize=12)
 
-# Set the title for each variable
-var_names = ['Ammonium', 'Conductivity', 'Dissolved oxygen', 'pH', 'Turbidity', 'Water temperature']
-for i, ax in enumerate(axes.flat):
-    ax.set_title(var_names[i], fontname='Arial', fontsize=18)
+# # Set the title for each variable
+# var_names = ['Ammonium', 'Conductivity', 'Dissolved oxygen', 'pH', 'Turbidity', 'Water temperature']
+# for i, ax in enumerate(axes.flat):
+#     ax.set_title(var_names[i], fontname='Arial', fontsize=18)
 
-# Set the x label for each variable
-for ax in axes[1, :]:
-    ax.set_xlabel('Value', fontname='Arial', fontsize=16)
+# # Set the x label for each variable
+# for ax in axes[1, :]:
+#     ax.set_xlabel('Value', fontname='Arial', fontsize=16)
 
-# Set the y label for each variable
-for ax in axes[:, 0]:
-    ax.set_ylabel('Cumulative probability', fontname='Arial', fontsize=16)
+# # Set the y label for each variable
+# for ax in axes[:, 0]:
+#     ax.set_ylabel('Cumulative probability', fontname='Arial', fontsize=16)
 
-fig.suptitle('ECD before and after imputation for station 905', fontname='Arial', fontsize=22)
-plt.tight_layout()
-# plt.show()
+# fig.suptitle('ECD before and after imputation for station 905', fontname='Arial', fontsize=22)
+# plt.tight_layout()
+# # plt.show()
 
-# Save the plot
-plt.savefig('plots/imputation_905.pdf', format='pdf', dpi=300, bbox_inches='tight')
+# # Save the plot
+# plt.savefig('plots/imputation_905.pdf', format='pdf', dpi=300, bbox_inches='tight')
 
-fig, axes = plt.subplots(nrows=2, ncols=3, figsize=(16, 8))
+# fig, axes = plt.subplots(nrows=2, ncols=3, figsize=(16, 8))
 
-sns.ecdfplot(data=am_907_gaps, linestyle='dotted', linewidth=5, color='lightcoral', ax=axes[0, 0])
-sns.ecdfplot(data=am_907_filled, color='red', ax=axes[0, 0])
+# sns.ecdfplot(data=am_907_gaps, linestyle='dotted', linewidth=5, color='lightcoral', ax=axes[0, 0])
+# sns.ecdfplot(data=am_907_filled, color='red', ax=axes[0, 0])
 
-sns.ecdfplot(data=co_907_gaps, linestyle='dotted', linewidth=5, color='cornflowerblue', ax=axes[0, 1])
-sns.ecdfplot(data=co_907_filled, color='blue', ax=axes[0, 1])
+# sns.ecdfplot(data=co_907_gaps, linestyle='dotted', linewidth=5, color='cornflowerblue', ax=axes[0, 1])
+# sns.ecdfplot(data=co_907_filled, color='blue', ax=axes[0, 1])
 
-sns.ecdfplot(data=do_907_gaps, color='mediumpurple', ax=axes[0, 2])
-sns.ecdfplot(data=do_907_filled, color='purple', ax=axes[0, 2])
+# sns.ecdfplot(data=do_907_gaps, color='mediumpurple', ax=axes[0, 2])
+# sns.ecdfplot(data=do_907_filled, color='purple', ax=axes[0, 2])
 
-sns.ecdfplot(data=ph_907_gaps, linestyle='dotted', linewidth=5, color='dimgray', ax=axes[1, 0])
-sns.ecdfplot(data=ph_907_filled, color='darkgray', ax=axes[1, 0])
+# sns.ecdfplot(data=ph_907_gaps, linestyle='dotted', linewidth=5, color='dimgray', ax=axes[1, 0])
+# sns.ecdfplot(data=ph_907_filled, color='darkgray', ax=axes[1, 0])
 
-sns.ecdfplot(data=tu_907_gaps, linestyle='dotted', linewidth=5, color='gold', ax=axes[1, 1])
-sns.ecdfplot(data=tu_907_filled, color='goldenrod', ax=axes[1, 1])
+# sns.ecdfplot(data=tu_907_gaps, linestyle='dotted', linewidth=5, color='gold', ax=axes[1, 1])
+# sns.ecdfplot(data=tu_907_filled, color='goldenrod', ax=axes[1, 1])
 
-sns.ecdfplot(data=wt_907_gaps, linestyle='dotted', linewidth=5, color='limegreen', ax=axes[1, 2])
-sns.ecdfplot(data=wt_907_filled, color='green', ax=axes[1, 2])
+# sns.ecdfplot(data=wt_907_gaps, linestyle='dotted', linewidth=5, color='limegreen', ax=axes[1, 2])
+# sns.ecdfplot(data=wt_907_filled, color='green', ax=axes[1, 2])
 
-# Clean default y label and reduce font size for all axes
-for ax in axes.flat:
-    ax.set_ylabel('')
-    ax.tick_params(axis='both', which='major', labelsize=12)
+# # Clean default y label and reduce font size for all axes
+# for ax in axes.flat:
+#     ax.set_ylabel('')
+#     ax.tick_params(axis='both', which='major', labelsize=12)
 
-# Set the title for each variable
-var_names = ['Ammonium', 'Conductivity', 'Dissolved oxygen', 'pH', 'Turbidity', 'Water temperature']
-for i, ax in enumerate(axes.flat):
-    ax.set_title(var_names[i], fontname='Arial', fontsize=18)
+# # Set the title for each variable
+# var_names = ['Ammonium', 'Conductivity', 'Dissolved oxygen', 'pH', 'Turbidity', 'Water temperature']
+# for i, ax in enumerate(axes.flat):
+#     ax.set_title(var_names[i], fontname='Arial', fontsize=18)
 
-# Set the x label for each variable
-for ax in axes[1, :]:
-    ax.set_xlabel('Value', fontname='Arial', fontsize=16)
+# # Set the x label for each variable
+# for ax in axes[1, :]:
+#     ax.set_xlabel('Value', fontname='Arial', fontsize=16)
 
-# Set the y label for each variable
-for ax in axes[:, 0]:
-    ax.set_ylabel('Cumulative probability', fontname='Arial', fontsize=16)
+# # Set the y label for each variable
+# for ax in axes[:, 0]:
+#     ax.set_ylabel('Cumulative probability', fontname='Arial', fontsize=16)
 
-fig.suptitle('ECD before and after imputation for station 907', fontname='Arial', fontsize=22)
-plt.tight_layout()
-# plt.show()
+# fig.suptitle('ECD before and after imputation for station 907', fontname='Arial', fontsize=22)
+# plt.tight_layout()
+# # plt.show()
 
-# Save the plot
-plt.savefig('plots/imputation_907.pdf', format='pdf', dpi=300, bbox_inches='tight')
+# # Save the plot
+# plt.savefig('plots/imputation_907.pdf', format='pdf', dpi=300, bbox_inches='tight')
 
-#%% Get the mean and standard deviation for each variable and station before and after filling
-mean_900_am_gaps, std_900_am_gaps, mean_900_am_filled, std_900_am_filled = np.mean(am_900_gaps), np.std(am_900_gaps), np.mean(am_900_filled), np.std(am_900_filled)
-mean_900_co_gaps, std_900_co_gaps, mean_900_co_filled, std_900_co_filled = np.mean(co_900_gaps), np.std(co_900_gaps), np.mean(co_900_filled), np.std(co_900_filled)
-mean_900_do_gaps, std_900_do_gaps, mean_900_do_filled, std_900_do_filled = np.mean(do_900_gaps), np.std(do_900_gaps), np.mean(do_900_filled), np.std(do_900_filled)
-mean_900_ph_gaps, std_900_ph_gaps, mean_900_ph_filled, std_900_ph_filled = np.mean(ph_900_gaps), np.std(ph_900_gaps), np.mean(ph_900_filled), np.std(ph_900_filled)
-mean_900_tu_gaps, std_900_tu_gaps, mean_900_tu_filled, std_900_tu_filled = np.mean(tu_900_gaps), np.std(tu_900_gaps), np.mean(tu_900_filled), np.std(tu_900_filled)
-mean_900_wt_gaps, std_900_wt_gaps, mean_900_wt_filled, std_900_wt_filled = np.mean(wt_900_gaps), np.std(wt_900_gaps), np.mean(wt_900_filled), np.std(wt_900_filled)
+# #%% Get the mean and standard deviation for each variable and station before and after filling
+# mean_900_am_gaps, std_900_am_gaps, mean_900_am_filled, std_900_am_filled = np.mean(am_900_gaps), np.std(am_900_gaps), np.mean(am_900_filled), np.std(am_900_filled)
+# mean_900_co_gaps, std_900_co_gaps, mean_900_co_filled, std_900_co_filled = np.mean(co_900_gaps), np.std(co_900_gaps), np.mean(co_900_filled), np.std(co_900_filled)
+# mean_900_do_gaps, std_900_do_gaps, mean_900_do_filled, std_900_do_filled = np.mean(do_900_gaps), np.std(do_900_gaps), np.mean(do_900_filled), np.std(do_900_filled)
+# mean_900_ph_gaps, std_900_ph_gaps, mean_900_ph_filled, std_900_ph_filled = np.mean(ph_900_gaps), np.std(ph_900_gaps), np.mean(ph_900_filled), np.std(ph_900_filled)
+# mean_900_tu_gaps, std_900_tu_gaps, mean_900_tu_filled, std_900_tu_filled = np.mean(tu_900_gaps), np.std(tu_900_gaps), np.mean(tu_900_filled), np.std(tu_900_filled)
+# mean_900_wt_gaps, std_900_wt_gaps, mean_900_wt_filled, std_900_wt_filled = np.mean(wt_900_gaps), np.std(wt_900_gaps), np.mean(wt_900_filled), np.std(wt_900_filled)
 
-mean_901_am_gaps, std_901_am_gaps, mean_901_am_filled, std_901_am_filled = np.mean(am_901_gaps), np.std(am_901_gaps), np.mean(am_901_filled), np.std(am_901_filled)
-mean_901_co_gaps, std_901_co_gaps, mean_901_co_filled, std_901_co_filled = np.mean(co_901_gaps), np.std(co_901_gaps), np.mean(co_901_filled), np.std(co_901_filled)
-mean_901_do_gaps, std_901_do_gaps, mean_901_do_filled, std_901_do_filled = np.mean(do_901_gaps), np.std(do_901_gaps), np.mean(do_901_filled), np.std(do_901_filled)
-mean_901_ph_gaps, std_901_ph_gaps, mean_901_ph_filled, std_901_ph_filled = np.mean(ph_901_gaps), np.std(ph_901_gaps), np.mean(ph_901_filled), np.std(ph_901_filled)
-mean_901_tu_gaps, std_901_tu_gaps, mean_901_tu_filled, std_901_tu_filled = np.mean(tu_901_gaps), np.std(tu_901_gaps), np.mean(tu_901_filled), np.std(tu_901_filled)
-mean_901_wt_gaps, std_901_wt_gaps, mean_901_wt_filled, std_901_wt_filled = np.mean(wt_901_gaps), np.std(wt_901_gaps), np.mean(wt_901_filled), np.std(wt_901_filled)
+# mean_901_am_gaps, std_901_am_gaps, mean_901_am_filled, std_901_am_filled = np.mean(am_901_gaps), np.std(am_901_gaps), np.mean(am_901_filled), np.std(am_901_filled)
+# mean_901_co_gaps, std_901_co_gaps, mean_901_co_filled, std_901_co_filled = np.mean(co_901_gaps), np.std(co_901_gaps), np.mean(co_901_filled), np.std(co_901_filled)
+# mean_901_do_gaps, std_901_do_gaps, mean_901_do_filled, std_901_do_filled = np.mean(do_901_gaps), np.std(do_901_gaps), np.mean(do_901_filled), np.std(do_901_filled)
+# mean_901_ph_gaps, std_901_ph_gaps, mean_901_ph_filled, std_901_ph_filled = np.mean(ph_901_gaps), np.std(ph_901_gaps), np.mean(ph_901_filled), np.std(ph_901_filled)
+# mean_901_tu_gaps, std_901_tu_gaps, mean_901_tu_filled, std_901_tu_filled = np.mean(tu_901_gaps), np.std(tu_901_gaps), np.mean(tu_901_filled), np.std(tu_901_filled)
+# mean_901_wt_gaps, std_901_wt_gaps, mean_901_wt_filled, std_901_wt_filled = np.mean(wt_901_gaps), np.std(wt_901_gaps), np.mean(wt_901_filled), np.std(wt_901_filled)
 
-mean_905_am_gaps, std_905_am_gaps, mean_905_am_filled, std_905_am_filled = np.mean(am_905_gaps), np.std(am_905_gaps), np.mean(am_905_filled), np.std(am_905_filled)
-mean_905_co_gaps, std_905_co_gaps, mean_905_co_filled, std_905_co_filled = np.mean(co_905_gaps), np.std(co_905_gaps), np.mean(co_905_filled), np.std(co_905_filled)
-mean_905_do_gaps, std_905_do_gaps, mean_905_do_filled, std_905_do_filled = np.mean(do_905_gaps), np.std(do_905_gaps), np.mean(do_905_filled), np.std(do_905_filled)
-mean_905_ph_gaps, std_905_ph_gaps, mean_905_ph_filled, std_905_ph_filled = np.mean(ph_905_gaps), np.std(ph_905_gaps), np.mean(ph_905_filled), np.std(ph_905_filled)
-mean_905_tu_gaps, std_905_tu_gaps, mean_905_tu_filled, std_905_tu_filled = np.mean(tu_905_gaps), np.std(tu_905_gaps), np.mean(tu_905_filled), np.std(tu_905_filled)
-mean_905_wt_gaps, std_905_wt_gaps, mean_905_wt_filled, std_905_wt_filled = np.mean(wt_905_gaps), np.std(wt_905_gaps), np.mean(wt_905_filled), np.std(wt_905_filled)
+# mean_905_am_gaps, std_905_am_gaps, mean_905_am_filled, std_905_am_filled = np.mean(am_905_gaps), np.std(am_905_gaps), np.mean(am_905_filled), np.std(am_905_filled)
+# mean_905_co_gaps, std_905_co_gaps, mean_905_co_filled, std_905_co_filled = np.mean(co_905_gaps), np.std(co_905_gaps), np.mean(co_905_filled), np.std(co_905_filled)
+# mean_905_do_gaps, std_905_do_gaps, mean_905_do_filled, std_905_do_filled = np.mean(do_905_gaps), np.std(do_905_gaps), np.mean(do_905_filled), np.std(do_905_filled)
+# mean_905_ph_gaps, std_905_ph_gaps, mean_905_ph_filled, std_905_ph_filled = np.mean(ph_905_gaps), np.std(ph_905_gaps), np.mean(ph_905_filled), np.std(ph_905_filled)
+# mean_905_tu_gaps, std_905_tu_gaps, mean_905_tu_filled, std_905_tu_filled = np.mean(tu_905_gaps), np.std(tu_905_gaps), np.mean(tu_905_filled), np.std(tu_905_filled)
+# mean_905_wt_gaps, std_905_wt_gaps, mean_905_wt_filled, std_905_wt_filled = np.mean(wt_905_gaps), np.std(wt_905_gaps), np.mean(wt_905_filled), np.std(wt_905_filled)
 
-mean_907_am_gaps, std_907_am_gaps, mean_907_am_filled, std_907_am_filled = np.mean(am_907_gaps), np.std(am_907_gaps), np.mean(am_907_filled), np.std(am_907_filled)
-mean_907_co_gaps, std_907_co_gaps, mean_907_co_filled, std_907_co_filled = np.mean(co_907_gaps), np.std(co_907_gaps), np.mean(co_907_filled), np.std(co_907_filled)
-mean_907_do_gaps, std_907_do_gaps, mean_907_do_filled, std_907_do_filled = np.mean(do_907_gaps), np.std(do_907_gaps), np.mean(do_907_filled), np.std(do_907_filled)
-mean_907_ph_gaps, std_907_ph_gaps, mean_907_ph_filled, std_907_ph_filled = np.mean(ph_907_gaps), np.std(ph_907_gaps), np.mean(ph_907_filled), np.std(ph_907_filled)
-mean_907_tu_gaps, std_907_tu_gaps, mean_907_tu_filled, std_907_tu_filled = np.mean(tu_907_gaps), np.std(tu_907_gaps), np.mean(tu_907_filled), np.std(tu_907_filled)
-mean_907_wt_gaps, std_907_wt_gaps, mean_907_wt_filled, std_907_wt_filled = np.mean(wt_907_gaps), np.std(wt_907_gaps), np.mean(wt_907_filled), np.std(wt_907_filled)
+# mean_907_am_gaps, std_907_am_gaps, mean_907_am_filled, std_907_am_filled = np.mean(am_907_gaps), np.std(am_907_gaps), np.mean(am_907_filled), np.std(am_907_filled)
+# mean_907_co_gaps, std_907_co_gaps, mean_907_co_filled, std_907_co_filled = np.mean(co_907_gaps), np.std(co_907_gaps), np.mean(co_907_filled), np.std(co_907_filled)
+# mean_907_do_gaps, std_907_do_gaps, mean_907_do_filled, std_907_do_filled = np.mean(do_907_gaps), np.std(do_907_gaps), np.mean(do_907_filled), np.std(do_907_filled)
+# mean_907_ph_gaps, std_907_ph_gaps, mean_907_ph_filled, std_907_ph_filled = np.mean(ph_907_gaps), np.std(ph_907_gaps), np.mean(ph_907_filled), np.std(ph_907_filled)
+# mean_907_tu_gaps, std_907_tu_gaps, mean_907_tu_filled, std_907_tu_filled = np.mean(tu_907_gaps), np.std(tu_907_gaps), np.mean(tu_907_filled), np.std(tu_907_filled)
+# mean_907_wt_gaps, std_907_wt_gaps, mean_907_wt_filled, std_907_wt_filled = np.mean(wt_907_gaps), np.std(wt_907_gaps), np.mean(wt_907_filled), np.std(wt_907_filled)
 
-# Store the results in a DataFrame
-results = pd.DataFrame({
-    'station': [900, 900, 900, 900, 900, 900, 901, 901, 901, 901, 901, 901, 905, 905, 905, 905, 905, 905, 907, 907, 907, 907, 907, 907],
-    'variable': ['Ammonium', 'Conductivity', 'Dissolved oxygen', 'pH', 'Turbidity', 'Water temperature',
-                'Ammonium', 'Conductivity', 'Dissolved oxygen', 'pH', 'Turbidity', 'Water temperature',
-                'Ammonium', 'Conductivity', 'Dissolved oxygen', 'pH', 'Turbidity', 'Water temperature',
-                'Ammonium', 'Conductivity', 'Dissolved oxygen', 'pH', 'Turbidity', 'Water temperature'],
-    'mean_gaps': [mean_900_am_gaps, mean_900_co_gaps, mean_900_do_gaps, mean_900_ph_gaps, mean_900_tu_gaps, mean_900_wt_gaps,
-                mean_901_am_gaps, mean_901_co_gaps, mean_901_do_gaps, mean_901_ph_gaps, mean_901_tu_gaps, mean_901_wt_gaps,
-                mean_905_am_gaps, mean_905_co_gaps, mean_905_do_gaps, mean_905_ph_gaps, mean_905_tu_gaps, mean_905_wt_gaps,
-                mean_907_am_gaps, mean_907_co_gaps, mean_907_do_gaps, mean_907_ph_gaps, mean_907_tu_gaps, mean_907_wt_gaps],
-    'std_gaps': [std_900_am_gaps, std_900_co_gaps, std_900_do_gaps, std_900_ph_gaps, std_900_tu_gaps, std_900_wt_gaps,
-                std_901_am_gaps, std_901_co_gaps, std_901_do_gaps, std_901_ph_gaps, std_901_tu_gaps, std_901_wt_gaps,
-                std_905_am_gaps, std_905_co_gaps, std_905_do_gaps, std_905_ph_gaps, std_905_tu_gaps, std_905_wt_gaps,
-                std_907_am_gaps, std_907_co_gaps, std_907_do_gaps, std_907_ph_gaps, std_907_tu_gaps, std_907_wt_gaps],
-    'mean_filled': [mean_900_am_filled, mean_900_co_filled, mean_900_do_filled, mean_900_ph_filled, mean_900_tu_filled, mean_900_wt_filled,
-                mean_901_am_filled, mean_901_co_filled, mean_901_do_filled, mean_901_ph_filled, mean_901_tu_filled, mean_901_wt_filled,
-                mean_905_am_filled, mean_905_co_filled, mean_905_do_filled, mean_905_ph_filled, mean_905_tu_filled, mean_905_wt_filled,
-                mean_907_am_filled, mean_907_co_filled, mean_907_do_filled, mean_907_ph_filled, mean_907_tu_filled, mean_907_wt_filled],
-    'std_filled': [std_900_am_filled, std_900_co_filled, std_900_do_filled, std_900_ph_filled, std_900_tu_filled, std_900_wt_filled,
-                std_901_am_filled, std_901_co_filled, std_901_do_filled, std_901_ph_filled, std_901_tu_filled, std_901_wt_filled,
-                std_905_am_filled, std_905_co_filled, std_905_do_filled, std_905_ph_filled, std_905_tu_filled, std_905_wt_filled,
-                std_907_am_filled, std_907_co_filled, std_907_do_filled, std_907_ph_filled, std_907_tu_filled, std_907_wt_filled]
-    })
+# # Store the results in a DataFrame
+# results = pd.DataFrame({
+#     'station': [900, 900, 900, 900, 900, 900, 901, 901, 901, 901, 901, 901, 905, 905, 905, 905, 905, 905, 907, 907, 907, 907, 907, 907],
+#     'variable': ['Ammonium', 'Conductivity', 'Dissolved oxygen', 'pH', 'Turbidity', 'Water temperature',
+#                 'Ammonium', 'Conductivity', 'Dissolved oxygen', 'pH', 'Turbidity', 'Water temperature',
+#                 'Ammonium', 'Conductivity', 'Dissolved oxygen', 'pH', 'Turbidity', 'Water temperature',
+#                 'Ammonium', 'Conductivity', 'Dissolved oxygen', 'pH', 'Turbidity', 'Water temperature'],
+#     'mean_gaps': [mean_900_am_gaps, mean_900_co_gaps, mean_900_do_gaps, mean_900_ph_gaps, mean_900_tu_gaps, mean_900_wt_gaps,
+#                 mean_901_am_gaps, mean_901_co_gaps, mean_901_do_gaps, mean_901_ph_gaps, mean_901_tu_gaps, mean_901_wt_gaps,
+#                 mean_905_am_gaps, mean_905_co_gaps, mean_905_do_gaps, mean_905_ph_gaps, mean_905_tu_gaps, mean_905_wt_gaps,
+#                 mean_907_am_gaps, mean_907_co_gaps, mean_907_do_gaps, mean_907_ph_gaps, mean_907_tu_gaps, mean_907_wt_gaps],
+#     'std_gaps': [std_900_am_gaps, std_900_co_gaps, std_900_do_gaps, std_900_ph_gaps, std_900_tu_gaps, std_900_wt_gaps,
+#                 std_901_am_gaps, std_901_co_gaps, std_901_do_gaps, std_901_ph_gaps, std_901_tu_gaps, std_901_wt_gaps,
+#                 std_905_am_gaps, std_905_co_gaps, std_905_do_gaps, std_905_ph_gaps, std_905_tu_gaps, std_905_wt_gaps,
+#                 std_907_am_gaps, std_907_co_gaps, std_907_do_gaps, std_907_ph_gaps, std_907_tu_gaps, std_907_wt_gaps],
+#     'mean_filled': [mean_900_am_filled, mean_900_co_filled, mean_900_do_filled, mean_900_ph_filled, mean_900_tu_filled, mean_900_wt_filled,
+#                 mean_901_am_filled, mean_901_co_filled, mean_901_do_filled, mean_901_ph_filled, mean_901_tu_filled, mean_901_wt_filled,
+#                 mean_905_am_filled, mean_905_co_filled, mean_905_do_filled, mean_905_ph_filled, mean_905_tu_filled, mean_905_wt_filled,
+#                 mean_907_am_filled, mean_907_co_filled, mean_907_do_filled, mean_907_ph_filled, mean_907_tu_filled, mean_907_wt_filled],
+#     'std_filled': [std_900_am_filled, std_900_co_filled, std_900_do_filled, std_900_ph_filled, std_900_tu_filled, std_900_wt_filled,
+#                 std_901_am_filled, std_901_co_filled, std_901_do_filled, std_901_ph_filled, std_901_tu_filled, std_901_wt_filled,
+#                 std_905_am_filled, std_905_co_filled, std_905_do_filled, std_905_ph_filled, std_905_tu_filled, std_905_wt_filled,
+#                 std_907_am_filled, std_907_co_filled, std_907_do_filled, std_907_ph_filled, std_907_tu_filled, std_907_wt_filled]
+#     })
 
-print(results)
+# print(results)
 
 #%% Get the percent difference between the mean and standard deviation of the original and filled data
 # percent_diff_mean_900_am = (mean_900_am_filled - mean_900_am_gaps) / mean_900_am_gaps * 100
